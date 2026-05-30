@@ -81,11 +81,14 @@ function App() {
         <section className="hero">
           <div className="hero__copy">
             <p className="eyebrow">잇츠미 · 리서처 콘솔</p>
-            <h1 className="hero__title">설문 한 번에, 인사이트는 더 깊게.</h1>
+            <h1 className="hero__title">
+              질문은 한 번,
+              <br />
+              인사이트는 더 깊이.
+            </h1>
             <p className="hero__lead">
-              잇츠미는 진짜 패널의 응답을 모으는 보상형 리서치 플랫폼입니다. 설문을 설계해 발행하면
-              라이브 피드에 응답이 차곡차곡 쌓이고, 어뷰즈 탐지와 펫 성장 보상까지 자연스럽게
-              이어집니다.
+              진짜 패널이 모이는 보상형 리서치 플랫폼. 설문을 만들어 발행하면 응답이 차곡차곡
+              쌓이고, 어뷰즈 탐지부터 펫 보상까지 한 흐름으로 이어집니다.
             </p>
             <div className="hero__actions">
               <button
@@ -97,18 +100,18 @@ function App() {
                     ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }}
               >
-                워크플로우 시작
+                워크플로우 시작하기
               </button>
               <button
                 type="button"
-                className="btn btn--secondary btn--lg"
+                className="btn btn--ghost btn--lg"
                 onClick={() => {
                   document
                     .getElementById('feed')
                     ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }}
               >
-                라이브 피드 보기
+                진행 중인 설문 보기
               </button>
             </div>
           </div>

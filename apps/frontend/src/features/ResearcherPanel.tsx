@@ -139,7 +139,7 @@ export function ResearcherPanel() {
 
   const runResponseFlow = useCallback(async () => {
     setBusy(true)
-    pushLog('패널리스트 응답 시뮬레이션을 시작해요…')
+    pushLog('패널리스트 응답 흐름을 시작해요…')
     try {
       const liveSurvey = surveys.find((survey) => survey.status === 'live')
       if (!liveSurvey) {
@@ -299,7 +299,7 @@ export function ResearcherPanel() {
                 onClick={() => void seedSurvey()}
                 disabled={busy}
               >
-                {busy ? '처리하는 중…' : '데모 설문 만들기'}
+                {busy ? '처리하는 중…' : '예시 설문 만들어 보기'}
               </button>
             </div>
           </article>
@@ -341,7 +341,7 @@ export function ResearcherPanel() {
                 disabled={busy || liveCount === 0}
                 title={liveCount === 0 ? '먼저 1·2단계를 진행해 주세요.' : undefined}
               >
-                응답 시뮬레이션
+                응답 흐름 미리 보기
               </button>
             </div>
           </article>
@@ -447,12 +447,12 @@ export function ResearcherPanel() {
 
               <span className={`pet-tag ${panelist.pet.sick ? 'is-sick' : ''}`}>
                 {panelist.pet.sick
-                  ? '아픈 상태 · 어뷰즈 패널티'
+                  ? '주의가 필요해요'
                   : (panelist.pet.evolutionStage ?? '건강한 상태')}
               </span>
             </>
           ) : (
-            <p className="panelist__empty">3단계 응답 시뮬레이션을 실행하면 통계가 채워져요.</p>
+            <p className="panelist__empty">3단계 응답 흐름을 실행하면 통계가 채워져요.</p>
           )}
         </aside>
       </section>

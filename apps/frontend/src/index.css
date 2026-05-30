@@ -1,31 +1,32 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* itsme design tokens — Apple discipline x Notion warmth */
+/* itsme design tokens — editorial discipline × Apple typography × Toss warmth */
 :root {
-  /* Brand */
+  /* Brand (used sparingly — primary accent only) */
   --color-primary: #5645d4;
   --color-primary-pressed: #4534b3;
-  --color-primary-soft: rgba(86, 69, 212, 0.1);
-  --color-accent-blue: #0066cc;
+  --color-primary-soft: rgba(86, 69, 212, 0.08);
+  --color-accent-blue: #3182f6;
 
-  /* Surface */
+  /* Surface — cool neutrals, Toss-leaning */
   --color-canvas: #ffffff;
-  --color-surface: #f7f6f3;
-  --color-surface-soft: #fafaf9;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f7f8fa;
+  --color-surface-sunk: #f2f4f6;
 
-  /* Ink */
-  --color-ink: #1a1a1a;
+  /* Ink — slightly cool, Toss palette */
+  --color-ink: #191f28;
   --color-ink-strong: #000000;
-  --color-charcoal: #37352f;
-  --color-slate: #5d5b54;
-  --color-steel: #787671;
-  --color-stone: #a4a097;
-  --color-muted: #bbb8b1;
+  --color-charcoal: #333d4b;
+  --color-slate: #4e5968;
+  --color-steel: #6b7684;
+  --color-stone: #8b95a1;
+  --color-muted: #b0b8c1;
 
   /* Hairlines */
-  --color-hairline: #e5e3df;
-  --color-hairline-soft: #ede9e4;
+  --color-hairline: #e5e8eb;
+  --color-hairline-soft: #eef0f3;
 
   /* Pastel tints */
   --tint-peach: #ffe8d4;
@@ -58,21 +59,57 @@
   --font-display: var(--font-sans);
   --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, ui-monospace, monospace;
 
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  /* Type scale — 8-step modular */
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 19px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;
+  --text-5xl: 64px;
+
+  /* Spacing — 8px modular with editorial section gaps */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+  --space-section: clamp(64px, 12vw, 128px);
+
+  /* Containers — editorial widths */
+  --container-content: 720px;
+  --container-wide: 1120px;
+  --container-page: 1240px;
+
+  /* Radius — Toss 14 / Apple 12 reconciled */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-xl: 20px;
+  --radius-2xl: 24px;
   --radius-pill: 9999px;
 
-  /* Elevation */
-  --shadow-1: 0 1px 2px rgba(15, 15, 15, 0.04), 0 1px 1px rgba(15, 15, 15, 0.03);
-  --shadow-2: 0 4px 12px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
-  --shadow-pop: 0 12px 28px rgba(15, 15, 15, 0.08), 0 2px 4px rgba(15, 15, 15, 0.04);
+  /* Elevation — softened, used rarely */
+  --shadow-1: 0 1px 2px rgba(17, 24, 32, 0.04);
+  --shadow-2: 0 4px 12px rgba(17, 24, 32, 0.05);
+  --shadow-pop: 0 12px 32px rgba(17, 24, 32, 0.08);
+
+  /* Motion — Apple curves */
+  --motion-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-spring: 320ms cubic-bezier(0.32, 0.72, 0, 1);
 
   font-family: var(--font-sans);
   color: var(--color-ink);
-  background: var(--color-surface);
+  background: var(--color-canvas);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -92,7 +129,7 @@ body,
 }
 
 body {
-  background: var(--color-surface);
+  background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-feature-settings:

@@ -18,7 +18,7 @@ type Props = {
 const GENDER_OPTIONS: Array<{ value: 'male' | 'female' | 'unspecified'; label: string }> = [
   { value: 'male', label: '남성' },
   { value: 'female', label: '여성' },
-  { value: 'unspecified', label: '세어하지 않음' },
+  { value: 'unspecified', label: '선택 안 함' },
 ]
 
 const INTEREST_PRESETS: Array<{ value: string; label: string }> = [

@@ -179,7 +179,7 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
     <section className="card ai-studio" aria-labelledby="ai-studio-heading">
       <div className="card__head">
         <div>
-          <h3 id="ai-studio-heading">AI 설문 빌더</h3>
+          <h3 id="ai-studio-heading">AI 설문 도우미</h3>
           <p className="ai-studio__sub">
             조사 목적을 적으면 초안 문항을 만들고, 유도 표현이나 논리 모순을 짚어 수정안까지 제안해
             드려요.
