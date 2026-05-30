@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
 
-import { api, type AuditFinding, type AuditResult, type Survey } from '../lib/api'
+import { api, type AuditFinding, type AuditResult, type Survey, type Targeting } from '../lib/api'
+import { MobilePreview } from './MobilePreview'
+import { PublishModal } from './PublishModal'
 
 const RULE_LABELS: Record<AuditFinding['rule'], string> = {
   leading: '유도성 표현',
@@ -40,6 +42,7 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
   const [providerName, setProviderName] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [applyingId, setApplyingId] = useState<string | null>(null)
+  const [publishOpen, setPublishOpen] = useState(false)
 
   const isBusy = step === 'drafting' || step === 'auditing' || step === 'publishing'
 
@@ -119,28 +122,36 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
     [audit, log],
   )
 
-  const publish = useCallback(async () => {
-    if (!survey) return
-    setStep('publishing')
-    log('AI 빌더에서 발행 요청…')
-    try {
-      await api.publishSurvey(survey.id, {
-        pointsPerUser: 500,
-        targetCount: 200,
-        estimatedReach: 300,
-      })
-      setStep('published')
-      log('라이브 피드에 발행되었습니다.')
-      onToast?.('AI 설문이 발행되었습니다.', 'success')
-      onPublished?.()
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      setError(message)
-      log(`발행 실패: ${message}`)
-      onToast?.(`발행 실패: ${message}`, 'info')
-      setStep('ready')
-    }
-  }, [log, onPublished, onToast, survey])
+  const publish = useCallback(
+    async (input: {
+      pointsPerUser: number
+      targetCount: number
+      estimatedReach: number
+      targeting: Targeting
+    }) => {
+      if (!survey) return
+      setStep('publishing')
+      log(
+        `AI 빌더에서 발행 요청… (${input.pointsPerUser}P · ${input.targetCount}명 · 모수 ${input.estimatedReach})`,
+      )
+      try {
+        await api.publishSurvey(survey.id, input)
+        setStep('published')
+        setPublishOpen(false)
+        log('라이브 피드에 발행되었습니다.')
+        onToast?.('AI 설문이 발행되었습니다.', 'success')
+        onPublished?.()
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        setError(message)
+        log(`발행 실패: ${message}`)
+        onToast?.(`발행 실패: ${message}`, 'info')
+        setStep('ready')
+        throw err
+      }
+    },
+    [log, onPublished, onToast, survey],
+  )
 
   const reset = useCallback(() => {
     setSurvey(null)
@@ -332,11 +343,13 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
           </ol>
 
           <div className="ai-studio__publish">
-            <span className="ai-studio__meta">500 P/응답 · 타겟 200명 · 예상 모수 300</span>
+            <span className="ai-studio__meta">
+              {questions.length}문항 · 발행 시 특성을 설정하세요
+            </span>
             <button
               type="button"
               className="btn btn--primary"
-              onClick={() => void publish()}
+              onClick={() => setPublishOpen(true)}
               disabled={
                 isBusy || step === 'published' || (summary !== undefined && summary.high > 0)
               }
@@ -350,11 +363,23 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
                 ? '발행 완료'
                 : step === 'publishing'
                   ? '발행중…'
-                  : '라이브 발행'}
+                  : '발행 설정 열기'}
             </button>
           </div>
         </div>
       ) : null}
+
+      {survey && questions.length > 0 ? (
+        <MobilePreview title={survey.title} category={survey.category} questions={questions} />
+      ) : null}
+
+      <PublishModal
+        open={publishOpen}
+        surveyTitle={survey?.title ?? ''}
+        questionCount={questions.length}
+        onClose={() => setPublishOpen(false)}
+        onConfirm={publish}
+      />
     </section>
   )
 }

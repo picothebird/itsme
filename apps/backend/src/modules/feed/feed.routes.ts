@@ -1,21 +1,33 @@
 import { Router } from 'express'
+import { z } from 'zod'
 
+import { buildFeed, paginate } from '../../domain/feed.js'
 import { asyncHandler } from '../../lib/asyncHandler.js'
-import { surveyRepo } from '../../repositories/inMemory.js'
+import { parseOrThrow } from '../../lib/validate.js'
+import { petRepo, responseRepo, surveyRepo } from '../../repositories/inMemory.js'
 
 export const feedRouter = Router()
 
+const feedQuerySchema = z.object({
+  pid: z.string().optional(),
+  cursor: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+})
+
 feedRouter.get(
   '/',
-  asyncHandler((_req, res) => {
-    const cards = surveyRepo.listByStatus('live').map((survey) => ({
-      id: survey.id,
-      title: survey.title,
-      category: survey.category,
-      questionCount: survey.questions.length,
-      estimatedTimeSec: Math.max(20, survey.questions.length * 8),
-      pointsPerUser: survey.deployment?.pointsPerUser ?? 0,
-    }))
-    res.json({ ok: true, data: cards })
+  asyncHandler((req, res) => {
+    const query = parseOrThrow(feedQuerySchema, req.query, 'feed')
+    const surveys = surveyRepo.list()
+    const responses = responseRepo.list()
+    const panelist = query.pid
+      ? {
+          pid: query.pid,
+          interests: Object.keys(petRepo.get(query.pid).tagVector ?? {}),
+        }
+      : null
+    const ranked = buildFeed(surveys, responses, panelist)
+    const page = paginate(ranked, query.cursor, query.limit)
+    res.json({ ok: true, data: { items: page.items, nextCursor: page.nextCursor } })
   }),
 )

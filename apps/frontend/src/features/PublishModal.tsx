@@ -1,0 +1,234 @@
+import { useEffect, useState } from 'react'
+
+import { api, type ReachEstimate, type Targeting } from '../lib/api'
+
+type Props = {
+  open: boolean
+  surveyTitle: string
+  questionCount: number
+  onClose: () => void
+  onConfirm: (input: {
+    pointsPerUser: number
+    targetCount: number
+    estimatedReach: number
+    targeting: Targeting
+  }) => Promise<void> | void
+}
+
+const GENDER_OPTIONS: Array<{ value: 'male' | 'female' | 'unspecified'; label: string }> = [
+  { value: 'male', label: '남성' },
+  { value: 'female', label: '여성' },
+  { value: 'unspecified', label: '미지정' },
+]
+
+const INTEREST_PRESETS = ['food', 'tech', 'beauty', 'fitness', 'finance', 'travel']
+
+export function PublishModal({ open, surveyTitle, questionCount, onClose, onConfirm }: Props) {
+  const [pointsPerUser, setPointsPerUser] = useState(500)
+  const [targetCount, setTargetCount] = useState(200)
+  const [ageMin, setAgeMin] = useState(20)
+  const [ageMax, setAgeMax] = useState(39)
+  const [genders, setGenders] = useState<Array<'male' | 'female' | 'unspecified'>>([
+    'male',
+    'female',
+  ])
+  const [interests, setInterests] = useState<string[]>(['food'])
+  const [estimate, setEstimate] = useState<ReachEstimate | null>(null)
+  const [estimating, setEstimating] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    let alive = true
+    const timer = setTimeout(() => {
+      const run = async () => {
+        setEstimating(true)
+        try {
+          const res = await api.analytics.estimateReach({
+            ageMin,
+            ageMax,
+            genders,
+            interests,
+          })
+          if (alive) setEstimate(res)
+        } catch (err) {
+          if (alive) setError(err instanceof Error ? err.message : String(err))
+        } finally {
+          if (alive) setEstimating(false)
+        }
+      }
+      void run()
+    }, 250)
+    return () => {
+      alive = false
+      clearTimeout(timer)
+    }
+  }, [open, ageMin, ageMax, genders, interests])
+
+  if (!open) return null
+
+  const budget = pointsPerUser * targetCount
+  const blocked = estimate ? !estimate.feasible : false
+
+  const toggleGender = (g: 'male' | 'female' | 'unspecified') => {
+    setGenders((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]))
+  }
+  const toggleInterest = (i: string) => {
+    setInterests((prev) => (prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]))
+  }
+
+  const submit = async () => {
+    if (!estimate) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      await onConfirm({
+        pointsPerUser,
+        targetCount,
+        estimatedReach: estimate.reach,
+        targeting: { ageMin, ageMax, genders, interests },
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="modal" role="dialog" aria-modal="true" aria-labelledby="publish-modal-title">
+      <div className="modal__backdrop" onClick={onClose} />
+      <div className="modal__panel">
+        <header className="modal__head">
+          <h3 id="publish-modal-title">발행 설정 · {surveyTitle}</h3>
+          <button type="button" className="modal__close" aria-label="닫기" onClick={onClose}>
+            ✕
+          </button>
+        </header>
+        <p className="modal__sub">
+          {questionCount}문항 · 타겟팅을 입력하면 도달 가능 모수를 실시간으로 계산합니다.
+        </p>
+
+        <div className="modal__grid">
+          <label className="field">
+            <span className="field__label">응답자당 포인트</span>
+            <input
+              type="number"
+              min={1}
+              max={10000}
+              value={pointsPerUser}
+              onChange={(e) => setPointsPerUser(Math.max(1, Number(e.target.value) || 1))}
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">목표 응답 수</span>
+            <input
+              type="number"
+              min={1}
+              max={5000}
+              value={targetCount}
+              onChange={(e) => setTargetCount(Math.max(1, Number(e.target.value) || 1))}
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">연령 최소</span>
+            <input
+              type="number"
+              min={13}
+              max={99}
+              value={ageMin}
+              onChange={(e) => setAgeMin(Math.min(99, Math.max(13, Number(e.target.value) || 13)))}
+            />
+          </label>
+          <label className="field">
+            <span className="field__label">연령 최대</span>
+            <input
+              type="number"
+              min={13}
+              max={99}
+              value={ageMax}
+              onChange={(e) => setAgeMax(Math.min(99, Math.max(13, Number(e.target.value) || 99)))}
+            />
+          </label>
+        </div>
+
+        <fieldset className="chipset">
+          <legend>성별</legend>
+          {GENDER_OPTIONS.map((g) => (
+            <label
+              key={g.value}
+              className={`chip-toggle${genders.includes(g.value) ? ' is-on' : ''}`}
+            >
+              <input
+                type="checkbox"
+                checked={genders.includes(g.value)}
+                onChange={() => toggleGender(g.value)}
+              />
+              {g.label}
+            </label>
+          ))}
+        </fieldset>
+
+        <fieldset className="chipset">
+          <legend>관심사</legend>
+          {INTEREST_PRESETS.map((i) => (
+            <label key={i} className={`chip-toggle${interests.includes(i) ? ' is-on' : ''}`}>
+              <input
+                type="checkbox"
+                checked={interests.includes(i)}
+                onChange={() => toggleInterest(i)}
+              />
+              {i}
+            </label>
+          ))}
+        </fieldset>
+
+        <div className={`reach-card${blocked ? ' is-blocked' : ''}`} aria-live="polite">
+          <div className="reach-card__row">
+            <span className="reach-card__label">예상 도달 모수</span>
+            <strong className="reach-card__value">
+              {estimating ? '계산중…' : estimate ? `${estimate.reach.toLocaleString()}명` : '—'}
+            </strong>
+          </div>
+          <div className="reach-card__row">
+            <span className="reach-card__label">예산</span>
+            <strong className="reach-card__value">{budget.toLocaleString()} P</strong>
+          </div>
+          {estimate && estimate.reasons.length > 0 ? (
+            <ul className="reach-card__reasons">
+              {estimate.reasons.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          ) : null}
+          {blocked ? (
+            <p className="reach-card__warn" role="alert">
+              모수가 50명 미만입니다. 타겟팅을 완화한 뒤 발행할 수 있습니다.
+            </p>
+          ) : null}
+        </div>
+
+        {error ? (
+          <p className="modal__error" role="alert">
+            {error}
+          </p>
+        ) : null}
+
+        <footer className="modal__foot">
+          <button type="button" className="btn btn--ghost" onClick={onClose} disabled={submitting}>
+            취소
+          </button>
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() => void submit()}
+            disabled={submitting || estimating || !estimate || blocked}
+          >
+            {submitting ? '발행중…' : '확정 발행'}
+          </button>
+        </footer>
+      </div>
+    </div>
+  )
+}

@@ -4,6 +4,7 @@ import {
   summarizeAudit,
   type AuditFinding,
 } from '../../domain/ai/audit.js'
+import { draftOutSchema } from '../../domain/ai/schema.js'
 import type { Question } from '../../domain/types.js'
 import { badRequest, notFound } from '../../lib/errors.js'
 import { generateId, surveyRepo } from '../../repositories/inMemory.js'
@@ -72,7 +73,26 @@ export const generateDraftSurvey = async (input: GenerateDraftInput): Promise<Dr
       'Objective contains only restricted instructions; please describe your research goal',
     )
   }
-  const { questions: draftQuestions, keywords } = await provider.generate(sanitizedBrief)
+
+  const attempt = async () => {
+    const raw = await provider.generate(sanitizedBrief)
+    const parsed = draftOutSchema.safeParse(raw)
+    return parsed.success
+      ? { ok: true as const, value: parsed.data }
+      : { ok: false as const, error: parsed.error }
+  }
+
+  let result = await attempt()
+  if (!result.ok) {
+    // §7.9 — single retry on zod validation failure before surfacing to user
+    result = await attempt()
+  }
+  if (!result.ok) {
+    throw badRequest('AI provider returned an invalid draft after retry', {
+      issues: result.error.issues.slice(0, 5),
+    })
+  }
+  const { questions: draftQuestions, keywords } = result.value
 
   if (draftQuestions.length === 0) {
     throw badRequest('AI provider returned no questions')

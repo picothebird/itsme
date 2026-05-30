@@ -48,8 +48,9 @@ describe('survey + response flow', () => {
       .expect(202)
 
     const feedRes = await request(app).get('/feed').expect(200)
-    expect(feedRes.body.data).toHaveLength(1)
-    expect(feedRes.body.data[0].pointsPerUser).toBe(500)
+    expect(feedRes.body.data.items).toHaveLength(1)
+    expect(feedRes.body.data.items[0].pointsPerUser).toBe(500)
+    expect(feedRes.body.data.nextCursor).toBeNull()
 
     const startRes = await request(app)
       .post('/responses/start')
