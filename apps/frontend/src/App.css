@@ -204,3 +204,137 @@ dd {
     right: 1rem;
   }
 }
+
+.panel-card {
+  grid-column: 1 / -1;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--paper) 90%, white);
+  box-shadow: 0 22px 65px rgba(31, 35, 33, 0.13);
+  padding: clamp(1.3rem, 3vw, 2.2rem);
+  animation: rise-in 650ms ease both;
+  animation-delay: 240ms;
+}
+
+.panel-card__head h2 {
+  margin: 0.4rem 0 0;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  letter-spacing: -0.02em;
+}
+
+.panel-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.1rem 0;
+}
+
+.panel-card__actions .retry-button {
+  margin-top: 0;
+}
+
+.panel-card__actions .retry-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 0.4rem;
+}
+
+.panel-grid h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
+}
+
+.panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.panel-list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--paper) 92%, white);
+}
+
+.panel-list li small {
+  grid-column: 1 / -1;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.panel-list__empty {
+  display: block !important;
+  text-align: center;
+  font-size: 0.85rem;
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
+  background: transparent !important;
+  border-style: dashed !important;
+}
+
+.panel-dl {
+  margin: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.panel-dl div {
+  display: grid;
+  gap: 0.15rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px dashed color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+.panel-dl dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.panel-dl dd {
+  margin: 0;
+  font-family: var(--mono);
+}
+
+.panel-log {
+  margin-top: 1.3rem;
+  border-top: 1px dashed color-mix(in srgb, var(--ink) 18%, transparent);
+  padding-top: 0.9rem;
+}
+
+.panel-log h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.panel-log ol {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.25rem;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--ink) 72%, transparent);
+}

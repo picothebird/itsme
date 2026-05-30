@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { ResearcherPanel } from './features/ResearcherPanel'
 import type { ApiHealth } from './types'
 import './App.css'
 
@@ -149,6 +150,8 @@ function App() {
           Refresh health check
         </button>
       </section>
+
+      <ResearcherPanel />
     </main>
   )
 }
