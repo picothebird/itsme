@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { api, type FeedCard, type PanelistSummary, type Survey } from '../lib/api'
+import { AiStudio } from './AiStudio'
 
 const DEMO_PID = 'pid_demo_researcher'
 
@@ -225,6 +226,14 @@ export function ResearcherPanel() {
   return (
     <>
       {busy ? <div className="busy-bar" aria-hidden /> : null}
+
+      <AiStudio
+        onPublished={() => {
+          void refresh()
+        }}
+        onLog={pushLog}
+        onToast={showToast}
+      />
 
       <section id="workflow" aria-labelledby="workflow-heading">
         <div className="section-header">

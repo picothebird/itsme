@@ -108,6 +108,78 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({}),
     }),
+  ai: {
+    generateDraft: (input: {
+      brief: {
+        objective: string
+        audience?: string
+        category?: string
+        desiredCount?: number
+        tone?: 'neutral' | 'friendly' | 'professional'
+      }
+      title?: string
+    }) =>
+      request<{
+        surveyId: string
+        title: string
+        questions: Survey['questions']
+        keywords: string[]
+        providerName: string
+      }>('/ai/drafts', { method: 'POST', body: JSON.stringify(input) }),
+    runAudit: (surveyId: string) =>
+      request<AuditResult>('/ai/audits', {
+        method: 'POST',
+        body: JSON.stringify({ surveyId }),
+      }),
+    applyFix: (sessionId: string, findingId: string) =>
+      request<{
+        sessionId: string
+        surveyId: string
+        appliedFindingId: string
+        questions: Survey['questions']
+        remaining: AuditFinding[]
+        summary: AuditSummary
+      }>(`/ai/audits/${sessionId}/apply`, {
+        method: 'POST',
+        body: JSON.stringify({ findingId }),
+      }),
+  },
+}
+
+export type AuditSeverity = 'info' | 'warn' | 'high'
+
+export type AuditFinding = {
+  id: string
+  questionId: string
+  questionIndex: number
+  rule:
+    | 'leading'
+    | 'double_barreled'
+    | 'contradiction'
+    | 'jargon'
+    | 'too_long'
+    | 'duplicate'
+    | 'missing_choices'
+  severity: AuditSeverity
+  message: string
+  suggestion?: string
+  fix?: { text: string }
+}
+
+export type AuditSummary = {
+  total: number
+  high: number
+  warn: number
+  info: number
+  score: number
+}
+
+export type AuditResult = {
+  sessionId: string
+  surveyId: string
+  findings: AuditFinding[]
+  summary: AuditSummary
+  providerName: string
 }
 
 export const apiBase = apiBaseUrl

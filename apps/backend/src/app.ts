@@ -4,6 +4,7 @@ import helmet from 'helmet'
 
 import { env } from './config/env.js'
 import { errorHandler } from './middleware/error.js'
+import { aiRouter } from './modules/ai/ai.routes.js'
 import { devRouter } from './modules/dev/dev.routes.js'
 import { feedRouter } from './modules/feed/feed.routes.js'
 import { panelRouter } from './modules/panel/panel.routes.js'
@@ -32,6 +33,7 @@ app.use('/surveys', surveyRouter)
 app.use('/responses', responseRouter)
 app.use('/feed', feedRouter)
 app.use('/panel', panelRouter)
+app.use('/ai', aiRouter)
 
 if (env.NODE_ENV !== 'production') {
   app.use('/dev', devRouter)
