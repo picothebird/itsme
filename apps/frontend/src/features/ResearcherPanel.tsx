@@ -111,7 +111,10 @@ export function ResearcherPanel() {
     setBusy(true)
     pushLog('데모 설문 초안을 생성합니다…')
     try {
-      const created = await api.createSurvey(seedSurveyPayload)
+      const dupCount = surveys.filter((s) => s.title.startsWith(seedSurveyPayload.title)).length
+      const title =
+        dupCount === 0 ? seedSurveyPayload.title : `${seedSurveyPayload.title} #${dupCount + 1}`
+      const created = await api.createSurvey({ ...seedSurveyPayload, title })
       pushLog(`설문 초안 생성 완료 (${created.id})`)
       await api.publishSurvey(created.id, {
         pointsPerUser: 500,
@@ -124,11 +127,12 @@ export function ResearcherPanel() {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message)
+      pushLog(`설문 발행 실패: ${message}`)
       showToast(`발행 실패: ${message}`, 'info')
     } finally {
       setBusy(false)
     }
-  }, [pushLog, refresh, showToast])
+  }, [pushLog, refresh, showToast, surveys])
 
   const runResponseFlow = useCallback(async () => {
     setBusy(true)
@@ -171,6 +175,7 @@ export function ResearcherPanel() {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message)
+      pushLog(`응답 실패: ${message}`)
       showToast(`응답 실패: ${message}`, 'info')
     } finally {
       setBusy(false)
@@ -184,10 +189,13 @@ export function ResearcherPanel() {
     try {
       await api.resetDemo()
       setLog([])
+      setError(null)
       showToast('데모 상태가 초기화되었습니다.', 'info')
       await refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      const message = err instanceof Error ? err.message : String(err)
+      setError(message)
+      showToast(`초기화 실패: ${message}`, 'info')
     } finally {
       setBusy(false)
     }
@@ -233,21 +241,31 @@ export function ResearcherPanel() {
             >
               새로고침
             </button>
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => void resetDemo()}
-              disabled={busy}
-            >
-              데모 초기화
-            </button>
+            {import.meta.env.PROD ? null : (
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={() => void resetDemo()}
+                disabled={busy}
+              >
+                데모 초기화
+              </button>
+            )}
           </div>
         </div>
 
         {error ? (
-          <p className="banner" role="alert">
-            {error}
-          </p>
+          <div className="banner" role="alert">
+            <span>{error}</span>
+            <button
+              type="button"
+              className="banner__close"
+              onClick={() => setError(null)}
+              aria-label="오류 메시지 닫기"
+            >
+              ✕
+            </button>
+          </div>
         ) : null}
 
         <div className="steps" style={{ marginTop: 16 }}>
@@ -400,6 +418,7 @@ export function ResearcherPanel() {
                 <div
                   className="pet-bar__track"
                   role="progressbar"
+                  aria-label={`펫 레벨 ${panelist.pet.level} 경험치`}
                   aria-valuenow={petPercent}
                   aria-valuemin={0}
                   aria-valuemax={100}

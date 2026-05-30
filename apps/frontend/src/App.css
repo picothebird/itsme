@@ -4,7 +4,6 @@
   flex-direction: column;
   min-height: 100vh;
   background: var(--color-surface);
-  scroll-behavior: smooth;
 }
 
 /* Accessible focus ring */
@@ -12,10 +11,6 @@
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 4px;
-}
-
-html {
-  scroll-behavior: smooth;
 }
 
 /* Top nav (Notion-style sticky) */
@@ -719,6 +714,33 @@ html {
   color: #7a1818;
   font-size: 13.5px;
   border: 1px solid rgba(224, 49, 49, 0.25);
+}
+
+.banner > span {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.banner__close {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.65;
+  transition:
+    opacity 120ms ease,
+    background-color 120ms ease;
+}
+
+.banner__close:hover {
+  opacity: 1;
+  background: rgba(122, 24, 24, 0.08);
 }
 
 /* Timeline log */
