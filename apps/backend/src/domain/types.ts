@@ -91,3 +91,14 @@ export type Pet = {
   evolutionStage: string | null
   sick: boolean
 }
+
+export type DataPiece = {
+  id: string
+  pid: string
+  surveyId: string
+  responseId: string
+  categoryTag: string
+  bonusExp: number
+  createdAt: string
+  consumedAt?: string
+}

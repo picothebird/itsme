@@ -1,9 +1,15 @@
 import { Router } from 'express'
+import { z } from 'zod'
 
 import { asyncHandler } from '../../lib/asyncHandler.js'
 import { rateLimit } from '../../middleware/rateLimit.js'
 import { parseOrThrow } from '../../lib/validate.js'
-import { completeResponse, startResponse, submitAnswer } from './response.service.js'
+import {
+  completeResponse,
+  getActiveResponse,
+  startResponse,
+  submitAnswer,
+} from './response.service.js'
 import {
   completeResponseSchema,
   startResponseSchema,
@@ -51,5 +57,19 @@ responseRouter.post(
     parseOrThrow(completeResponseSchema, req.body ?? {}, 'completion')
     const result = completeResponse(String(req.params.id))
     res.json({ ok: true, data: result })
+  }),
+)
+
+const activeQuerySchema = z.object({
+  pid: z.string().min(1),
+  surveyId: z.string().min(1),
+})
+
+responseRouter.get(
+  '/active',
+  asyncHandler((req, res) => {
+    const query = parseOrThrow(activeQuerySchema, req.query, 'active')
+    const active = getActiveResponse(query.pid, query.surveyId)
+    res.json({ ok: true, data: active })
   }),
 )

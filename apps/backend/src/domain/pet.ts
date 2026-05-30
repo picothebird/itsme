@@ -60,3 +60,21 @@ export const applySurveyCompletion = (
 
   return { exp, level, tagVector, evolutionStage }
 }
+
+export const feedDataPiece = (
+  pet: PetMutation,
+  params: { bonusExp: number; tag: string },
+): PetMutation & { leveledUp: boolean; evolved: boolean } => {
+  const exp = pet.exp + Math.max(0, params.bonusExp)
+  const tagVector = accumulateTagVector(pet.tagVector, params.tag, 2)
+  const level = levelFromExp(exp)
+  const evolutionStage = isEvolutionReady(level) ? dominantTag(tagVector) : pet.evolutionStage
+  return {
+    exp,
+    level,
+    tagVector,
+    evolutionStage,
+    leveledUp: level > pet.level,
+    evolved: evolutionStage !== pet.evolutionStage,
+  }
+}

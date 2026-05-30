@@ -1,11 +1,19 @@
 import { randomUUID } from 'node:crypto'
 
-import type { Pet, Survey, SurveyResponse, Wallet, WalletTransaction } from '../domain/types.js'
+import type {
+  DataPiece,
+  Pet,
+  Survey,
+  SurveyResponse,
+  Wallet,
+  WalletTransaction,
+} from '../domain/types.js'
 
 const surveys = new Map<string, Survey>()
 const responses = new Map<string, SurveyResponse>()
 const wallets = new Map<string, Wallet>()
 const pets = new Map<string, Pet>()
+const dataPieces = new Map<string, DataPiece>()
 
 export const generateId = (prefix: string): string => `${prefix}_${randomUUID().slice(0, 12)}`
 
@@ -14,6 +22,7 @@ export const resetStore = (): void => {
   responses.clear()
   wallets.clear()
   pets.clear()
+  dataPieces.clear()
 }
 
 export const surveyRepo = {
@@ -102,4 +111,17 @@ export const petRepo = {
     pets.set(pet.pid, pet)
     return pet
   },
+}
+
+export const dataPieceRepo = {
+  list: (): DataPiece[] => Array.from(dataPieces.values()),
+  listByPid: (pid: string): DataPiece[] =>
+    Array.from(dataPieces.values()).filter((p) => p.pid === pid),
+  get: (id: string): DataPiece | undefined => dataPieces.get(id),
+  save: (piece: DataPiece): DataPiece => {
+    dataPieces.set(piece.id, piece)
+    return piece
+  },
+  existsForResponse: (responseId: string): boolean =>
+    Array.from(dataPieces.values()).some((p) => p.responseId === responseId),
 }

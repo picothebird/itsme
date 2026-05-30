@@ -3,13 +3,14 @@ import { applySurveyCompletion } from '../../domain/pet.js'
 import { computeReward } from '../../domain/reward.js'
 import { badRequest, conflict, forbidden, notFound } from '../../lib/errors.js'
 import {
+  dataPieceRepo,
   generateId,
   petRepo,
   responseRepo,
   surveyRepo,
   walletRepo,
 } from '../../repositories/inMemory.js'
-import type { AnswerRecord, SurveyResponse } from '../../domain/types.js'
+import type { AnswerRecord, DataPiece, SurveyResponse } from '../../domain/types.js'
 import type { StartResponseInput, SubmitAnswerInput } from './response.schemas.js'
 
 const penaltyUntil = new Map<string, number>()
@@ -43,6 +44,14 @@ export const startResponse = (input: StartResponseInput): SurveyResponse => {
     throw conflict('Survey is not currently accepting responses')
   }
 
+  // §7.1 Resume — if an in-progress response already exists for (pid, surveyId), return it
+  const existing = responseRepo
+    .list()
+    .find((r) => r.pid === input.pid && r.surveyId === input.surveyId && r.status === 'in_progress')
+  if (existing) {
+    return existing
+  }
+
   const response: SurveyResponse = {
     id: generateId('res'),
     pid: input.pid,
@@ -54,6 +63,22 @@ export const startResponse = (input: StartResponseInput): SurveyResponse => {
   }
 
   return responseRepo.save(response)
+}
+
+export const getActiveResponse = (
+  pid: string,
+  surveyId: string,
+): { response: SurveyResponse; nextQuestionIndex: number } | null => {
+  const survey = surveyRepo.get(surveyId)
+  if (!survey) {
+    throw notFound('Survey', surveyId)
+  }
+  const active = responseRepo
+    .list()
+    .find((r) => r.pid === pid && r.surveyId === surveyId && r.status === 'in_progress')
+  if (!active) return null
+  const nextQuestionIndex = Math.min(active.answers.length, survey.questions.length - 1)
+  return { response: active, nextQuestionIndex }
 }
 
 export const submitAnswer = (responseId: string, input: SubmitAnswerInput): AnswerOutcome => {
@@ -157,6 +182,7 @@ export type CompletionOutcome = {
     level: number
     evolutionStage: string | null
   }
+  dataPiece: DataPiece | null
 }
 
 export const completeResponse = (responseId: string): CompletionOutcome => {
@@ -214,6 +240,20 @@ export const completeResponse = (responseId: string): CompletionOutcome => {
   )
   petRepo.save({ ...pet, ...nextPet, sick: false })
 
+  // §5.2.7 Create one DataPiece per completed response (idempotent by responseId)
+  let dataPiece: DataPiece | null = null
+  if (!dataPieceRepo.existsForResponse(response.id)) {
+    dataPiece = dataPieceRepo.save({
+      id: generateId('dp'),
+      pid: response.pid,
+      surveyId: response.surveyId,
+      responseId: response.id,
+      categoryTag: survey.category,
+      bonusExp: Math.min(40, Math.max(10, survey.questions.length * 3)),
+      createdAt: new Date().toISOString(),
+    })
+  }
+
   return {
     response: completedResponse,
     pointsAwarded,
@@ -222,6 +262,7 @@ export const completeResponse = (responseId: string): CompletionOutcome => {
       level: nextPet.level,
       evolutionStage: nextPet.evolutionStage,
     },
+    dataPiece,
   }
 }
 
@@ -235,6 +276,7 @@ const alreadyCompletedOutcome = (response: SurveyResponse): CompletionOutcome =>
       level: pet.level,
       evolutionStage: pet.evolutionStage,
     },
+    dataPiece: null,
   }
 }
 
