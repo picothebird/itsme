@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { api, type FeedCard, type PanelistSummary, type Survey } from '../lib/api'
 import { AiStudio } from './AiStudio'
+import { DashboardOverview } from './DashboardOverview'
 
 const DEMO_PID = 'pid_demo_researcher'
 
@@ -234,6 +235,8 @@ export function ResearcherPanel() {
         onLog={pushLog}
         onToast={showToast}
       />
+
+      <DashboardOverview surveys={surveys} onLog={pushLog} />
 
       <section id="workflow" aria-labelledby="workflow-heading">
         <div className="section-header">

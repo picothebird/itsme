@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
 import { asyncHandler } from '../../lib/asyncHandler.js'
+import { rateLimit } from '../../middleware/rateLimit.js'
 import { parseOrThrow } from '../../lib/validate.js'
 import { completeResponse, startResponse, submitAnswer } from './response.service.js'
 import {
@@ -11,8 +12,22 @@ import {
 
 export const responseRouter = Router()
 
+// 60 requests / minute / pid burst-tolerant
+const answerLimiter = rateLimit({
+  capacity: 30,
+  refillPerSec: 1,
+  keyFn: (req) => `answer:${(req.body && (req.body as { pid?: string }).pid) ?? req.ip ?? 'anon'}`,
+})
+
+const startLimiter = rateLimit({
+  capacity: 10,
+  refillPerSec: 0.2,
+  keyFn: (req) => `start:${(req.body && (req.body as { pid?: string }).pid) ?? req.ip ?? 'anon'}`,
+})
+
 responseRouter.post(
   '/start',
+  startLimiter,
   asyncHandler((req, res) => {
     const input = parseOrThrow(startResponseSchema, req.body, 'response')
     const created = startResponse(input)
@@ -22,6 +37,7 @@ responseRouter.post(
 
 responseRouter.post(
   '/:id/answer',
+  answerLimiter,
   asyncHandler((req, res) => {
     const input = parseOrThrow(submitAnswerSchema, req.body, 'answer')
     const result = submitAnswer(String(req.params.id), input)

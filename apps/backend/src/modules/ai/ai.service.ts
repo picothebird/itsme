@@ -22,6 +22,24 @@ type AuditSession = {
 
 const auditSessions = new Map<string, AuditSession>()
 
+const PROMPT_INJECTION_PATTERNS = [
+  /ignore (the |all )?(previous|prior|above) (instructions?|prompts?)/gi,
+  /disregard (the |all )?(previous|prior|above) (instructions?|prompts?)/gi,
+  /system\s*[:-]\s*/gi,
+  /you are now (a |an )?/gi,
+  /act as (a |an )?/gi,
+  /\bjailbreak\b/gi,
+  /<\/?(script|style|iframe|object|embed)\b[^>]*>?/gi,
+]
+
+export const sanitizeUserPrompt = (input: string): string => {
+  let out = input
+  for (const p of PROMPT_INJECTION_PATTERNS) {
+    out = out.replace(p, '')
+  }
+  return out.replace(/\s{2,}/g, ' ').trim()
+}
+
 export const resetAiSessions = (): void => {
   auditSessions.clear()
 }
@@ -45,14 +63,23 @@ export type DraftResult = {
 
 export const generateDraftSurvey = async (input: GenerateDraftInput): Promise<DraftResult> => {
   const provider = getAiProvider()
-  const { questions: draftQuestions, keywords } = await provider.generate(input.brief)
+  const sanitizedBrief = {
+    ...input.brief,
+    objective: sanitizeUserPrompt(input.brief.objective),
+  }
+  if (sanitizedBrief.objective.length < 4) {
+    throw badRequest(
+      'Objective contains only restricted instructions; please describe your research goal',
+    )
+  }
+  const { questions: draftQuestions, keywords } = await provider.generate(sanitizedBrief)
 
   if (draftQuestions.length === 0) {
     throw badRequest('AI provider returned no questions')
   }
 
-  const title = surveyTitleFromBrief(input.brief.objective, input.title)
-  const category = input.brief.category ?? 'general'
+  const title = surveyTitleFromBrief(sanitizedBrief.objective, input.title)
+  const category = sanitizedBrief.category ?? 'general'
 
   const survey = createSurvey({
     title,

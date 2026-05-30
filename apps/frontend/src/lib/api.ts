@@ -73,7 +73,12 @@ export const api = {
     }),
   publishSurvey: (
     id: string,
-    input: { pointsPerUser: number; targetCount: number; estimatedReach: number },
+    input: {
+      pointsPerUser: number
+      targetCount: number
+      estimatedReach: number
+      targeting?: Targeting
+    },
   ) =>
     request<Survey>(`/surveys/${id}/publish`, {
       method: 'POST',
@@ -144,6 +149,16 @@ export const api = {
         body: JSON.stringify({ findingId }),
       }),
   },
+  analytics: {
+    dashboardSummary: () => request<DashboardSummary>('/analytics/dashboard/summary'),
+    survey: (surveyId: string) => request<SurveyAnalytics>(`/analytics/surveys/${surveyId}`),
+    exportCsvUrl: (surveyId: string) => `${apiBaseUrl}/analytics/surveys/${surveyId}/export.csv`,
+    estimateReach: (targeting: Targeting) =>
+      request<ReachEstimate>('/analytics/estimate-reach', {
+        method: 'POST',
+        body: JSON.stringify({ targeting }),
+      }),
+  },
 }
 
 export type AuditSeverity = 'info' | 'warn' | 'high'
@@ -180,6 +195,50 @@ export type AuditResult = {
   findings: AuditFinding[]
   summary: AuditSummary
   providerName: string
+}
+
+export type Targeting = {
+  ageMin?: number
+  ageMax?: number
+  genders?: Array<'male' | 'female' | 'unspecified'>
+  interests?: string[]
+}
+
+export type ReachEstimate = {
+  reach: number
+  feasible: boolean
+  reasons: string[]
+}
+
+export type DashboardSummary = {
+  surveys: { draft: number; live: number; done: number; total: number }
+  responses: { started: number; completed: number; blocked: number; completionRate: number }
+  spendPoints: number
+  estimatedBudget: number
+}
+
+export type SurveyAnalytics = {
+  surveyId: string
+  totals: {
+    started: number
+    completed: number
+    blocked: number
+    inProgress: number
+    completionRate: number
+    abuseRate: number
+    averageDurationMs: number
+  }
+  questions: Array<{
+    questionId: string
+    questionIndex: number
+    type: 'single' | 'multi' | 'likert' | 'text'
+    text: string
+    reached: number
+    answered: number
+    dropoffRate: number
+    averageLatencyMs: number
+    choices?: Array<{ choiceId: string; label: string; count: number; ratio: number }>
+  }>
 }
 
 export const apiBase = apiBaseUrl
