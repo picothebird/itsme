@@ -6,11 +6,21 @@
   background: var(--color-canvas);
 }
 
-/* Accessible focus ring */
+/* Accessible focus ring — Toss-style 3px soft brand wash, no offset on interactive */
 *:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role='button']:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 /* Top nav — quieter, hairline-only divider */
@@ -213,6 +223,8 @@
   letter-spacing: -0.03em;
   margin: 0;
   color: var(--color-ink-strong);
+  text-wrap: balance;
+  word-break: keep-all;
 }
 
 .hero__lead {
@@ -310,6 +322,8 @@
   letter-spacing: -1px;
   line-height: 1.1;
   color: var(--color-ink-strong);
+  text-wrap: balance;
+  word-break: keep-all;
 }
 
 .section-header p {
@@ -318,6 +332,8 @@
   font-size: var(--text-md);
   line-height: 1.55;
   max-width: 56ch;
+  text-wrap: pretty;
+  word-break: keep-all;
 }
 
 /* Step flow */
@@ -720,15 +736,36 @@
   color: #0e7a26;
 }
 
-/* Empty state */
+/* Empty state — Toss-style: glyph + microcopy + suggested action */
 .empty {
-  border: 1px dashed var(--color-hairline);
-  border-radius: var(--radius-md);
-  padding: 28px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: var(--space-7) var(--space-4);
   text-align: center;
   color: var(--color-steel);
-  font-size: 13.5px;
+  font-size: var(--text-sm);
+  line-height: 1.55;
   background: var(--color-surface-soft);
+}
+
+.empty::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, var(--color-hairline) 0 6px, transparent 7px),
+    radial-gradient(circle at 65% 35%, var(--color-hairline) 0 6px, transparent 7px),
+    linear-gradient(var(--color-surface-sunk), var(--color-surface-sunk));
+  background-blend-mode: normal;
+  margin-bottom: var(--space-2);
+  opacity: 0.85;
 }
 
 /* Banner / errors */
@@ -2713,4 +2750,90 @@
   margin: var(--space-3) 0;
   line-height: 1.5;
   letter-spacing: -0.05px;
+}
+
+/* ============================================================
+ * Phase F — Korean type discipline, system unit small-caps,
+ * mobile horizontal scroll-snap, edge fade masks
+ * ============================================================ */
+
+/* System unit label (Apple "GB / MB / Hz" small-caps treatment) */
+.unit {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  color: var(--color-steel);
+  margin-left: 2px;
+}
+
+/* Card head H3 — Korean balance */
+.card__head h3,
+.feed-card__title,
+.step__title {
+  text-wrap: balance;
+  word-break: keep-all;
+}
+
+/* Body copy — natural Korean line breaks */
+.hero__lead,
+.step__body,
+.pull-quote,
+.footer__tagline {
+  word-break: keep-all;
+}
+
+/* Subnav edge fade — visual hint that more chips exist offscreen */
+.subnav {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+}
+
+/* Mobile feed grid — Apple "Latest" horizontal scroll-snap carousel */
+@media (max-width: 640px) {
+  .feed-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 78%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--space-4);
+    padding: var(--space-1) var(--space-4);
+    margin-inline: calc(var(--space-4) * -1);
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent 100%
+    );
+  }
+
+  .feed-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .feed-card {
+    scroll-snap-align: start;
+    min-height: 160px;
+  }
 }
