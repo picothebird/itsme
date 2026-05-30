@@ -78,7 +78,14 @@ function App() {
       </header>
 
       <main className="page">
-        <section className="hero">
+        <nav className="subnav" aria-label="페이지 내 이동">
+          <a href="#dashboard-heading">대시보드</a>
+          <a href="#workflow-heading">워크플로우</a>
+          <a href="#library-heading">설문 라이브러리</a>
+          <a href="#feed">진행 중인 설문</a>
+        </nav>
+
+        <section className="hero reveal">
           <div className="hero__copy">
             <p className="eyebrow">잇츠미 · 리서처 콘솔</p>
             <h1 className="hero__title">
@@ -86,7 +93,7 @@ function App() {
               <br />
               인사이트는 더 깊이.
             </h1>
-            <p className="hero__lead">
+            <p className="pull-quote">
               진짜 패널이 모이는 보상형 리서치 플랫폼. 설문을 만들어 발행하면 응답이 차곡차곡
               쌓이고, 어뷰즈 탐지부터 펫 보상까지 한 흐름으로 이어집니다.
             </p>
@@ -139,12 +146,45 @@ function App() {
       </main>
 
       <footer className="footer">
-        <span>© 2026 itsme · 보상형 리서치 플랫폼</span>
-        <span className="footer__health">
-          <span className={`health-dot ${healthState === 'ok' ? '' : `is-${healthState}`}`} />
-          {healthLabel}
-          {health?.timestamp ? ` · ${new Date(health.timestamp).toLocaleTimeString()}` : ''}
-        </span>
+        <div className="footer__brand">
+          <div className="footer__brand-row">
+            <span className="brand__dot" aria-hidden />
+            <span>itsme</span>
+          </div>
+          <p className="footer__tagline">
+            보상형 리서치로 진짜 응답을 모으고, 패널과 함께 성장하는 인사이트 플랫폼.
+          </p>
+        </div>
+
+        <div className="footer__col">
+          <p className="footer__col-title">Product</p>
+          <a href="#dashboard-heading">대시보드</a>
+          <a href="#workflow-heading">워크플로우</a>
+          <a href="#feed">진행 중인 설문</a>
+        </div>
+
+        <div className="footer__col">
+          <p className="footer__col-title">Resources</p>
+          <span>가이드 (준비 중)</span>
+          <span>API 문서 (준비 중)</span>
+          <span>릴리스 노트 (준비 중)</span>
+        </div>
+
+        <div className="footer__col">
+          <p className="footer__col-title">Company</p>
+          <span>잇츠미 팀</span>
+          <span>채용 (준비 중)</span>
+          <span>문의</span>
+        </div>
+
+        <div className="footer__bottom">
+          <span>© 2026 itsme · 보상형 리서치 플랫폼</span>
+          <span className="footer__health">
+            <span className={`health-dot ${healthState === 'ok' ? '' : `is-${healthState}`}`} />
+            {healthLabel}
+            {health?.timestamp ? ` · ${new Date(health.timestamp).toLocaleTimeString()}` : ''}
+          </span>
+        </div>
       </footer>
     </div>
   )

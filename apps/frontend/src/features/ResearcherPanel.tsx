@@ -239,9 +239,10 @@ export function ResearcherPanel() {
 
       <DashboardOverview surveys={surveys} onLog={pushLog} />
 
-      <section id="workflow" aria-labelledby="workflow-heading">
+      <section id="workflow" className="reveal" aria-labelledby="workflow-heading">
         <div className="section-header">
           <div>
+            <span className="section-number">02</span>
             <p className="section-eyebrow">Workflow</p>
             <h2 id="workflow-heading">3단계 워크플로우</h2>
             <p>설계, 발행, 수집까지 한 화면에서 이어서 진행해 볼 수 있어요.</p>
@@ -349,7 +350,7 @@ export function ResearcherPanel() {
         </div>
       </section>
 
-      <section className="cols" id="feed" aria-labelledby="library-heading">
+      <section className="cols reveal" id="feed" aria-labelledby="library-heading">
         <div style={{ display: 'grid', gap: 24, minWidth: 0 }}>
           <div className="card">
             <div className="card__head">
@@ -458,7 +459,7 @@ export function ResearcherPanel() {
         </aside>
       </section>
 
-      <section className="wallet-section" aria-label="리워드 상점">
+      <section className="wallet-section reveal" aria-label="리워드 상점">
         <WalletPanel
           pid={DEMO_PID}
           balance={panelist?.wallet.balance ?? null}
