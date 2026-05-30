@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+**/node_modules/
+
+# build outputs
+dist/
+**/dist/
+coverage/
+**/coverage/
+
+# env files
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# logs
+*.log
+npm-debug.log*
+
+# editor and OS
+.DS_Store
+Thumbs.db
+
+# local metadata
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json

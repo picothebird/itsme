@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+:root {
+  --paper: #f7f2e8;
+  --ink: #1f2321;
+  --line: rgba(31, 35, 33, 0.2);
+  --sun: #f4b942;
+  --clay: #ce6346;
+  --teal: #1f7a8c;
+  --sans: 'Space Grotesk', sans-serif;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--paper);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
+  background:
+    radial-gradient(circle at 12% 16%, rgba(244, 185, 66, 0.58) 0 10%, transparent 10.5%),
+    radial-gradient(circle at 86% 82%, rgba(31, 122, 140, 0.42) 0 18%, transparent 18.5%),
+    linear-gradient(145deg, #f9f4eb 0%, #f6efdf 52%, #f2e6cc 100%);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(31, 35, 33, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(31, 35, 33, 0.04) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: radial-gradient(circle at center, black 38%, transparent 85%);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  width: min(42vw, 420px);
+  height: min(42vw, 420px);
+  top: -150px;
+  left: -110px;
+  border-radius: 32% 68% 62% 38% / 42% 30% 70% 58%;
+  background: linear-gradient(140deg, rgba(206, 99, 70, 0.25), rgba(244, 185, 66, 0.18));
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

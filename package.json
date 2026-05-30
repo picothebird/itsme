@@ -1,0 +1,42 @@
+{
+  "name": "itsme",
+  "private": true,
+  "version": "0.1.0",
+  "description": "itsme full-stack monorepo",
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c yellow,cyan \"npm run dev -w apps/backend\" \"npm run dev -w apps/frontend\"",
+    "dev:api": "npm run dev -w apps/backend",
+    "dev:web": "npm run dev -w apps/frontend",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/picothebird/itsme.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/picothebird/itsme/issues"
+  },
+  "homepage": "https://github.com/picothebird/itsme#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.6.2"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md,yml,yaml}": "prettier --write"
+  }
+}
