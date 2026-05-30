@@ -198,7 +198,13 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
           rows={3}
           value={objective}
           onChange={(e) => setObjective(e.target.value)}
-          placeholder="예: 20대 직장인의 신규 배달 앱 사용 경험과 재이용 의향을 알고 싶다"
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !isBusy) {
+              e.preventDefault()
+              void runDraftAndAudit()
+            }
+          }}
+          placeholder="예: 20대 직장인의 신규 배달 앱 사용 경험과 재이용 의향을 알고 싶다 (⌘/Ctrl+Enter)"
           disabled={isBusy}
         />
         <div className="ai-studio__samples">
