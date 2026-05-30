@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { PanelistMobile } from './features/PanelistMobile'
 import { ResearcherPanel } from './features/ResearcherPanel'
 import type { ApiHealth } from './types'
 import './App.css'
@@ -12,6 +13,7 @@ function App() {
   const [health, setHealth] = useState<ApiHealth | null>(null)
   const [healthState, setHealthState] = useState<HealthState>('pending')
   const [activeTab, setActiveTab] = useState<string>('hero')
+  const [panelistOpen, setPanelistOpen] = useState(false)
 
   useEffect(() => {
     const targets = ['hero', 'dashboard-heading', 'workflow', 'library-heading', 'wallet']
@@ -98,6 +100,13 @@ function App() {
           </button>
         </nav>
         <div className="topbar__meta">
+          <button
+            type="button"
+            className="btn btn--primary btn--sm topbar__try"
+            onClick={() => setPanelistOpen(true)}
+          >
+            패널 체험
+          </button>
           <span className={`pill ${healthPillClass}`}>{healthLabel}</span>
         </div>
       </header>
@@ -216,6 +225,28 @@ function App() {
       <nav className="bottom-tab" aria-label="하단 메뉴">
         <button
           type="button"
+          className="bottom-tab__btn bottom-tab__btn--accent"
+          onClick={() => setPanelistOpen(true)}
+          aria-label="패널 체험 시작"
+        >
+          <span className="bottom-tab__icon" aria-hidden>
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.9L12 16.9 6.8 19.2l1-5.9L3.5 9.2l5.9-.9L12 3z" />
+            </svg>
+          </span>
+          <span className="bottom-tab__label">체험</span>
+        </button>
+        <button
+          type="button"
           className={`bottom-tab__btn${tabActive(['hero', 'dashboard-heading']) ? ' is-active' : ''}`}
           onClick={() => jumpTo('dashboard-heading')}
           aria-current={tabActive(['hero', 'dashboard-heading']) ? 'page' : undefined}
@@ -313,6 +344,8 @@ function App() {
           <span className="bottom-tab__label">지갑</span>
         </button>
       </nav>
+
+      {panelistOpen ? <PanelistMobile onClose={() => setPanelistOpen(false)} /> : null}
     </div>
   )
 }
