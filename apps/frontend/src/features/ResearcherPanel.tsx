@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { api, type FeedCard, type PanelistSummary, type Survey } from '../lib/api'
+import { WalletPanel } from './WalletPanel'
 import { AiStudio } from './AiStudio'
 import { DashboardOverview } from './DashboardOverview'
 
@@ -449,6 +450,14 @@ export function ResearcherPanel() {
             <p className="panelist__empty">3단계 응답 시뮬레이션을 실행하면 통계가 채워집니다.</p>
           )}
         </aside>
+      </section>
+
+      <section className="wallet-section" aria-label="리워드 상점">
+        <WalletPanel
+          pid={DEMO_PID}
+          balance={panelist?.wallet.balance ?? null}
+          onRedeemed={() => void refresh()}
+        />
       </section>
 
       {log.length > 0 ? (

@@ -159,6 +159,48 @@ export const api = {
         body: JSON.stringify({ targeting }),
       }),
   },
+  wallet: {
+    catalog: () => request<RewardItem[]>('/wallet/catalog'),
+    me: (pid: string) =>
+      request<{ pid: string; balance: number; transactions: WalletTxn[] }>(
+        `/wallet/me?pid=${encodeURIComponent(pid)}`,
+      ),
+    orders: (pid: string) =>
+      request<RewardOrder[]>(`/wallet/me/orders?pid=${encodeURIComponent(pid)}`),
+    redeem: (input: { pid: string; itemId: string; idempotencyKey: string }) =>
+      request<{ order: RewardOrder; idempotent: boolean }>('/wallet/redeem', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+  },
+}
+
+export type RewardItem = {
+  id: string
+  label: string
+  vendor: 'naverpay' | 'starbucks' | 'cu'
+  cost: number
+}
+
+export type WalletTxn = {
+  id: string
+  type: 'grant' | 'spend' | 'penalty'
+  amount: number
+  refId?: string
+  createdAt: string
+}
+
+export type RewardOrder = {
+  id: string
+  pid: string
+  itemId: string
+  itemLabel: string
+  cost: number
+  status: 'pending' | 'issued' | 'failed' | 'refunded'
+  voucherCode?: string
+  failureReason?: string
+  createdAt: string
+  updatedAt: string
 }
 
 export type AuditSeverity = 'info' | 'warn' | 'high'

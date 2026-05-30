@@ -102,3 +102,17 @@ export type DataPiece = {
   createdAt: string
   consumedAt?: string
 }
+
+export type RewardOrder = {
+  id: string
+  pid: string
+  itemId: string
+  itemLabel: string
+  cost: number
+  idempotencyKey: string
+  status: 'pending' | 'issued' | 'failed' | 'refunded'
+  voucherCode?: string
+  failureReason?: string
+  createdAt: string
+  updatedAt: string
+}

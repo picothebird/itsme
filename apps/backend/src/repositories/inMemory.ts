@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import type {
   DataPiece,
   Pet,
+  RewardOrder,
   Survey,
   SurveyResponse,
   Wallet,
@@ -14,6 +15,7 @@ const responses = new Map<string, SurveyResponse>()
 const wallets = new Map<string, Wallet>()
 const pets = new Map<string, Pet>()
 const dataPieces = new Map<string, DataPiece>()
+const rewardOrders = new Map<string, RewardOrder>()
 
 export const generateId = (prefix: string): string => `${prefix}_${randomUUID().slice(0, 12)}`
 
@@ -23,6 +25,7 @@ export const resetStore = (): void => {
   wallets.clear()
   pets.clear()
   dataPieces.clear()
+  rewardOrders.clear()
 }
 
 export const surveyRepo = {
@@ -88,6 +91,26 @@ export const walletRepo = {
     wallet.transactions.unshift(txn)
     return txn
   },
+  debit: (pid: string, amount: number, refId?: string): WalletTransaction => {
+    if (amount <= 0) {
+      throw new Error('debit amount must be positive')
+    }
+    const wallet = ensureWallet(pid)
+    if (wallet.balance < amount) {
+      throw new Error('insufficient balance')
+    }
+    const txn: WalletTransaction = {
+      id: generateId('txn'),
+      pid,
+      type: 'spend',
+      amount,
+      refId,
+      createdAt: new Date().toISOString(),
+    }
+    wallet.balance -= amount
+    wallet.transactions.unshift(txn)
+    return txn
+  },
 }
 
 export const petRepo = {
@@ -124,4 +147,17 @@ export const dataPieceRepo = {
   },
   existsForResponse: (responseId: string): boolean =>
     Array.from(dataPieces.values()).some((p) => p.responseId === responseId),
+}
+
+export const rewardOrderRepo = {
+  list: (): RewardOrder[] => Array.from(rewardOrders.values()),
+  listByPid: (pid: string): RewardOrder[] =>
+    Array.from(rewardOrders.values()).filter((o) => o.pid === pid),
+  get: (id: string): RewardOrder | undefined => rewardOrders.get(id),
+  findByIdempotencyKey: (pid: string, key: string): RewardOrder | undefined =>
+    Array.from(rewardOrders.values()).find((o) => o.pid === pid && o.idempotencyKey === key),
+  save: (order: RewardOrder): RewardOrder => {
+    rewardOrders.set(order.id, order)
+    return order
+  },
 }
