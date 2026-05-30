@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { api, type FeedCard, type PanelistSummary, type Survey } from '../lib/api'
 
@@ -31,17 +31,14 @@ const seedSurveyPayload = {
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 type StepState = 'idle' | 'active' | 'done'
-type LogEntry = { id: number; time: string; message: string }
+type LogEntry = { id: string; time: string; message: string }
+type Toast = { id: number; kind: 'info' | 'success'; message: string }
 
-const nextLog = (message: string, prev: LogEntry[]): LogEntry[] =>
-  [
-    {
-      id: Date.now() + Math.random(),
-      time: new Date().toLocaleTimeString(),
-      message,
-    },
-    ...prev,
-  ].slice(0, 8)
+const makeLogEntry = (message: string): LogEntry => ({
+  id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  time: new Date().toLocaleTimeString(),
+  message,
+})
 
 export function ResearcherPanel() {
   const [surveys, setSurveys] = useState<Survey[]>([])
@@ -50,6 +47,25 @@ export function ResearcherPanel() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [log, setLog] = useState<LogEntry[]>([])
+  const [toast, setToast] = useState<Toast | null>(null)
+  const toastTimer = useRef<number | null>(null)
+  const collectRef = useRef<HTMLElement | null>(null)
+
+  const pushLog = useCallback((message: string) => {
+    setLog((prev) => [makeLogEntry(message), ...prev].slice(0, 8))
+  }, [])
+
+  const showToast = useCallback((message: string, kind: Toast['kind'] = 'info') => {
+    if (toastTimer.current) window.clearTimeout(toastTimer.current)
+    setToast({ id: Date.now(), kind, message })
+    toastTimer.current = window.setTimeout(() => setToast(null), 3200)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) window.clearTimeout(toastTimer.current)
+    }
+  }, [])
 
   const refresh = useCallback(async () => {
     setError(null)
@@ -93,79 +109,99 @@ export function ResearcherPanel() {
 
   const seedSurvey = useCallback(async () => {
     setBusy(true)
-    setLog((prev) => nextLog('데모 설문 초안을 생성합니다…', prev))
+    pushLog('데모 설문 초안을 생성합니다…')
     try {
       const created = await api.createSurvey(seedSurveyPayload)
-      setLog((prev) => nextLog(`설문 초안 생성 완료 (${created.id})`, prev))
+      pushLog(`설문 초안 생성 완료 (${created.id})`)
       await api.publishSurvey(created.id, {
         pointsPerUser: 500,
         targetCount: 200,
         estimatedReach: 300,
       })
-      setLog((prev) => nextLog('라이브 피드에 발행되었습니다.', prev))
+      pushLog('라이브 피드에 발행되었습니다.')
+      showToast('설문이 라이브 피드에 발행되었습니다.', 'success')
       await refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      const message = err instanceof Error ? err.message : String(err)
+      setError(message)
+      showToast(`발행 실패: ${message}`, 'info')
     } finally {
       setBusy(false)
     }
-  }, [refresh])
+  }, [pushLog, refresh, showToast])
 
   const runResponseFlow = useCallback(async () => {
     setBusy(true)
-    setLog((prev) => nextLog('패널리스트 응답 시뮬레이션을 시작합니다…', prev))
+    pushLog('패널리스트 응답 시뮬레이션을 시작합니다…')
     try {
       const liveSurvey = surveys.find((survey) => survey.status === 'live')
       if (!liveSurvey) {
         throw new Error('먼저 설문을 발행하세요.')
       }
       const started = await api.startResponse({ pid: DEMO_PID, surveyId: liveSurvey.id })
-      setLog((prev) => nextLog(`응답 세션 시작 (${started.id})`, prev))
+      pushLog(`응답 세션 시작 (${started.id})`)
 
       for (const question of liveSurvey.questions) {
-        await wait(120)
-        const latencyMs = Math.max(1_500, question.text.length * 90)
-        await api.submitAnswer(started.id, {
+        await wait(150)
+        const latencyMs = Math.max(1_800, question.text.length * 110)
+        const answer = await api.submitAnswer(started.id, {
           questionId: question.id,
           selectedChoiceIds: question.choices ? [question.choices[0].id] : [],
           latencyMs,
         })
+        if (answer.abuse.level !== 'ok') {
+          pushLog(`어뷰즈 ${answer.abuse.level} 감지 · strikes=${answer.abuse.strikes}`)
+        }
+        if (answer.abuse.level === 'block') {
+          showToast('어뷰즈 차단 발생 — 응답이 중단되었습니다.', 'info')
+          await refresh()
+          return
+        }
       }
 
       const completion = await api.completeResponse(started.id)
-      setLog((prev) =>
-        nextLog(
-          `보상 ${completion.pointsAwarded}P · 펫 EXP ${completion.pet.exp} (Lv${completion.pet.level})`,
-          prev,
-        ),
+      pushLog(
+        `보상 +${completion.pointsAwarded}P · 펫 EXP ${completion.pet.exp} (Lv${completion.pet.level})`,
       )
+      showToast(`보상 ${completion.pointsAwarded}P가 지급되었습니다.`, 'success')
+      await refresh()
+      window.setTimeout(() => {
+        collectRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      setError(message)
+      showToast(`응답 실패: ${message}`, 'info')
+    } finally {
+      setBusy(false)
+    }
+  }, [pushLog, refresh, showToast, surveys])
+
+  const resetDemo = useCallback(async () => {
+    if (busy) return
+    if (!window.confirm('데모 데이터(설문/응답/지갑/펫)를 모두 초기화합니다. 계속할까요?')) return
+    setBusy(true)
+    try {
+      await api.resetDemo()
+      setLog([])
+      showToast('데모 상태가 초기화되었습니다.', 'info')
       await refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setBusy(false)
     }
-  }, [refresh, surveys])
+  }, [busy, refresh, showToast])
 
   const liveCount = feed.length
   const hasSurveys = surveys.length > 0
   const hasResponses = (panelist?.wallet.balance ?? 0) > 0
 
   const stepStates: { id: 1 | 2 | 3; state: StepState }[] = [
-    {
-      id: 1,
-      state: hasSurveys ? 'done' : 'active',
-    },
-    {
-      id: 2,
-      state: liveCount > 0 ? 'done' : hasSurveys ? 'active' : 'idle',
-    },
-    {
-      id: 3,
-      state: hasResponses ? 'done' : liveCount > 0 ? 'active' : 'idle',
-    },
+    { id: 1, state: hasSurveys ? 'done' : 'active' },
+    { id: 2, state: liveCount > 0 ? 'done' : hasSurveys ? 'active' : 'idle' },
+    { id: 3, state: hasResponses ? 'done' : liveCount > 0 ? 'active' : 'idle' },
   ]
-
   const stateFor = (id: 1 | 2 | 3) => stepStates.find((s) => s.id === id)?.state ?? 'idle'
 
   const petPercent = useMemo(() => {
@@ -180,6 +216,8 @@ export function ResearcherPanel() {
 
   return (
     <>
+      {busy ? <div className="busy-bar" aria-hidden /> : null}
+
       <section id="workflow" aria-labelledby="workflow-heading">
         <div className="section-header">
           <div>
@@ -194,6 +232,14 @@ export function ResearcherPanel() {
               disabled={busy}
             >
               새로고침
+            </button>
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => void resetDemo()}
+              disabled={busy}
+            >
+              데모 초기화
             </button>
           </div>
         </div>
@@ -222,7 +268,7 @@ export function ResearcherPanel() {
                 onClick={() => void seedSurvey()}
                 disabled={busy}
               >
-                데모 설문 생성
+                {busy ? '처리중…' : '데모 설문 생성'}
               </button>
             </div>
           </article>
@@ -262,6 +308,7 @@ export function ResearcherPanel() {
                 className="btn btn--secondary"
                 onClick={() => void runResponseFlow()}
                 disabled={busy || liveCount === 0}
+                title={liveCount === 0 ? '먼저 1·2단계를 실행하세요.' : undefined}
               >
                 응답 시뮬레이션
               </button>
@@ -270,40 +317,43 @@ export function ResearcherPanel() {
         </div>
       </section>
 
-      <section className="cols" id="feed" aria-labelledby="surveys-heading">
-        <div className="card">
-          <div className="card__head">
-            <h3 id="surveys-heading">설문 라이브러리</h3>
-            <span className="card__count">{surveys.length} total</span>
+      <section className="cols" id="feed" aria-labelledby="library-heading">
+        <div style={{ display: 'grid', gap: 24, minWidth: 0 }}>
+          <div className="card">
+            <div className="card__head">
+              <h3 id="library-heading">설문 라이브러리</h3>
+              <span className="card__count">{surveys.length} total</span>
+            </div>
+            {surveys.length === 0 ? (
+              <p className="empty">아직 설문이 없습니다. 1단계에서 데모를 생성해 보세요.</p>
+            ) : (
+              <ul className="survey-list">
+                {surveys.map((survey) => (
+                  <li key={survey.id} className="survey-list__item">
+                    <span className="survey-list__title">{survey.title}</span>
+                    <span className={`pill pill--${survey.status}`}>{survey.status}</span>
+                    <span className="survey-list__meta">
+                      {survey.category} · {survey.questions.length}Q · difficulty{' '}
+                      {survey.difficulty}
+                      {survey.deployment
+                        ? ` · ${survey.deployment.pointsPerUser}P · target ${survey.deployment.targetCount}`
+                        : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-          {surveys.length === 0 ? (
-            <p className="empty">아직 설문이 없습니다. 1단계에서 데모를 생성해 보세요.</p>
-          ) : (
-            <ul className="survey-list">
-              {surveys.map((survey) => (
-                <li key={survey.id} className="survey-list__item">
-                  <span className="survey-list__title">{survey.title}</span>
-                  <span className={`pill pill--${survey.status}`}>{survey.status}</span>
-                  <span className="survey-list__meta">
-                    {survey.category} · {survey.questions.length}Q · difficulty {survey.difficulty}
-                    {survey.deployment
-                      ? ` · ${survey.deployment.pointsPerUser}P · target ${survey.deployment.targetCount}`
-                      : ''}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
 
-          <div>
-            <div className="card__head" style={{ marginTop: 8 }}>
-              <h3>라이브 피드</h3>
+          <section className="card" ref={collectRef} aria-labelledby="livefeed-heading">
+            <div className="card__head">
+              <h3 id="livefeed-heading">라이브 피드</h3>
               <span className="card__count">{liveCount} broadcasting</span>
             </div>
             {liveCount === 0 ? (
               <p className="empty">현재 발행된 설문이 없습니다.</p>
             ) : (
-              <div className="feed-grid" style={{ marginTop: 12 }}>
+              <div className="feed-grid">
                 {feed.map((card, index) => {
                   const tint = TINTS[index % TINTS.length]
                   return (
@@ -326,7 +376,7 @@ export function ResearcherPanel() {
                 })}
               </div>
             )}
-          </div>
+          </section>
         </div>
 
         <aside className="panelist" aria-label="Demo panelist summary">
@@ -347,7 +397,13 @@ export function ResearcherPanel() {
                   <span>Pet · Lv {panelist.pet.level}</span>
                   <span>{panelist.pet.exp} EXP</span>
                 </div>
-                <div className="pet-bar__track">
+                <div
+                  className="pet-bar__track"
+                  role="progressbar"
+                  aria-valuenow={petPercent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
                   <div className="pet-bar__fill" style={{ width: `${petPercent}%` }} />
                 </div>
               </div>
@@ -379,6 +435,12 @@ export function ResearcherPanel() {
             ))}
           </div>
         </section>
+      ) : null}
+
+      {toast ? (
+        <div className={`toast toast--${toast.kind}`} role="status" aria-live="polite">
+          {toast.message}
+        </div>
       ) : null}
     </>
   )

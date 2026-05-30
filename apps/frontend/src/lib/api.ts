@@ -103,6 +103,11 @@ export const api = {
     }),
   panelistSummary: (pid: string) =>
     request<PanelistSummary>(`/panel/me?pid=${encodeURIComponent(pid)}`),
+  resetDemo: () =>
+    request<{ cleared: boolean }>('/dev/reset', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
 }
 
 export const apiBase = apiBaseUrl

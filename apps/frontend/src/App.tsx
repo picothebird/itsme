@@ -62,9 +62,15 @@ function App() {
           <button type="button" aria-current="page">
             Dashboard
           </button>
-          <button type="button">Surveys</button>
-          <button type="button">Panel</button>
-          <button type="button">Insights</button>
+          <button type="button" disabled aria-disabled="true" title="곧 출시">
+            Surveys
+          </button>
+          <button type="button" disabled aria-disabled="true" title="곧 출시">
+            Panel
+          </button>
+          <button type="button" disabled aria-disabled="true" title="곧 출시">
+            Insights
+          </button>
         </nav>
         <div className="topbar__meta">
           <span className={`pill ${healthPillClass}`}>{healthLabel}</span>
@@ -82,12 +88,28 @@ function App() {
               동작합니다.
             </p>
             <div className="hero__actions">
-              <a className="btn btn--primary btn--lg" href="#workflow">
+              <button
+                type="button"
+                className="btn btn--primary btn--lg"
+                onClick={() => {
+                  document
+                    .getElementById('workflow')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+              >
                 워크플로우 시작
-              </a>
-              <a className="btn btn--secondary btn--lg" href="#feed">
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--lg"
+                onClick={() => {
+                  document
+                    .getElementById('feed')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+              >
                 라이브 피드 보기
-              </a>
+              </button>
             </div>
           </div>
 

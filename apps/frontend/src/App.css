@@ -4,6 +4,18 @@
   flex-direction: column;
   min-height: 100vh;
   background: var(--color-surface);
+  scroll-behavior: smooth;
+}
+
+/* Accessible focus ring */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 /* Top nav (Notion-style sticky) */
@@ -799,5 +811,104 @@
   }
   .topbar__nav {
     display: none;
+  }
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-ink-strong);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: var(--shadow-pop);
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  animation: toast-in 220ms ease;
+}
+
+.toast--success {
+  background: linear-gradient(135deg, #1aae39 0%, #0e7a26 100%);
+}
+
+.toast--info {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-pressed) 100%);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Disabled nav button */
+.topbar__nav button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.topbar__nav button[disabled]::after {
+  content: 'soon';
+  margin-left: 6px;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-hairline);
+  color: var(--color-steel);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+/* Visible busy indicator */
+.busy-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  background-size: 200% 100%;
+  animation: busy-slide 1.1s linear infinite;
+  z-index: 50;
+}
+
+@keyframes busy-slide {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Connector lines between steps (desktop) */
+@media (min-width: 881px) {
+  .steps {
+    position: relative;
+  }
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 36px;
+    right: -16px;
+    width: 16px;
+    height: 2px;
+    background: var(--color-hairline);
+  }
+  .step[data-state='done']:not(:last-child)::after {
+    background: var(--color-success);
   }
 }
