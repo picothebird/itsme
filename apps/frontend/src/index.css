@@ -1,18 +1,67 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
+/* itsme design tokens — Apple discipline x Notion warmth */
 :root {
-  --paper: #f7f2e8;
-  --ink: #1f2321;
-  --line: rgba(31, 35, 33, 0.2);
-  --sun: #f4b942;
-  --clay: #ce6346;
-  --teal: #1f7a8c;
-  --sans: 'Space Grotesk', sans-serif;
-  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+  /* Brand */
+  --color-primary: #5645d4;
+  --color-primary-pressed: #4534b3;
+  --color-primary-soft: rgba(86, 69, 212, 0.1);
+  --color-accent-blue: #0066cc;
 
-  font-family: var(--sans);
-  color: var(--ink);
-  background: var(--paper);
+  /* Surface */
+  --color-canvas: #ffffff;
+  --color-surface: #f7f6f3;
+  --color-surface-soft: #fafaf9;
+
+  /* Ink */
+  --color-ink: #1a1a1a;
+  --color-ink-strong: #000000;
+  --color-charcoal: #37352f;
+  --color-slate: #5d5b54;
+  --color-steel: #787671;
+  --color-stone: #a4a097;
+  --color-muted: #bbb8b1;
+
+  /* Hairlines */
+  --color-hairline: #e5e3df;
+  --color-hairline-soft: #ede9e4;
+
+  /* Pastel tints */
+  --tint-peach: #ffe8d4;
+  --tint-rose: #fde0ec;
+  --tint-mint: #d9f3e1;
+  --tint-lavender: #e6e0f5;
+  --tint-sky: #dcecfa;
+  --tint-yellow: #fef7d6;
+
+  /* Semantic */
+  --color-success: #1aae39;
+  --color-warning: #dd5b00;
+  --color-danger: #e03131;
+  --color-success-soft: rgba(26, 174, 57, 0.12);
+  --color-warning-soft: rgba(221, 91, 0, 0.12);
+  --color-danger-soft: rgba(224, 49, 49, 0.1);
+
+  /* Type */
+  --font-sans: 'Inter', 'SF Pro Text', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 9999px;
+
+  /* Elevation */
+  --shadow-1: 0 1px 2px rgba(15, 15, 15, 0.04), 0 1px 1px rgba(15, 15, 15, 0.03);
+  --shadow-2: 0 4px 12px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-pop: 0 12px 28px rgba(15, 15, 15, 0.08), 0 2px 4px rgba(15, 15, 15, 0.04);
+
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-surface);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -23,46 +72,38 @@
   box-sizing: border-box;
 }
 
-body {
+html,
+body,
+#root {
   margin: 0;
+  padding: 0;
   min-height: 100vh;
-  position: relative;
-  background:
-    radial-gradient(circle at 12% 16%, rgba(244, 185, 66, 0.58) 0 10%, transparent 10.5%),
-    radial-gradient(circle at 86% 82%, rgba(31, 122, 140, 0.42) 0 18%, transparent 18.5%),
-    linear-gradient(145deg, #f9f4eb 0%, #f6efdf 52%, #f2e6cc 100%);
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(to right, rgba(31, 35, 33, 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(31, 35, 33, 0.04) 1px, transparent 1px);
-  background-size: 38px 38px;
-  mask-image: radial-gradient(circle at center, black 38%, transparent 85%);
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  width: min(42vw, 420px);
-  height: min(42vw, 420px);
-  top: -150px;
-  left: -110px;
-  border-radius: 32% 68% 62% 38% / 42% 30% 70% 58%;
-  background: linear-gradient(140deg, rgba(206, 99, 70, 0.25), rgba(244, 185, 66, 0.18));
-  filter: blur(1px);
-  pointer-events: none;
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
 }
 
 #root {
-  min-height: 100vh;
-  width: 100%;
-  padding: clamp(1rem, 3vw, 2.5rem);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-primary-pressed);
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(86, 69, 212, 0.2);
 }
