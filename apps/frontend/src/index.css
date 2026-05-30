@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* itsme design tokens — Apple discipline x Notion warmth */
 :root {
@@ -42,10 +43,20 @@
   --color-warning-soft: rgba(221, 91, 0, 0.12);
   --color-danger-soft: rgba(224, 49, 49, 0.1);
 
-  /* Type */
-  --font-sans: 'Inter', 'SF Pro Text', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  /* Aliases — older sections reference these names; keep them in sync */
+  --color-border: var(--color-hairline);
+  --color-text: var(--color-ink);
+  --color-text-muted: var(--color-steel);
+  --color-surface-muted: var(--color-surface-soft);
+  --panel-soft: var(--color-surface-soft);
+  --muted: var(--color-steel);
+
+  /* Type — Pretendard for Korean+Latin consistency, with system fallbacks */
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Noto Sans KR', 'Segoe UI', system-ui, sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, ui-monospace, monospace;
 
   /* Radius */
   --radius-sm: 6px;
@@ -83,6 +94,21 @@ body,
 body {
   background: var(--color-surface);
   color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings:
+    'cv02' on,
+    'cv11' on,
+    'ss01' on;
+  /* iOS auto-zoom prevention on inputs and consistent base size for ko/en */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 #root {

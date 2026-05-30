@@ -820,9 +820,9 @@
   background: var(--color-danger);
 }
 
-/* Responsive — tablet & mobile tiers */
+/* Responsive ??tablet & mobile tiers */
 
-/* Tablet (640–1024px): 2-col hero stays but compress; cols becomes single with panelist as sticky aside row */
+/* Tablet (640??024px): 2-col hero stays but compress; cols becomes single with panelist as sticky aside row */
 @media (max-width: 1024px) {
   .cols {
     grid-template-columns: 1fr;
@@ -835,7 +835,7 @@
   }
 }
 
-/* Mobile (≤640px): stack everything, full-width actions, compact density */
+/* Mobile (??40px): stack everything, full-width actions, compact density */
 @media (max-width: 640px) {
   .topbar {
     padding: 10px 16px;
@@ -991,7 +991,7 @@
   }
 }
 
-/* Wide desktop (≥1280px): keep panelist tall, give more room */
+/* Wide desktop (??280px): keep panelist tall, give more room */
 @media (min-width: 1280px) {
   .page {
     padding-bottom: 120px;
@@ -2128,4 +2128,82 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   color: var(--muted, #555);
+}
+
+/* ============================================================
+ * Mobile polish ? dashboard, modal, wallet (≤640px)
+ * Consolidated audit pass to avoid clipping/grid overflow on
+ * narrow viewports and keep the Pretendard hierarchy readable.
+ * ============================================================ */
+@media (max-width: 640px) {
+  .dashboard {
+    gap: 12px;
+  }
+  .kpi-strip {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .kpi {
+    padding: 12px 14px;
+  }
+
+  .modal {
+    padding: 16px;
+    align-items: flex-end;
+  }
+  .modal__panel {
+    padding: 20px 18px;
+    max-height: calc(100vh - 32px);
+    width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-md) var(--radius-md);
+  }
+  .modal__grid {
+    grid-template-columns: 1fr;
+  }
+  .modal__foot {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  .modal__foot .btn {
+    width: 100%;
+  }
+
+  .wallet-section {
+    margin-top: 16px;
+  }
+  .reward-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .reward-orders li {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'status label'
+      'voucher voucher';
+    row-gap: 4px;
+  }
+  .reward-orders__status {
+    grid-area: status;
+  }
+  .reward-orders__label {
+    grid-area: label;
+  }
+  .reward-orders__voucher {
+    grid-area: voucher;
+    word-break: break-all;
+  }
+
+  .mobile-preview__device {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
+/* Prevent iOS auto-zoom on focused inputs */
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }
