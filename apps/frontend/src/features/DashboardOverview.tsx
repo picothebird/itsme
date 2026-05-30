@@ -79,7 +79,7 @@ export function DashboardOverview({ surveys, onLog }: Props) {
       <div className="section-header">
         <div>
           <h2 id="dashboard-heading">운영 대시보드</h2>
-          <p>실시간 핵심 지표와 설문 진행 상태를 한눈에 확인하세요.</p>
+          <p>설문 현황과 운영 지표를 한 화면에서 확인해 주세요.</p>
         </div>
       </div>
 
@@ -94,22 +94,22 @@ export function DashboardOverview({ surveys, onLog }: Props) {
 
       <div className="kpi-strip">
         <KpiCard
-          label="설문 총수"
+          label="전체 설문"
           value={summary?.surveys.total ?? 0}
-          sub={`라이브 ${summary?.surveys.live ?? 0}`}
+          sub={`라이브 ${summary?.surveys.live ?? 0}개`}
         />
         <KpiCard
           label="누적 응답"
           value={summary?.responses.started ?? 0}
-          sub={`완료 ${summary?.responses.completed ?? 0}`}
+          sub={`완료 ${summary?.responses.completed ?? 0}건`}
         />
         <KpiCard
           label="완료율"
           value={`${summary?.responses.completionRate ?? 0}%`}
-          sub={`차단 ${summary?.responses.blocked ?? 0}`}
+          sub={`차단 ${summary?.responses.blocked ?? 0}건`}
         />
         <KpiCard
-          label="지출 포인트"
+          label="지급 포인트"
           value={(summary?.spendPoints ?? 0).toLocaleString()}
           sub={`예산 ${(summary?.estimatedBudget ?? 0).toLocaleString()}P`}
         />
@@ -124,7 +124,7 @@ export function DashboardOverview({ surveys, onLog }: Props) {
             </header>
             <div className="kanban__list">
               {grouped[status].length === 0 ? (
-                <p className="kanban__empty">설문 없음</p>
+                <p className="kanban__empty">아직 없어요</p>
               ) : (
                 grouped[status].map((s) => (
                   <button
@@ -153,9 +153,9 @@ export function DashboardOverview({ surveys, onLog }: Props) {
         <div className="analytics-card">
           <div className="analytics-card__head">
             <div>
-              <h3>분석 패널</h3>
+              <h3>응답 분석</h3>
               <p className="analytics-card__sub">
-                {analytics ? analytics.surveyId : selectedId} · 10초마다 자동 새로고침
+                {analytics ? analytics.surveyId : selectedId} · 10초마다 자동으로 갱신돼요
               </p>
             </div>
             <div className="analytics-card__actions">
@@ -174,7 +174,7 @@ export function DashboardOverview({ surveys, onLog }: Props) {
           </div>
 
           {analyticsLoading && !analytics ? (
-            <p className="empty">분석 데이터를 불러오는 중…</p>
+            <p className="empty">분석 데이터를 불러오는 중이에요…</p>
           ) : analytics ? (
             <>
               <div className="analytics-totals">
@@ -217,14 +217,14 @@ export function DashboardOverview({ surveys, onLog }: Props) {
                         ))}
                       </div>
                     ) : (
-                      <p className="analytics-q__noChoices">서술형 질문 — 객관 분포 없음</p>
+                      <p className="analytics-q__noChoices">서술형 문항입니다 · 객관식 분포 없음</p>
                     )}
                   </li>
                 ))}
               </ol>
             </>
           ) : (
-            <p className="empty">데이터 없음</p>
+            <p className="empty">표시할 데이터가 없어요</p>
           )}
         </div>
       ) : null}

@@ -43,10 +43,10 @@ function App() {
 
   const healthLabel =
     healthState === 'ok'
-      ? `Connected · ${health?.service ?? 'api'}`
+      ? `정상 · ${health?.service ?? 'api'}`
       : healthState === 'error'
-        ? 'API unreachable'
-        : 'Checking…'
+        ? '서버 연결 끊김'
+        : '연결 확인 중'
 
   const healthPillClass =
     healthState === 'ok' ? 'pill--ok' : healthState === 'error' ? 'pill--err' : 'pill--warn'
@@ -58,18 +58,18 @@ function App() {
           <span className="brand__dot" aria-hidden />
           <span>itsme</span>
         </div>
-        <nav className="topbar__nav" aria-label="Primary">
+        <nav className="topbar__nav" aria-label="주요 메뉴">
           <button type="button" aria-current="page">
-            Dashboard
+            대시보드
           </button>
-          <button type="button" disabled aria-disabled="true" title="곧 출시">
-            Surveys
+          <button type="button" disabled aria-disabled="true" title="준비 중인 메뉴예요">
+            설문
           </button>
-          <button type="button" disabled aria-disabled="true" title="곧 출시">
-            Panel
+          <button type="button" disabled aria-disabled="true" title="준비 중인 메뉴예요">
+            패널
           </button>
-          <button type="button" disabled aria-disabled="true" title="곧 출시">
-            Insights
+          <button type="button" disabled aria-disabled="true" title="준비 중인 메뉴예요">
+            인사이트
           </button>
         </nav>
         <div className="topbar__meta">
@@ -80,12 +80,12 @@ function App() {
       <main className="page">
         <section className="hero">
           <div className="hero__copy">
-            <p className="eyebrow">itsme · researcher console</p>
+            <p className="eyebrow">잇츠미 · 리서처 콘솔</p>
             <h1 className="hero__title">설문 한 번에, 인사이트는 더 깊게.</h1>
             <p className="hero__lead">
-              잇츠미는 패널의 진짜 응답을 모으는 보상형 리서치 플랫폼입니다. 설문을 설계하고
-              발행하면 라이브 피드에서 응답이 쌓이고, 어뷰즈 탐지와 펫 성장 보상이 자동으로
-              동작합니다.
+              잇츠미는 진짜 패널의 응답을 모으는 보상형 리서치 플랫폼입니다. 설문을 설계해 발행하면
+              라이브 피드에 응답이 차곡차곡 쌓이고, 어뷰즈 탐지와 펫 성장 보상까지 자연스럽게
+              이어집니다.
             </p>
             <div className="hero__actions">
               <button
@@ -113,20 +113,20 @@ function App() {
             </div>
           </div>
 
-          <aside className="hero__metrics" aria-label="System summary">
-            <h3>System</h3>
+          <aside className="hero__metrics" aria-label="시스템 상태">
+            <h3>시스템</h3>
             <div className="metric-row">
               <div className="metric">
-                <span className="metric__label">API</span>
+                <span className="metric__label">API 주소</span>
                 <span className="metric__value">{apiBaseUrl.replace(/^https?:\/\//, '')}</span>
               </div>
               <div className="metric">
-                <span className="metric__label">Status</span>
+                <span className="metric__label">상태</span>
                 <span className="metric__value">{health?.status ?? '—'}</span>
               </div>
               <div className="metric">
-                <span className="metric__label">Build</span>
-                <span className="metric__value">MVP · alpha</span>
+                <span className="metric__label">버전</span>
+                <span className="metric__value">MVP · 알파</span>
               </div>
             </div>
           </aside>

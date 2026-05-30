@@ -112,26 +112,26 @@ export function ResearcherPanel() {
 
   const seedSurvey = useCallback(async () => {
     setBusy(true)
-    pushLog('데모 설문 초안을 생성합니다…')
+    pushLog('데모 설문 초안을 만드는 중이에요…')
     try {
       const dupCount = surveys.filter((s) => s.title.startsWith(seedSurveyPayload.title)).length
       const title =
         dupCount === 0 ? seedSurveyPayload.title : `${seedSurveyPayload.title} #${dupCount + 1}`
       const created = await api.createSurvey({ ...seedSurveyPayload, title })
-      pushLog(`설문 초안 생성 완료 (${created.id})`)
+      pushLog(`초안 생성 완료 · ${created.id}`)
       await api.publishSurvey(created.id, {
         pointsPerUser: 500,
         targetCount: 200,
         estimatedReach: 300,
       })
-      pushLog('라이브 피드에 발행되었습니다.')
-      showToast('설문이 라이브 피드에 발행되었습니다.', 'success')
+      pushLog('라이브 피드에 올라갔어요.')
+      showToast('설문이 라이브 피드에 올라갔어요.', 'success')
       await refresh()
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message)
-      pushLog(`설문 발행 실패: ${message}`)
-      showToast(`발행 실패: ${message}`, 'info')
+      pushLog(`발행 실패 · ${message}`)
+      showToast(`발행에 실패했어요. ${message}`, 'info')
     } finally {
       setBusy(false)
     }
@@ -139,14 +139,14 @@ export function ResearcherPanel() {
 
   const runResponseFlow = useCallback(async () => {
     setBusy(true)
-    pushLog('패널리스트 응답 시뮬레이션을 시작합니다…')
+    pushLog('패널리스트 응답 시뮬레이션을 시작해요…')
     try {
       const liveSurvey = surveys.find((survey) => survey.status === 'live')
       if (!liveSurvey) {
-        throw new Error('먼저 설문을 발행하세요.')
+        throw new Error('먼저 설문을 발행해 주세요.')
       }
       const started = await api.startResponse({ pid: DEMO_PID, surveyId: liveSurvey.id })
-      pushLog(`응답 세션 시작 (${started.id})`)
+      pushLog(`응답 세션 시작 · ${started.id}`)
 
       for (const question of liveSurvey.questions) {
         await wait(150)
@@ -157,10 +157,10 @@ export function ResearcherPanel() {
           latencyMs,
         })
         if (answer.abuse.level !== 'ok') {
-          pushLog(`어뷰즈 ${answer.abuse.level} 감지 · strikes=${answer.abuse.strikes}`)
+          pushLog(`어뷰즈 감지 · 단계 ${answer.abuse.level} · 누적 ${answer.abuse.strikes}회`)
         }
         if (answer.abuse.level === 'block') {
-          showToast('어뷰즈 차단 발생 — 응답이 중단되었습니다.', 'info')
+          showToast('어뷰즈가 감지돼 응답이 중단됐어요.', 'info')
           await refresh()
           return
         }
@@ -168,9 +168,9 @@ export function ResearcherPanel() {
 
       const completion = await api.completeResponse(started.id)
       pushLog(
-        `보상 +${completion.pointsAwarded}P · 펫 EXP ${completion.pet.exp} (Lv${completion.pet.level})`,
+        `보상 +${completion.pointsAwarded}P · 펫 EXP ${completion.pet.exp} (Lv ${completion.pet.level})`,
       )
-      showToast(`보상 ${completion.pointsAwarded}P가 지급되었습니다.`, 'success')
+      showToast(`보상 ${completion.pointsAwarded}P가 지급됐어요.`, 'success')
       await refresh()
       window.setTimeout(() => {
         collectRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -178,8 +178,8 @@ export function ResearcherPanel() {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message)
-      pushLog(`응답 실패: ${message}`)
-      showToast(`응답 실패: ${message}`, 'info')
+      pushLog(`응답 실패 · ${message}`)
+      showToast(`응답에 실패했어요. ${message}`, 'info')
     } finally {
       setBusy(false)
     }
@@ -187,18 +187,18 @@ export function ResearcherPanel() {
 
   const resetDemo = useCallback(async () => {
     if (busy) return
-    if (!window.confirm('데모 데이터(설문/응답/지갑/펫)를 모두 초기화합니다. 계속할까요?')) return
+    if (!window.confirm('데모 데이터(설문·응답·지갑·펫)를 모두 초기화할까요?')) return
     setBusy(true)
     try {
       await api.resetDemo()
       setLog([])
       setError(null)
-      showToast('데모 상태가 초기화되었습니다.', 'info')
+      showToast('데모 데이터를 초기화했어요.', 'info')
       await refresh()
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message)
-      showToast(`초기화 실패: ${message}`, 'info')
+      showToast(`초기화에 실패했어요. ${message}`, 'info')
     } finally {
       setBusy(false)
     }
@@ -243,7 +243,7 @@ export function ResearcherPanel() {
         <div className="section-header">
           <div>
             <h2 id="workflow-heading">3단계 워크플로우</h2>
-            <p>설계 · 발행 · 수집을 한 화면에서 흐르듯 실행합니다.</p>
+            <p>설계, 발행, 수집까지 한 화면에서 이어서 진행해 볼 수 있어요.</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
@@ -288,18 +288,18 @@ export function ResearcherPanel() {
               <span className="step__title">설문 설계</span>
             </div>
             <p className="step__body">
-              질문 유형과 카테고리를 선택해 초안을 만듭니다. 데모 설문은 단일선택과 리커트 척도를
-              혼합한 3문항으로 구성됩니다.
+              질문 유형과 카테고리를 골라 초안을 만들어요. 데모 설문은 단일선택과 리커트 척도가 섞인
+              3문항으로 구성돼 있어요.
             </p>
             <div className="step__footer">
-              <span className="step__meta">{surveys.length} drafts</span>
+              <span className="step__meta">초안 {surveys.length}개</span>
               <button
                 type="button"
                 className="btn btn--primary"
                 onClick={() => void seedSurvey()}
                 disabled={busy}
               >
-                {busy ? '처리중…' : '데모 설문 생성'}
+                {busy ? '처리하는 중…' : '데모 설문 만들기'}
               </button>
             </div>
           </article>
@@ -310,13 +310,13 @@ export function ResearcherPanel() {
               <span className="step__title">타겟 발행</span>
             </div>
             <p className="step__body">
-              포인트와 타겟 규모를 설정해 라이브 피드에 노출합니다. 타겟이 50명 미만이면 자동으로
-              차단됩니다.
+              포인트와 타겟 규모를 설정해 라이브 피드에 노출해요. 도달 모수가 50명 미만이면 자동으로
+              차단돼요.
             </p>
             <div className="step__footer">
-              <span className="step__meta">{liveCount} live</span>
+              <span className="step__meta">라이브 {liveCount}건</span>
               <span className={`pill ${liveCount > 0 ? 'pill--live' : 'pill--draft'}`}>
-                {liveCount > 0 ? 'Broadcasting' : 'Pending'}
+                {liveCount > 0 ? '송출 중' : '대기'}
               </span>
             </div>
           </article>
@@ -327,8 +327,8 @@ export function ResearcherPanel() {
               <span className="step__title">응답 수집</span>
             </div>
             <p className="step__body">
-              데모 패널리스트가 응답을 제출하고, 보상 포인트와 펫 EXP가 자동으로 적립됩니다. 어뷰즈
-              신호가 감지되면 즉시 차단됩니다.
+              데모 패널리스트가 응답을 제출하면 보상 포인트와 펫 EXP가 자동으로 적립돼요. 어뷰즈
+              신호가 감지되면 즉시 응답이 차단돼요.
             </p>
             <div className="step__footer">
               <span className="step__meta">
@@ -339,7 +339,7 @@ export function ResearcherPanel() {
                 className="btn btn--secondary"
                 onClick={() => void runResponseFlow()}
                 disabled={busy || liveCount === 0}
-                title={liveCount === 0 ? '먼저 1·2단계를 실행하세요.' : undefined}
+                title={liveCount === 0 ? '먼저 1·2단계를 진행해 주세요.' : undefined}
               >
                 응답 시뮬레이션
               </button>
@@ -353,21 +353,26 @@ export function ResearcherPanel() {
           <div className="card">
             <div className="card__head">
               <h3 id="library-heading">설문 라이브러리</h3>
-              <span className="card__count">{surveys.length} total</span>
+              <span className="card__count">총 {surveys.length}개</span>
             </div>
             {surveys.length === 0 ? (
-              <p className="empty">아직 설문이 없습니다. 1단계에서 데모를 생성해 보세요.</p>
+              <p className="empty">아직 만든 설문이 없어요. 1단계에서 데모를 시작해 보세요.</p>
             ) : (
               <ul className="survey-list">
                 {surveys.map((survey) => (
                   <li key={survey.id} className="survey-list__item">
                     <span className="survey-list__title">{survey.title}</span>
-                    <span className={`pill pill--${survey.status}`}>{survey.status}</span>
+                    <span className={`pill pill--${survey.status}`}>
+                      {survey.status === 'live'
+                        ? '라이브'
+                        : survey.status === 'draft'
+                          ? '초안'
+                          : '종료'}
+                    </span>
                     <span className="survey-list__meta">
-                      {survey.category} · {survey.questions.length}Q · difficulty{' '}
-                      {survey.difficulty}
+                      {survey.category} · {survey.questions.length}문항 · 난이도 {survey.difficulty}
                       {survey.deployment
-                        ? ` · ${survey.deployment.pointsPerUser}P · target ${survey.deployment.targetCount}`
+                        ? ` · ${survey.deployment.pointsPerUser}P · 목표 ${survey.deployment.targetCount}명`
                         : ''}
                     </span>
                   </li>
@@ -379,10 +384,10 @@ export function ResearcherPanel() {
           <section className="card" ref={collectRef} aria-labelledby="livefeed-heading">
             <div className="card__head">
               <h3 id="livefeed-heading">라이브 피드</h3>
-              <span className="card__count">{liveCount} broadcasting</span>
+              <span className="card__count">송출 중 {liveCount}건</span>
             </div>
             {liveCount === 0 ? (
-              <p className="empty">현재 발행된 설문이 없습니다.</p>
+              <p className="empty">지금 노출 중인 설문이 없어요.</p>
             ) : (
               <div className="feed-grid">
                 {feed.map((card, index) => {
@@ -398,8 +403,8 @@ export function ResearcherPanel() {
                       <div className="feed-card__footer">
                         <span className="feed-card__reward">{card.pointsPerUser} P</span>
                         <span>
-                          {card.questionCount}Q · ~
-                          {Math.max(1, Math.round(card.estimatedTimeSec / 60))}m
+                          {card.questionCount}문항 · 약{' '}
+                          {Math.max(1, Math.round(card.estimatedTimeSec / 60))}분
                         </span>
                       </div>
                     </article>
@@ -410,8 +415,8 @@ export function ResearcherPanel() {
           </section>
         </div>
 
-        <aside className="panelist" aria-label="Demo panelist summary">
-          <p className="panelist__label">Demo panelist</p>
+        <aside className="panelist" aria-label="데모 패널리스트 요약">
+          <p className="panelist__label">데모 패널리스트</p>
           <p className="panelist__pid">{DEMO_PID}</p>
 
           {panelist ? (
@@ -420,13 +425,13 @@ export function ResearcherPanel() {
                 <span className="panelist__stat-value">
                   {panelist.wallet.balance.toLocaleString()}
                 </span>
-                <span className="panelist__stat-unit">Points earned</span>
+                <span className="panelist__stat-unit">누적 포인트</span>
               </div>
 
               <div className="pet-bar">
                 <div className="pet-bar__head">
-                  <span>Pet · Lv {panelist.pet.level}</span>
-                  <span>{panelist.pet.exp} EXP</span>
+                  <span>펫 · Lv {panelist.pet.level}</span>
+                  <span>EXP {panelist.pet.exp}</span>
                 </div>
                 <div
                   className="pet-bar__track"
@@ -442,12 +447,12 @@ export function ResearcherPanel() {
 
               <span className={`pet-tag ${panelist.pet.sick ? 'is-sick' : ''}`}>
                 {panelist.pet.sick
-                  ? 'Sick · 어뷰즈 패널티'
-                  : (panelist.pet.evolutionStage ?? 'Healthy')}
+                  ? '아픈 상태 · 어뷰즈 패널티'
+                  : (panelist.pet.evolutionStage ?? '건강한 상태')}
               </span>
             </>
           ) : (
-            <p className="panelist__empty">3단계 응답 시뮬레이션을 실행하면 통계가 채워집니다.</p>
+            <p className="panelist__empty">3단계 응답 시뮬레이션을 실행하면 통계가 채워져요.</p>
           )}
         </aside>
       </section>
@@ -461,9 +466,9 @@ export function ResearcherPanel() {
       </section>
 
       {log.length > 0 ? (
-        <section className="card" aria-label="Activity log">
+        <section className="card" aria-label="활동 기록">
           <div className="card__head">
-            <h3>Activity</h3>
+            <h3>활동 기록</h3>
             <span className="card__count">최근 {log.length}건</span>
           </div>
           <div className="log">

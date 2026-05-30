@@ -4,6 +4,13 @@ import { api, type RewardItem, type RewardOrder } from '../lib/api'
 
 type Toast = { kind: 'info' | 'error'; message: string } | null
 
+const ORDER_STATUS_LABEL: Record<string, string> = {
+  issued: '발급 완료',
+  pending: '처리 중',
+  failed: '실패',
+  refunded: '환불',
+}
+
 type Props = {
   pid: string
   /** parent-supplied balance; falls back to internal fetch when undefined */
@@ -36,8 +43,7 @@ export function WalletPanel({ pid, balance, onRedeemed }: Props) {
         setCatalog(items)
         setOrders(recent)
       } catch {
-        if (!cancelled)
-          setToast({ kind: 'error', message: '리워드 카탈로그를 불러오지 못했습니다.' })
+        if (!cancelled) setToast({ kind: 'error', message: '리워드 목록을 불러오지 못했어요.' })
       }
     }
     void tick()
@@ -52,7 +58,7 @@ export function WalletPanel({ pid, balance, onRedeemed }: Props) {
     async (item: RewardItem) => {
       if (busyItem) return
       if (balance != null && balance < item.cost) {
-        setToast({ kind: 'error', message: '잔액이 부족합니다.' })
+        setToast({ kind: 'error', message: '포인트 잔액이 부족해요.' })
         return
       }
       setBusyItem(item.id)
@@ -65,8 +71,8 @@ export function WalletPanel({ pid, balance, onRedeemed }: Props) {
         setToast({
           kind: 'info',
           message: idempotent
-            ? '이미 처리된 주문입니다.'
-            : `발급 완료: ${order.itemLabel} (${order.voucherCode ?? '-'})`,
+            ? '이미 처리된 주문이에요.'
+            : `교환 완료 · ${order.itemLabel} · ${order.voucherCode ?? '-'}`,
         })
         const recent = await api.wallet.orders(pid)
         setOrders(recent)
@@ -74,7 +80,7 @@ export function WalletPanel({ pid, balance, onRedeemed }: Props) {
       } catch (err) {
         setToast({
           kind: 'error',
-          message: err instanceof Error ? err.message : '리딤 실패',
+          message: err instanceof Error ? err.message : '교환에 실패했어요',
         })
       } finally {
         setBusyItem(null)
@@ -88,7 +94,7 @@ export function WalletPanel({ pid, balance, onRedeemed }: Props) {
       <div className="card__head">
         <h3>리워드 상점</h3>
         <span className="card__count">
-          잔액 {balance != null ? balance.toLocaleString() : '...'} P
+          잔액 {balance != null ? balance.toLocaleString() : '—'} P
         </span>
       </div>
 
@@ -103,11 +109,11 @@ export function WalletPanel({ pid, balance, onRedeemed }: Props) {
                 <span className="reward-card__cost">{item.cost.toLocaleString()} P</span>
                 <button
                   type="button"
-                  className="button"
+                  className="btn btn--primary btn--sm"
                   disabled={disabled}
                   onClick={() => void redeem(item)}
                 >
-                  {busyItem === item.id ? '처리 중…' : '리딤'}
+                  {busyItem === item.id ? '교환하는 중…' : '교환하기'}
                 </button>
               </div>
             </article>
@@ -122,7 +128,7 @@ export function WalletPanel({ pid, balance, onRedeemed }: Props) {
             {orders.slice(0, 5).map((order) => (
               <li key={order.id}>
                 <span className={`reward-orders__status reward-orders__status--${order.status}`}>
-                  {order.status}
+                  {ORDER_STATUS_LABEL[order.status] ?? order.status}
                 </span>
                 <span className="reward-orders__label">{order.itemLabel}</span>
                 <span className="reward-orders__voucher">{order.voucherCode ?? '—'}</span>

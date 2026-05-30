@@ -8,8 +8,8 @@ const RULE_LABELS: Record<AuditFinding['rule'], string> = {
   leading: '유도성 표현',
   double_barreled: '이중 질문',
   contradiction: '논리 모순',
-  jargon: '전문 용어',
-  too_long: '문장 과다',
+  jargon: '어려운 용어',
+  too_long: '문장이 너무 길어요',
   duplicate: '중복 문항',
   missing_choices: '보기 부족',
 }
@@ -25,9 +25,9 @@ type Props = {
 }
 
 const SAMPLE_BRIEFS = [
-  '20대 직장인의 신규 배달 앱 사용 경험과 재이용 의향을 알고 싶다',
-  '구독형 커피 서비스에 대한 소비자 만족도와 가격 민감도를 조사한다',
-  '대학생의 운동 앱 이용 패턴과 동기부여 요소를 파악한다',
+  '20대 직장인이 새로 나온 배달 앱을 어떻게 경험하고, 다시 쓸 의향이 있는지 알고 싶어요',
+  '구독형 커피 서비스에 대한 만족도와 가격 민감도를 조사합니다',
+  '대학생의 운동 앱 이용 패턴과 동기부여 요소를 파악하고 싶어요',
 ]
 
 const initialBrief = SAMPLE_BRIEFS[0]
@@ -65,7 +65,7 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
     if (!objective.trim()) return
     setError(null)
     setStep('drafting')
-    log(`AI 초안 생성 시작 (${desiredCount}문항)…`)
+    log(`초안 생성 시작 · ${desiredCount}문항`)
     try {
       const draft = await api.ai.generateDraft({
         brief: { objective: objective.trim(), desiredCount },
@@ -80,20 +80,20 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
       })
       setQuestions(draft.questions)
       setProviderName(draft.providerName)
-      log(`초안 완료: "${draft.title}" · ${draft.questions.length}문항 (${draft.providerName})`)
+      log(`초안 완성 · “${draft.title}” · ${draft.questions.length}문항 (${draft.providerName})`)
 
       setStep('auditing')
       const auditResult = await api.ai.runAudit(draft.surveyId)
       setAudit(auditResult)
       log(
-        `AI 검수: ${auditResult.findings.length}건 (high ${auditResult.summary.high} · warn ${auditResult.summary.warn} · info ${auditResult.summary.info}) · score ${auditResult.summary.score}`,
+        `검수 결과 · 총 ${auditResult.findings.length}건 (심각 ${auditResult.summary.high} · 주의 ${auditResult.summary.warn} · 참고 ${auditResult.summary.info}) · 점수 ${auditResult.summary.score}`,
       )
       setStep('ready')
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message)
-      log(`AI 초안 실패: ${message}`)
-      onToast?.(`AI 초안 실패: ${message}`, 'info')
+      log(`초안 생성 실패 · ${message}`)
+      onToast?.(`초안 생성에 실패했어요. ${message}`, 'info')
       setStep('idle')
     }
   }, [desiredCount, log, objective, onToast])
@@ -110,11 +110,11 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
           findings: result.remaining,
           summary: result.summary,
         })
-        log(`수정안 적용: ${RULE_LABELS[finding.rule]} (Q${finding.questionIndex + 1})`)
+        log(`수정안 적용 · ${RULE_LABELS[finding.rule]} (Q${finding.questionIndex + 1})`)
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
         setError(message)
-        log(`수정안 적용 실패: ${message}`)
+        log(`수정안 적용 실패 · ${message}`)
       } finally {
         setApplyingId(null)
       }
@@ -132,20 +132,20 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
       if (!survey) return
       setStep('publishing')
       log(
-        `AI 빌더에서 발행 요청… (${input.pointsPerUser}P · ${input.targetCount}명 · 모수 ${input.estimatedReach})`,
+        `발행 요청 · 응답자당 ${input.pointsPerUser}P · 목표 ${input.targetCount}명 · 예상 모수 ${input.estimatedReach}`,
       )
       try {
         await api.publishSurvey(survey.id, input)
         setStep('published')
         setPublishOpen(false)
-        log('라이브 피드에 발행되었습니다.')
-        onToast?.('AI 설문이 발행되었습니다.', 'success')
+        log('라이브 피드에 올라갔어요.')
+        onToast?.('설문이 라이브 피드에 올라갔어요.', 'success')
         onPublished?.()
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
         setError(message)
-        log(`발행 실패: ${message}`)
-        onToast?.(`발행 실패: ${message}`, 'info')
+        log(`발행 실패 · ${message}`)
+        onToast?.(`발행에 실패했어요. ${message}`, 'info')
         setStep('ready')
         throw err
       }
@@ -164,7 +164,7 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
   const summary = audit?.summary
   const stage =
     step === 'idle'
-      ? '대기'
+      ? '준비'
       : step === 'drafting'
         ? '초안 생성 중'
         : step === 'auditing'
@@ -181,8 +181,8 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
         <div>
           <h3 id="ai-studio-heading">AI 설문 빌더</h3>
           <p className="ai-studio__sub">
-            조사 목적을 입력하면 AI가 초안 문항을 생성하고, 유도성·논리 모순을 검수해 수정안을
-            제안합니다.
+            조사 목적을 적으면 초안 문항을 만들고, 유도 표현이나 논리 모순을 짚어 수정안까지 제안해
+            드려요.
           </p>
         </div>
         <span className={`pill pill--${step === 'published' ? 'live' : 'draft'}`}>{stage}</span>
@@ -204,7 +204,7 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
               void runDraftAndAudit()
             }
           }}
-          placeholder="예: 20대 직장인의 신규 배달 앱 사용 경험과 재이용 의향을 알고 싶다 (⌘/Ctrl+Enter)"
+          placeholder="예: 20대 직장인의 새 배달 앱 경험과 재이용 의향을 알고 싶어요 (⌘/Ctrl+Enter로 시작)"
           disabled={isBusy}
         />
         <div className="ai-studio__samples">
@@ -244,10 +244,10 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
             disabled={isBusy || objective.trim().length < 4}
           >
             {step === 'drafting'
-              ? '초안 생성중…'
+              ? '초안 생성 중…'
               : step === 'auditing'
-                ? '검수중…'
-                : 'AI 초안 + 검수'}
+                ? '검수 중…'
+                : '초안 + 검수 시작'}
           </button>
           {survey ? (
             <button type="button" className="btn btn--ghost" onClick={reset} disabled={isBusy}>
@@ -277,7 +277,7 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
             <div>
               <h4>{survey.title}</h4>
               <span className="ai-studio__meta">
-                {questions.length}문항 · provider: {providerName}
+                {questions.length}문항 · 모델 {providerName}
               </span>
             </div>
             {summary ? (
@@ -290,9 +290,9 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
 
           {summary ? (
             <div className="ai-studio__chips">
-              <span className="chip chip--high">high {summary.high}</span>
-              <span className="chip chip--warn">warn {summary.warn}</span>
-              <span className="chip chip--info">info {summary.info}</span>
+              <span className="chip chip--high">심각 {summary.high}</span>
+              <span className="chip chip--warn">주의 {summary.warn}</span>
+              <span className="chip chip--info">참고 {summary.info}</span>
             </div>
           ) : null}
 
@@ -320,14 +320,18 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
                           <div className="finding__head">
                             <span className="finding__rule">{RULE_LABELS[f.rule]}</span>
                             <span className={`finding__sev finding__sev--${f.severity}`}>
-                              {f.severity}
+                              {f.severity === 'high'
+                                ? '심각'
+                                : f.severity === 'warn'
+                                  ? '주의'
+                                  : '참고'}
                             </span>
                           </div>
                           <p className="finding__msg">{f.message}</p>
                           {f.suggestion ? <p className="finding__sug">{f.suggestion}</p> : null}
                           {f.fix ? (
                             <div className="finding__fix">
-                              <span className="finding__fixLabel">제안</span>
+                              <span className="finding__fixLabel">수정안</span>
                               <code className="finding__fixText">{f.fix.text}</code>
                               <button
                                 type="button"
@@ -335,7 +339,7 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
                                 onClick={() => void applyFinding(f)}
                                 disabled={applyingId !== null || isBusy}
                               >
-                                {applyingId === f.id ? '적용중…' : '적용'}
+                                {applyingId === f.id ? '적용하는 중…' : '적용하기'}
                               </button>
                             </div>
                           ) : null}
@@ -350,7 +354,7 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
 
           <div className="ai-studio__publish">
             <span className="ai-studio__meta">
-              {questions.length}문항 · 발행 시 특성을 설정하세요
+              {questions.length}문항 준비 완료 · 타겟과 보상을 설정해 발행하세요
             </span>
             <button
               type="button"
@@ -361,14 +365,14 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
               }
               title={
                 summary && summary.high > 0
-                  ? '심각 이슈가 남아 있어 발행이 차단되었습니다. 수정안을 적용하세요.'
+                  ? '심각 이슈가 남아 있어 발행할 수 없어요. 먼저 수정안을 적용해 주세요.'
                   : undefined
               }
             >
               {step === 'published'
                 ? '발행 완료'
                 : step === 'publishing'
-                  ? '발행중…'
+                  ? '발행하는 중…'
                   : '발행 설정 열기'}
             </button>
           </div>

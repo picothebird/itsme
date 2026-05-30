@@ -37,7 +37,7 @@ export function MobilePreview({ title, category, pointsPerUser, questions }: Pro
               <p className="mp-card__question">{current?.text}</p>
               <ul className="mp-card__choices">
                 {current?.type === 'text' ? (
-                  <li className="mp-card__text">자유 응답…</li>
+                  <li className="mp-card__text">자유롭게 적어 주세요</li>
                 ) : (
                   (current?.choices ?? []).slice(0, 6).map((c) => (
                     <li key={c.id} className="mp-card__choice">
@@ -66,7 +66,7 @@ export function MobilePreview({ title, category, pointsPerUser, questions }: Pro
               </div>
             </>
           ) : (
-            <p className="mp-card__empty">초안을 생성하면 카드 형태로 미리볼 수 있습니다.</p>
+            <p className="mp-card__empty">초안을 만들면 카드 형태로 미리볼 수 있어요.</p>
           )}
         </div>
       </div>

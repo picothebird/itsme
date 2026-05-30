@@ -18,10 +18,17 @@ type Props = {
 const GENDER_OPTIONS: Array<{ value: 'male' | 'female' | 'unspecified'; label: string }> = [
   { value: 'male', label: '남성' },
   { value: 'female', label: '여성' },
-  { value: 'unspecified', label: '미지정' },
+  { value: 'unspecified', label: '세어하지 않음' },
 ]
 
-const INTEREST_PRESETS = ['food', 'tech', 'beauty', 'fitness', 'finance', 'travel']
+const INTEREST_PRESETS: Array<{ value: string; label: string }> = [
+  { value: 'food', label: '음식' },
+  { value: 'tech', label: 'IT · 테크' },
+  { value: 'beauty', label: '뷰티' },
+  { value: 'fitness', label: '운동 · 건강' },
+  { value: 'finance', label: '금융' },
+  { value: 'travel', label: '여행' },
+]
 
 export function PublishModal({ open, surveyTitle, questionCount, onClose, onConfirm }: Props) {
   const [pointsPerUser, setPointsPerUser] = useState(500)
@@ -107,7 +114,7 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
           </button>
         </header>
         <p className="modal__sub">
-          {questionCount}문항 · 타겟팅을 입력하면 도달 가능 모수를 실시간으로 계산합니다.
+          {questionCount}문항 · 타겟을 설정하면 도달 가능한 모수를 실시간으로 보여드려요.
         </p>
 
         <div className="modal__grid">
@@ -173,13 +180,16 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
         <fieldset className="chipset">
           <legend>관심사</legend>
           {INTEREST_PRESETS.map((i) => (
-            <label key={i} className={`chip-toggle${interests.includes(i) ? ' is-on' : ''}`}>
+            <label
+              key={i.value}
+              className={`chip-toggle${interests.includes(i.value) ? ' is-on' : ''}`}
+            >
               <input
                 type="checkbox"
-                checked={interests.includes(i)}
-                onChange={() => toggleInterest(i)}
+                checked={interests.includes(i.value)}
+                onChange={() => toggleInterest(i.value)}
               />
-              {i}
+              {i.label}
             </label>
           ))}
         </fieldset>
@@ -188,7 +198,11 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
           <div className="reach-card__row">
             <span className="reach-card__label">예상 도달 모수</span>
             <strong className="reach-card__value">
-              {estimating ? '계산중…' : estimate ? `${estimate.reach.toLocaleString()}명` : '—'}
+              {estimating
+                ? '계산하는 중…'
+                : estimate
+                  ? `${estimate.reach.toLocaleString()}명`
+                  : '—'}
             </strong>
           </div>
           <div className="reach-card__row">
@@ -204,7 +218,7 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
           ) : null}
           {blocked ? (
             <p className="reach-card__warn" role="alert">
-              모수가 50명 미만입니다. 타겟팅을 완화한 뒤 발행할 수 있습니다.
+              도달 모수가 50명 미만이에요. 타겟을 조금 넓힌 뒤 다시 시도해 주세요.
             </p>
           ) : null}
         </div>
@@ -225,7 +239,7 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
             onClick={() => void submit()}
             disabled={submitting || estimating || !estimate || blocked}
           >
-            {submitting ? '발행중…' : '확정 발행'}
+            {submitting ? '발행하는 중…' : '발행하기'}
           </button>
         </footer>
       </div>
