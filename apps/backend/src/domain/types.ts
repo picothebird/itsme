@@ -55,7 +55,7 @@ export type AnswerRecord = {
   receivedAt: string
 }
 
-export type ResponseStatus = 'in_progress' | 'completed' | 'blocked'
+export type ResponseStatus = 'in_progress' | 'completed' | 'blocked' | 'abandoned'
 
 export type SurveyResponse = {
   id: string

@@ -52,6 +52,13 @@ export const startResponse = (input: StartResponseInput): SurveyResponse => {
     return existing
   }
 
+  // §7.7 multi-device — only one active response per panelist; abandon others
+  for (const other of responseRepo.list()) {
+    if (other.pid === input.pid && other.status === 'in_progress') {
+      responseRepo.save({ ...other, status: 'abandoned', completedAt: new Date().toISOString() })
+    }
+  }
+
   const response: SurveyResponse = {
     id: generateId('res'),
     pid: input.pid,

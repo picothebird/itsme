@@ -6,6 +6,7 @@ import { asyncHandler } from '../../lib/asyncHandler.js'
 import { badRequest, forbidden, notFound } from '../../lib/errors.js'
 import { parseOrThrow } from '../../lib/validate.js'
 import { dataPieceRepo, petRepo, walletRepo } from '../../repositories/inMemory.js'
+import { sweepStalePieces } from './panel.service.js'
 
 export const panelRouter = Router()
 
@@ -29,6 +30,7 @@ panelRouter.get(
   '/me/data-pieces',
   asyncHandler((req, res) => {
     const pid = requirePid(req)
+    const swept = sweepStalePieces(pid)
     const pieces = dataPieceRepo
       .listByPid(pid)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -37,6 +39,7 @@ panelRouter.get(
       data: {
         pending: pieces.filter((p) => !p.consumedAt),
         consumed: pieces.filter((p) => Boolean(p.consumedAt)),
+        autoConsumed: swept.consumed.length,
       },
     })
   }),
