@@ -96,14 +96,16 @@ export function DashboardOverview({ surveys, onLog }: Props) {
 
       <div className="kpi-strip">
         <KpiCard
-          label="전체 설문"
-          value={summary?.surveys.total ?? 0}
-          sub={`라이브 ${summary?.surveys.live ?? 0}개`}
-        />
-        <KpiCard
           label="누적 응답"
           value={summary?.responses.started ?? 0}
           sub={`완료 ${summary?.responses.completed ?? 0}건`}
+          delta={summary?.responses.completed ? `+${summary.responses.completed}` : null}
+          deltaTone="up"
+        />
+        <KpiCard
+          label="전체 설문"
+          value={summary?.surveys.total ?? 0}
+          sub={`라이브 ${summary?.surveys.live ?? 0}개`}
         />
         <KpiCard
           label="완료율"
@@ -234,11 +236,26 @@ export function DashboardOverview({ surveys, onLog }: Props) {
   )
 }
 
-function KpiCard({ label, value, sub }: { label: string; value: number | string; sub: string }) {
+function KpiCard({
+  label,
+  value,
+  sub,
+  delta,
+  deltaTone = 'flat',
+}: {
+  label: string
+  value: number | string
+  sub: string
+  delta?: string | null
+  deltaTone?: 'up' | 'down' | 'flat'
+}) {
   return (
     <div className="kpi">
       <span className="kpi__label">{label}</span>
-      <span className="kpi__value num">{value}</span>
+      <span className="kpi__value num">
+        {value}
+        {delta ? <span className={`delta delta--${deltaTone}`}>{delta}</span> : null}
+      </span>
       <span className="kpi__sub">{sub}</span>
     </div>
   )

@@ -11,6 +11,22 @@ type HealthState = 'pending' | 'ok' | 'error'
 function App() {
   const [health, setHealth] = useState<ApiHealth | null>(null)
   const [healthState, setHealthState] = useState<HealthState>('pending')
+  const [scrollPct, setScrollPct] = useState(0)
+
+  useEffect(() => {
+    const onScroll = () => {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      const pct = docHeight > 0 ? Math.min(1, Math.max(0, window.scrollY / docHeight)) : 0
+      setScrollPct(pct)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
 
   const requestHealth = useCallback(async () => {
     const response = await fetch(`${apiBaseUrl}/health`, {
@@ -53,6 +69,7 @@ function App() {
 
   return (
     <div className="app">
+      <div className="scroll-progress" style={{ transform: `scaleX(${scrollPct})` }} aria-hidden />
       <header className="topbar">
         <div className="brand">
           <span className="brand__dot" aria-hidden />
@@ -98,17 +115,20 @@ function App() {
               쌓이고, 어뷰즈 탐지부터 펫 보상까지 한 흐름으로 이어집니다.
             </p>
             <div className="hero__actions">
-              <button
-                type="button"
-                className="btn btn--primary btn--lg"
-                onClick={() => {
-                  document
-                    .getElementById('workflow')
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }}
-              >
-                워크플로우 시작하기
-              </button>
+              <div>
+                <button
+                  type="button"
+                  className="btn btn--primary btn--lg"
+                  onClick={() => {
+                    document
+                      .getElementById('workflow')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }}
+                >
+                  워크플로우 시작하기
+                </button>
+                <span className="microcopy">1분이면 전체 흐름을 둘러볼 수 있어요.</span>
+              </div>
               <button
                 type="button"
                 className="btn btn--ghost btn--lg"
