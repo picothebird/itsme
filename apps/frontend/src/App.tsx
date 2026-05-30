@@ -11,22 +11,6 @@ type HealthState = 'pending' | 'ok' | 'error'
 function App() {
   const [health, setHealth] = useState<ApiHealth | null>(null)
   const [healthState, setHealthState] = useState<HealthState>('pending')
-  const [scrollPct, setScrollPct] = useState(0)
-
-  useEffect(() => {
-    const onScroll = () => {
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight
-      const pct = docHeight > 0 ? Math.min(1, Math.max(0, window.scrollY / docHeight)) : 0
-      setScrollPct(pct)
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-    }
-  }, [])
 
   const requestHealth = useCallback(async () => {
     const response = await fetch(`${apiBaseUrl}/health`, {
@@ -69,7 +53,6 @@ function App() {
 
   return (
     <div className="app">
-      <div className="scroll-progress" style={{ transform: `scaleX(${scrollPct})` }} aria-hidden />
       <header className="topbar">
         <div className="brand">
           <span className="brand__dot" aria-hidden />
@@ -102,36 +85,31 @@ function App() {
           <a href="#feed">진행 중인 설문</a>
         </nav>
 
-        <section className="hero reveal">
+        <section className="hero">
           <div className="hero__copy">
-            <p className="eyebrow">잇츠미 · 리서처 콘솔</p>
             <h1 className="hero__title">
               질문은 한 번,
               <br />
               인사이트는 더 깊이.
             </h1>
-            <p className="pull-quote">
-              진짜 패널이 모이는 보상형 리서치 플랫폼. 설문을 만들어 발행하면 응답이 차곡차곡
-              쌓이고, 어뷰즈 탐지부터 펫 보상까지 한 흐름으로 이어집니다.
+            <p className="hero__lead">
+              보상형 패널로 수집한 응답을 설계·발행·분석까지 한 흐름으로 연결합니다.
             </p>
             <div className="hero__actions">
-              <div>
-                <button
-                  type="button"
-                  className="btn btn--primary btn--lg"
-                  onClick={() => {
-                    document
-                      .getElementById('workflow')
-                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }}
-                >
-                  워크플로우 시작하기
-                </button>
-                <span className="microcopy">1분이면 전체 흐름을 둘러볼 수 있어요.</span>
-              </div>
               <button
                 type="button"
-                className="btn btn--ghost btn--lg"
+                className="btn btn--primary btn--lg"
+                onClick={() => {
+                  document
+                    .getElementById('workflow')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+              >
+                워크플로우 시작하기
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--lg"
                 onClick={() => {
                   document
                     .getElementById('feed')
@@ -142,24 +120,27 @@ function App() {
               </button>
             </div>
           </div>
+        </section>
 
-          <aside className="hero__metrics" aria-label="시스템 상태">
-            <h3>시스템</h3>
-            <div className="metric-row">
-              <div className="metric">
-                <span className="metric__label">API 주소</span>
-                <span className="metric__value">{apiBaseUrl.replace(/^https?:\/\//, '')}</span>
-              </div>
-              <div className="metric">
-                <span className="metric__label">상태</span>
-                <span className="metric__value">{health?.status ?? '—'}</span>
-              </div>
-              <div className="metric">
-                <span className="metric__label">버전</span>
-                <span className="metric__value">MVP · 알파</span>
-              </div>
-            </div>
-          </aside>
+        <section className="trust-strip" aria-label="서비스 하이라이트">
+          <div className="trust-item">
+            <span className="trust-item__value">3단계</span>
+            <span className="trust-item__label">설계·발행·수집이 한 화면에</span>
+          </div>
+          <div className="trust-item">
+            <span className="trust-item__value">자동</span>
+            <span className="trust-item__label">어뷰즈 탐지와 펫 보상까지</span>
+          </div>
+          <div className="trust-item">
+            <span className="trust-item__value">실시간</span>
+            <span className="trust-item__label">응답 수집과 완료율 집계</span>
+          </div>
+          <div className="trust-item">
+            <span className="trust-item__value">{health?.status ?? '—'}</span>
+            <span className="trust-item__label">
+              {apiBaseUrl.replace(/^https?:\/\//, '')} · MVP 알파
+            </span>
+          </div>
         </section>
 
         <ResearcherPanel />

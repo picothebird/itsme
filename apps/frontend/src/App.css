@@ -191,7 +191,7 @@ select:focus-visible,
   gap: var(--space-5);
   max-width: var(--container-content);
   margin: 0 auto;
-  padding: var(--space-7) 0 var(--space-4);
+  padding: var(--space-6) 0 var(--space-3);
   text-align: left;
 }
 
@@ -217,10 +217,10 @@ select:focus-visible,
 
 .hero__title {
   font-family: var(--font-display);
-  font-size: clamp(44px, 7.5vw, 88px);
+  font-size: clamp(36px, 5.6vw, 64px);
   font-weight: 700;
-  line-height: 1.04;
-  letter-spacing: -0.03em;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
   margin: 0;
   color: var(--color-ink-strong);
   text-wrap: balance;
@@ -303,35 +303,33 @@ select:focus-visible,
   color: var(--color-ink);
 }
 
-/* Section heading — editorial eyebrow + display */
+/* Section heading — product-marketing tone (Dataspace/Linear-leaning) */
 .section-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: var(--space-5);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-hairline);
 }
 
 .section-header h2 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
+  font-size: clamp(28px, 3.5vw, 40px);
   font-weight: 700;
-  letter-spacing: -1px;
-  line-height: 1.1;
+  letter-spacing: -1.2px;
+  line-height: 1.15;
   color: var(--color-ink-strong);
   text-wrap: balance;
   word-break: keep-all;
 }
 
 .section-header p {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-3) 0 0;
   color: var(--color-slate);
   font-size: var(--text-md);
-  line-height: 1.55;
-  max-width: 56ch;
+  line-height: 1.6;
+  max-width: 64ch;
   text-wrap: pretty;
   word-break: keep-all;
 }
@@ -2471,17 +2469,9 @@ select:focus-visible,
  * Phase D — editorial refinements (Pentagram numbers, Apple display, sub-nav, pull-quote)
  * ============================================================ */
 
-/* Pentagram / Wallpaper-style oversized section number */
+/* Section number removed — was too magazine-template */
 .section-number {
-  font-family: var(--font-mono);
-  font-size: clamp(56px, 9vw, 96px);
-  font-weight: 300;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--color-hairline);
-  margin: 0 0 var(--space-3);
-  display: block;
-  font-variant-numeric: tabular-nums;
+  display: none;
 }
 
 /* Apple-style "Learn more ?? link */
@@ -2551,51 +2541,27 @@ select:focus-visible,
   color: var(--color-ink);
 }
 
-/* Bloomberg / NYT-style pull-quote with brand left rule */
 .pull-quote {
   position: relative;
-  margin: var(--space-5) 0 0;
-  padding: var(--space-3) 0 var(--space-3) var(--space-5);
-  border-left: 3px solid var(--color-primary);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  border-left: 0;
   font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 500;
-  line-height: 1.5;
-  letter-spacing: -0.4px;
-  color: var(--color-charcoal);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  line-height: 1.65;
+  letter-spacing: -0.2px;
+  color: var(--color-slate);
   max-width: 56ch;
+  word-break: keep-all;
+  text-wrap: pretty;
 }
 
-/* Reveal-on-load fade-up (CSS only) */
-@keyframes reveal-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.reveal {
-  animation: reveal-up 480ms cubic-bezier(0.32, 0.72, 0, 1) both;
-}
-
-.reveal-delay-1 {
-  animation-delay: 80ms;
-}
-
+/* Reveal animations disabled — too web-template */
+.reveal,
+.reveal-delay-1,
 .reveal-delay-2 {
-  animation-delay: 160ms;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .reveal-delay-1,
-  .reveal-delay-2 {
-    animation: none;
-  }
+  animation: none;
 }
 
 /* Mobile: collapse subnav padding */
@@ -2656,23 +2622,9 @@ select:focus-visible,
   font-size: 0.85em;
 }
 
-/* Decorative quote mark (Eye Magazine / NYT pull-quote ornament) */
+/* Decorative quote mark removed — too magazine-y for product UI */
 .pull-quote {
   position: relative;
-}
-
-.pull-quote::before {
-  content: '“';
-  position: absolute;
-  top: -32px;
-  left: -8px;
-  font-family: var(--font-display);
-  font-size: 96px;
-  line-height: 1;
-  color: var(--color-hairline);
-  font-weight: 400;
-  pointer-events: none;
-  user-select: none;
 }
 
 /* Figcaption (Bloomberg / NYT figure meta) */
@@ -2694,19 +2646,9 @@ select:focus-visible,
   letter-spacing: -0.05px;
 }
 
-/* Scroll progress bar (NYT longform / Apple long-page) */
+/* Scroll progress disabled — reads as gimmick on app surfaces */
 .scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--color-primary);
-  transform-origin: 0 50%;
-  transform: scaleX(0);
-  z-index: 30;
-  pointer-events: none;
-  transition: transform 60ms linear;
+  display: none;
 }
 
 /* Mobile bottom action bar (Toss in-app CTA) */
@@ -2835,5 +2777,50 @@ select:focus-visible,
   .feed-card {
     scroll-snap-align: start;
     min-height: 160px;
+  }
+}
+
+/* Trust strip — Dataspace-style stat row directly under hero */
+.trust-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg);
+  max-width: var(--container-content);
+  margin: calc(-1 * var(--space-section) + var(--space-4)) auto 0;
+}
+
+.trust-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.trust-item__value {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  color: var(--color-ink-strong);
+  line-height: 1.1;
+  word-break: keep-all;
+}
+
+.trust-item__label {
+  font-size: var(--text-sm);
+  color: var(--color-slate);
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+@media (max-width: 720px) {
+  .trust-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: var(--space-4);
+    gap: var(--space-3);
   }
 }

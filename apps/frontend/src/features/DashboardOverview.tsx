@@ -75,13 +75,11 @@ export function DashboardOverview({ surveys, onLog }: Props) {
   }
 
   return (
-    <section className="dashboard reveal" aria-labelledby="dashboard-heading">
+    <section className="dashboard" aria-labelledby="dashboard-heading">
       <div className="section-header">
         <div>
-          <span className="section-number">01</span>
-          <p className="section-eyebrow">Overview</p>
-          <h2 id="dashboard-heading">운영 대시보드</h2>
-          <p>설문 현황과 운영 지표를 한 화면에서 확인해 주세요.</p>
+          <h2 id="dashboard-heading">운영 현황을 한 눈에</h2>
+          <p>설문, 응답, 예산을 하나의 대시보드에서 확인하고 다음 행동으로 연결합니다.</p>
         </div>
       </div>
 
