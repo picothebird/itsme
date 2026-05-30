@@ -94,7 +94,8 @@ export function WalletPanel({ pid, balance, onRedeemed }: Props) {
       <div className="card__head">
         <h3>리워드 상점</h3>
         <span className="card__count">
-          잔액 {balance != null ? balance.toLocaleString() : '—'} P
+          잔액 <span className="num">{balance != null ? balance.toLocaleString() : '—'}</span>{' '}
+          <span className="num-unit">P</span>
         </span>
       </div>
 
@@ -106,7 +107,10 @@ export function WalletPanel({ pid, balance, onRedeemed }: Props) {
               <span className="reward-card__vendor">{item.vendor}</span>
               <h4 className="reward-card__label">{item.label}</h4>
               <div className="reward-card__footer">
-                <span className="reward-card__cost">{item.cost.toLocaleString()} P</span>
+                <span className="reward-card__cost">
+                  <span className="num">{item.cost.toLocaleString()}</span>{' '}
+                  <span className="num-unit">P</span>
+                </span>
                 <button
                   type="button"
                   className="btn btn--primary btn--sm"

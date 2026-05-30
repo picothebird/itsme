@@ -107,6 +107,7 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
     <div className="modal" role="dialog" aria-modal="true" aria-labelledby="publish-modal-title">
       <div className="modal__backdrop" onClick={onClose} />
       <div className="modal__panel">
+        <div className="sheet-handle" aria-hidden="true" />
         <header className="modal__head">
           <h3 id="publish-modal-title">발행 설정 · {surveyTitle}</h3>
           <button type="button" className="modal__close" aria-label="닫기" onClick={onClose}>

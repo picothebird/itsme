@@ -242,6 +242,7 @@ export function ResearcherPanel() {
       <section id="workflow" aria-labelledby="workflow-heading">
         <div className="section-header">
           <div>
+            <p className="section-eyebrow">Workflow</p>
             <h2 id="workflow-heading">3단계 워크플로우</h2>
             <p>설계, 발행, 수집까지 한 화면에서 이어서 진행해 볼 수 있어요.</p>
           </div>
@@ -422,10 +423,10 @@ export function ResearcherPanel() {
           {panelist ? (
             <>
               <div className="panelist__stat">
-                <span className="panelist__stat-value">
+                <span className="panelist__stat-value num">
                   {panelist.wallet.balance.toLocaleString()}
                 </span>
-                <span className="panelist__stat-unit">누적 포인트</span>
+                <span className="panelist__stat-unit">P · 누적 포인트</span>
               </div>
 
               <div className="pet-bar">

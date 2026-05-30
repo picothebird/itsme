@@ -78,6 +78,7 @@ export function DashboardOverview({ surveys, onLog }: Props) {
     <section className="dashboard" aria-labelledby="dashboard-heading">
       <div className="section-header">
         <div>
+          <p className="section-eyebrow">Overview</p>
           <h2 id="dashboard-heading">운영 대시보드</h2>
           <p>설문 현황과 운영 지표를 한 화면에서 확인해 주세요.</p>
         </div>
@@ -236,7 +237,7 @@ function KpiCard({ label, value, sub }: { label: string; value: number | string;
   return (
     <div className="kpi">
       <span className="kpi__label">{label}</span>
-      <span className="kpi__value">{value}</span>
+      <span className="kpi__value num">{value}</span>
       <span className="kpi__sub">{sub}</span>
     </div>
   )
