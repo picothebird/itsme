@@ -457,7 +457,7 @@ export function ResearcherPanel() {
         </aside>
       </section>
 
-      <section className="wallet-section" aria-label="리워드 상점">
+      <section id="wallet" className="wallet-section" aria-label="리워드 상점">
         <WalletPanel
           pid={DEMO_PID}
           balance={panelist?.wallet.balance ?? null}

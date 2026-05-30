@@ -11,6 +11,31 @@ type HealthState = 'pending' | 'ok' | 'error'
 function App() {
   const [health, setHealth] = useState<ApiHealth | null>(null)
   const [healthState, setHealthState] = useState<HealthState>('pending')
+  const [activeTab, setActiveTab] = useState<string>('hero')
+
+  useEffect(() => {
+    const targets = ['hero', 'dashboard-heading', 'workflow', 'library-heading', 'wallet']
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null)
+    if (targets.length === 0) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (visible) setActiveTab(visible.target.id)
+      },
+      { rootMargin: '-40% 0px -50% 0px', threshold: [0, 0.25, 0.5, 1] },
+    )
+    targets.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [])
+
+  const jumpTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const tabActive = (ids: string[]) => ids.includes(activeTab)
 
   const requestHealth = useCallback(async () => {
     const response = await fetch(`${apiBaseUrl}/health`, {
@@ -85,7 +110,7 @@ function App() {
           <a href="#feed">진행 중인 설문</a>
         </nav>
 
-        <section className="hero">
+        <section id="hero" className="hero">
           <div className="hero__copy">
             <h1 className="hero__title">
               질문은 한 번,
@@ -187,6 +212,107 @@ function App() {
           </span>
         </div>
       </footer>
+
+      <nav className="bottom-tab" aria-label="하단 메뉴">
+        <button
+          type="button"
+          className={`bottom-tab__btn${tabActive(['hero', 'dashboard-heading']) ? ' is-active' : ''}`}
+          onClick={() => jumpTo('dashboard-heading')}
+          aria-current={tabActive(['hero', 'dashboard-heading']) ? 'page' : undefined}
+        >
+          <span className="bottom-tab__icon" aria-hidden>
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="7" height="9" rx="1.5" />
+              <rect x="14" y="3" width="7" height="5" rx="1.5" />
+              <rect x="14" y="12" width="7" height="9" rx="1.5" />
+              <rect x="3" y="16" width="7" height="5" rx="1.5" />
+            </svg>
+          </span>
+          <span className="bottom-tab__label">대시보드</span>
+        </button>
+        <button
+          type="button"
+          className={`bottom-tab__btn${activeTab === 'workflow' ? ' is-active' : ''}`}
+          onClick={() => jumpTo('workflow')}
+          aria-current={activeTab === 'workflow' ? 'page' : undefined}
+        >
+          <span className="bottom-tab__icon" aria-hidden>
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="5" cy="6" r="2" />
+              <circle cx="19" cy="6" r="2" />
+              <circle cx="12" cy="18" r="2" />
+              <path d="M7 6h10M6 8l5 8M18 8l-5 8" />
+            </svg>
+          </span>
+          <span className="bottom-tab__label">워크플로우</span>
+        </button>
+        <button
+          type="button"
+          className={`bottom-tab__btn${activeTab === 'library-heading' ? ' is-active' : ''}`}
+          onClick={() => jumpTo('library-heading')}
+          aria-current={activeTab === 'library-heading' ? 'page' : undefined}
+        >
+          <span className="bottom-tab__icon" aria-hidden>
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 5h12a3 3 0 013 3v11H7a3 3 0 01-3-3V5z" />
+              <path d="M4 5v12a3 3 0 003 3" />
+              <path d="M8 9h7M8 13h7" />
+            </svg>
+          </span>
+          <span className="bottom-tab__label">설문</span>
+        </button>
+        <button
+          type="button"
+          className={`bottom-tab__btn${activeTab === 'wallet' ? ' is-active' : ''}`}
+          onClick={() => jumpTo('wallet')}
+          aria-current={activeTab === 'wallet' ? 'page' : undefined}
+        >
+          <span className="bottom-tab__icon" aria-hidden>
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="6" width="18" height="13" rx="2.5" />
+              <path d="M3 10h18" />
+              <circle cx="17" cy="14.5" r="1.2" fill="currentColor" />
+            </svg>
+          </span>
+          <span className="bottom-tab__label">지갑</span>
+        </button>
+      </nav>
     </div>
   )
 }
