@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { PanelistMobile } from './features/PanelistMobile'
+import { PanelistApp } from './features/PanelistApp'
 import { ResearcherPanel } from './features/ResearcherPanel'
 import type { ApiHealth } from './types'
 import './App.css'
@@ -345,7 +345,7 @@ function App() {
         </button>
       </nav>
 
-      {panelistOpen ? <PanelistMobile onClose={() => setPanelistOpen(false)} /> : null}
+      {panelistOpen ? <PanelistApp onClose={() => setPanelistOpen(false)} /> : null}
     </div>
   )
 }

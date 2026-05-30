@@ -1,3 +1,26 @@
+export type AuthProvider = 'kakao' | 'apple' | 'google'
+
+export type Gender = 'male' | 'female' | 'unspecified'
+
+export type Account = {
+  pid: string
+  provider: AuthProvider
+  providerUserId: string
+  displayName?: string
+  birthYear?: number
+  gender?: Gender
+  interests: string[]
+  onboarded: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type Session = {
+  token: string
+  pid: string
+  createdAt: string
+}
+
 export type QuestionType = 'single' | 'multi' | 'likert' | 'text'
 
 export type Choice = {

@@ -1,15 +1,19 @@
 import { randomUUID } from 'node:crypto'
 
 import type {
+  Account,
   DataPiece,
   Pet,
   RewardOrder,
+  Session,
   Survey,
   SurveyResponse,
   Wallet,
   WalletTransaction,
 } from '../domain/types.js'
 
+const accounts = new Map<string, Account>()
+const sessions = new Map<string, Session>()
 const surveys = new Map<string, Survey>()
 const responses = new Map<string, SurveyResponse>()
 const wallets = new Map<string, Wallet>()
@@ -20,12 +24,41 @@ const rewardOrders = new Map<string, RewardOrder>()
 export const generateId = (prefix: string): string => `${prefix}_${randomUUID().slice(0, 12)}`
 
 export const resetStore = (): void => {
+  accounts.clear()
+  sessions.clear()
   surveys.clear()
   responses.clear()
   wallets.clear()
   pets.clear()
   dataPieces.clear()
   rewardOrders.clear()
+}
+
+const providerKey = (provider: Account['provider'], providerUserId: string): string =>
+  `${provider}:${providerUserId}`
+
+export const accountRepo = {
+  list: (): Account[] => Array.from(accounts.values()),
+  get: (pid: string): Account | undefined => accounts.get(pid),
+  findByProvider: (provider: Account['provider'], providerUserId: string): Account | undefined =>
+    Array.from(accounts.values()).find(
+      (a) => providerKey(a.provider, a.providerUserId) === providerKey(provider, providerUserId),
+    ),
+  save: (account: Account): Account => {
+    accounts.set(account.pid, account)
+    return account
+  },
+}
+
+export const sessionRepo = {
+  get: (token: string): Session | undefined => sessions.get(token),
+  save: (session: Session): Session => {
+    sessions.set(session.token, session)
+    return session
+  },
+  delete: (token: string): void => {
+    sessions.delete(token)
+  },
 }
 
 export const surveyRepo = {

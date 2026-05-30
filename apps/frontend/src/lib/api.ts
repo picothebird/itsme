@@ -1,5 +1,19 @@
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000'
 
+const TOKEN_KEY = 'itsme.session'
+
+let authToken: string | null =
+  typeof localStorage !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null
+
+export const setAuthToken = (token: string | null): void => {
+  authToken = token
+  if (typeof localStorage === 'undefined') return
+  if (token) localStorage.setItem(TOKEN_KEY, token)
+  else localStorage.removeItem(TOKEN_KEY)
+}
+
+export const getAuthToken = (): string | null => authToken
+
 export type Survey = {
   id: string
   title: string
@@ -33,12 +47,23 @@ export type PanelistSummary = {
   pet: { exp: number; level: number; evolutionStage: string | null; sick: boolean }
 }
 
+export type Account = {
+  pid: string
+  provider: 'kakao' | 'apple' | 'google'
+  displayName: string | null
+  birthYear: number | null
+  gender: 'male' | 'female' | 'unspecified' | null
+  interests: string[]
+  onboarded: boolean
+}
+
 const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...(init?.headers ?? {}),
     },
   })
@@ -56,6 +81,35 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
 }
 
 export const api = {
+  auth: {
+    login: (input: {
+      provider: 'kakao' | 'apple' | 'google'
+      providerUserId: string
+      displayName?: string
+    }) =>
+      request<{
+        token: string
+        isNew: boolean
+        nextStep: 'home' | 'onboarding'
+        account: Account
+      }>('/auth/login', { method: 'POST', body: JSON.stringify(input) }),
+    onboarding: (input: {
+      birthYear: number
+      gender: 'male' | 'female' | 'unspecified'
+      interests: string[]
+    }) =>
+      request<{ account: Account; pet: PanelistSummary['pet']; welcomeBonus: number }>(
+        '/auth/onboarding',
+        { method: 'POST', body: JSON.stringify(input) },
+      ),
+    me: () =>
+      request<{
+        account: Account
+        wallet: { balance: number }
+        pet: PanelistSummary['pet']
+      }>('/auth/me'),
+    logout: () => request<{ loggedOut: boolean }>('/auth/logout', { method: 'POST' }),
+  },
   listSurveys: () => request<Survey[]>('/surveys'),
   createSurvey: (input: {
     title: string

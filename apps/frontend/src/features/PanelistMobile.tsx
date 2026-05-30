@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { api, type FeedCard, type PanelistSummary, type Survey } from '../lib/api'
 
-const DEMO_PID = 'pid_demo_panelist_mobile'
-
 type Stage = 'deck' | 'responding' | 'complete'
 
 type Reward = {
@@ -12,10 +10,11 @@ type Reward = {
 }
 
 type Props = {
+  pid: string
   onClose: () => void
 }
 
-export function PanelistMobile({ onClose }: Props) {
+export function PanelistMobile({ pid, onClose }: Props) {
   const [stage, setStage] = useState<Stage>('deck')
   const [feed, setFeed] = useState<FeedCard[]>([])
   const [me, setMe] = useState<PanelistSummary | null>(null)
@@ -35,13 +34,13 @@ export function PanelistMobile({ onClose }: Props) {
   const loadAll = useCallback(async () => {
     const [feedList, summary] = await Promise.all([
       api.listFeed(),
-      api.panelistSummary(DEMO_PID).catch(() => null),
+      api.panelistSummary(pid).catch(() => null),
     ])
     setFeed(feedList)
     setMe(summary)
     setTopCardIndex(0)
     setLoading(false)
-  }, [])
+  }, [pid])
 
   const loadedRef = useRef(false)
 
@@ -69,7 +68,7 @@ export function PanelistMobile({ onClose }: Props) {
         return
       }
       const { id: responseId } = await api.startResponse({
-        pid: DEMO_PID,
+        pid,
         surveyId: survey.id,
       })
       setResponding({
@@ -82,7 +81,7 @@ export function PanelistMobile({ onClose }: Props) {
     } catch (err) {
       setError(err instanceof Error ? err.message : '설문을 시작할 수 없어요')
     }
-  }, [currentCard])
+  }, [currentCard, pid])
 
   const submitAnswer = useCallback(
     async (selectedChoiceIds: string[]) => {
