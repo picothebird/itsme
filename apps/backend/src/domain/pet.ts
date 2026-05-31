@@ -61,6 +61,26 @@ export const applySurveyCompletion = (
   return { exp, level, tagVector, evolutionStage }
 }
 
+/**
+ * Consecutive-day participation streak. `today`/`lastActiveDay` are calendar
+ * day strings (YYYY-MM-DD). Same day → unchanged; yesterday → +1; gap → reset to 1.
+ */
+export const applyStreak = (
+  prev: { streak: number; lastActiveDay: string | null },
+  today: string,
+): { streak: number; lastActiveDay: string } => {
+  if (prev.lastActiveDay === today) {
+    return { streak: Math.max(1, prev.streak), lastActiveDay: today }
+  }
+  const d = new Date(`${today}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() - 1)
+  const yesterday = d.toISOString().slice(0, 10)
+  if (prev.lastActiveDay === yesterday) {
+    return { streak: prev.streak + 1, lastActiveDay: today }
+  }
+  return { streak: 1, lastActiveDay: today }
+}
+
 export const feedDataPiece = (
   pet: PetMutation,
   params: { bonusExp: number; tag: string },

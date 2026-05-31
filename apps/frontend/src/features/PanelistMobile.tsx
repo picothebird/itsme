@@ -64,6 +64,8 @@ export function PanelistMobile({ pid, onClose }: Props) {
   const [reward, setReward] = useState<Reward | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [warning, setWarning] = useState<string | null>(null)
+  const [blockedUntil, setBlockedUntil] = useState<number | null>(null)
   const [confirmExit, setConfirmExit] = useState(false)
 
   const loadAll = useCallback(async () => {
@@ -82,8 +84,52 @@ export function PanelistMobile({ pid, onClose }: Props) {
   useEffect(() => {
     if (loadedRef.current) return
     loadedRef.current = true
-    void loadAll()
-  }, [loadAll])
+    void (async () => {
+      await loadAll()
+      // §오프라인 복구 — 진행 중이던 응답이 있으면 이어서 시작
+      const key = `pm-active-${pid}`
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null
+      if (!raw) return
+      try {
+        const saved = JSON.parse(raw) as { surveyId: string; responseId: string }
+        const active = await api.getActiveResponse(pid, saved.surveyId)
+        if (!active || active.response.id !== saved.responseId) {
+          localStorage.removeItem(key)
+          return
+        }
+        const surveys = await api.listSurveys()
+        const survey = surveys.find((s) => s.id === saved.surveyId)
+        if (!survey) {
+          localStorage.removeItem(key)
+          return
+        }
+        setResponding({
+          survey,
+          responseId: saved.responseId,
+          questionIndex: Math.min(active.nextQuestionIndex, survey.questions.length - 1),
+          startedAt: Date.now(),
+        })
+        setStage('responding')
+        setWarning('이어서 응답을 계속할 수 있어요.')
+      } catch {
+        localStorage.removeItem(key)
+      }
+    })()
+  }, [loadAll, pid])
+
+  // §오프라인 복구 — 진행 상태를 로컬에 저장(중단/완료 시 정리)
+  useEffect(() => {
+    if (typeof localStorage === 'undefined') return
+    const key = `pm-active-${pid}`
+    if (responding) {
+      localStorage.setItem(
+        key,
+        JSON.stringify({ surveyId: responding.survey.id, responseId: responding.responseId }),
+      )
+    } else {
+      localStorage.removeItem(key)
+    }
+  }, [responding, pid])
 
   const currentCard = feed[topCardIndex]
   const nextCard = feed[topCardIndex + 1]
@@ -94,6 +140,10 @@ export function PanelistMobile({ pid, onClose }: Props) {
 
   const handleAccept = useCallback(async () => {
     if (!currentCard) return
+    if (blockedUntil !== null && blockedUntil > Date.now()) {
+      setWarning('아직 응답이 제한된 상태예요. 잠시 후 다시 참여해 주세요.')
+      return
+    }
     setError(null)
     try {
       const surveys = await api.listSurveys()
@@ -116,7 +166,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
     } catch (err) {
       setError(err instanceof Error ? err.message : '설문을 시작할 수 없어요')
     }
-  }, [currentCard, pid])
+  }, [currentCard, pid, blockedUntil])
 
   const submitAnswer = useCallback(
     async (selectedChoiceIds: string[]) => {
@@ -126,11 +176,27 @@ export function PanelistMobile({ pid, onClose }: Props) {
       if (!question) return
       setSubmitting(true)
       try {
-        await api.submitAnswer(responseId, {
+        const outcome = await api.submitAnswer(responseId, {
           questionId: question.id,
           selectedChoiceIds,
           latencyMs: Math.max(300, Date.now() - startedAt),
         })
+        if (outcome.abuse.level === 'block') {
+          const until = outcome.abuse.blockedUntil
+            ? new Date(outcome.abuse.blockedUntil).getTime()
+            : Date.now() + 10 * 60 * 1000
+          setBlockedUntil(until)
+          setWarning(null)
+          setResponding(null)
+          setStage('deck')
+          void loadAll()
+          return
+        }
+        if (outcome.abuse.level === 'warn') {
+          setWarning('너무 빠르거나 비슷한 응답이 감지됐어요. 천천히 정확하게 답해 주세요.')
+        } else {
+          setWarning(null)
+        }
         const isLast = questionIndex >= survey.questions.length - 1
         if (isLast) {
           const result = await api.completeResponse(responseId)
@@ -157,6 +223,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
   const exitResponse = useCallback(() => {
     setConfirmExit(false)
     setResponding(null)
+    setWarning(null)
     setStage('deck')
   }, [])
 
@@ -164,6 +231,20 @@ export function PanelistMobile({ pid, onClose }: Props) {
     setReward(null)
     setStage('deck')
   }, [])
+
+  // §어뷰징 차단 쿨다운 카운트다운 (1초 틱, 종료 시 자동 해제)
+  const [cooldownLeft, setCooldownLeft] = useState(0)
+  useEffect(() => {
+    if (blockedUntil === null) return
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((blockedUntil - Date.now()) / 1000))
+      setCooldownLeft(left)
+      if (left <= 0) setBlockedUntil(null)
+    }
+    tick()
+    const id = window.setInterval(tick, 1000)
+    return () => window.clearInterval(id)
+  }, [blockedUntil])
 
   return (
     <div
@@ -209,6 +290,20 @@ export function PanelistMobile({ pid, onClose }: Props) {
             className="pm-toast__close"
             onClick={() => setError(null)}
             aria-label="알림 닫기"
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
+
+      {warning ? (
+        <div className="pm-toast pm-toast--warn" role="status">
+          {warning}
+          <button
+            type="button"
+            className="pm-toast__close"
+            onClick={() => setWarning(null)}
+            aria-label="경고 닫기"
           >
             ×
           </button>
@@ -320,6 +415,32 @@ export function PanelistMobile({ pid, onClose }: Props) {
                 onClick={() => setConfirmExit(false)}
               >
                 계속 응답하기
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {blockedUntil !== null && cooldownLeft > 0 ? (
+        <div className="pm-sheet" role="dialog" aria-modal="true" aria-label="응답 차단 안내">
+          <div className="pm-sheet__scrim" aria-hidden />
+          <div className="pm-sheet__panel">
+            <h3 className="pm-sheet__title">잠깐 쉬어 갈까요?</h3>
+            <p className="pm-sheet__body">
+              빠른 연속 응답이 감지돼 잠시 응답이 제한됐어요. 정령도 함께 쉬고 있어요. 잠시 후 다시
+              정확하게 참여하면 포인트를 받을 수 있어요.
+            </p>
+            <p className="pm-sheet__countdown" aria-live="polite">
+              {Math.floor(cooldownLeft / 60)}분 {String(cooldownLeft % 60).padStart(2, '0')}초 후
+              다시 참여할 수 있어요
+            </p>
+            <div className="pm-sheet__actions">
+              <button
+                type="button"
+                className="pm-btn pm-btn--primary pm-btn--xl"
+                onClick={() => setBlockedUntil(null)}
+              >
+                확인
               </button>
             </div>
           </div>
@@ -492,6 +613,12 @@ const ORDER_STATUS_LABEL: Record<string, string> = {
   pending: '처리 중',
   failed: '실패',
   refunded: '환불',
+}
+
+const VENDOR_LABEL: Record<RewardItem['vendor'], string> = {
+  naverpay: '네이버페이',
+  starbucks: '스타벅스',
+  cu: 'CU',
 }
 
 const STUDY_TYPE_LABEL: Record<ManagedStudy['type'], string> = {
@@ -773,13 +900,36 @@ function PetStage({
   )
 
   const progress = pet ? petProgress(pet.exp, pet.level) : null
+  const streak = pet?.streak ?? 0
+
+  // §정령 터치 대사 — 상태(아픔/스트릭/레벨)에 따른 한 줄 반응
+  const [dialogue, setDialogue] = useState<string | null>(null)
+  const touchPet = useCallback(() => {
+    const lines = pet?.sick
+      ? ['배가 고파요…', '데이터 조각을 먹여주세요.', '조금만 기운 내볼게요.']
+      : streak >= 3
+        ? [
+            `${streak}일 연속이라니, 최고예요!`,
+            '오늘도 함께해줘서 고마워요!',
+            '우리 계속 함께해요!',
+          ]
+        : ['안녕! 오늘도 반가워요.', '설문 한 개만 더 어때요?', '같이 성장해요!']
+    setDialogue(lines[Math.floor(Math.random() * lines.length)])
+  }, [pet?.sick, streak])
 
   return (
     <main className="pm-stage pm-pet">
-      <section className={`pm-pet__hero${pet?.sick ? ' is-sick' : ''}`}>
-        <div className="pm-pet__avatar" aria-hidden>
-          <Sprout size={44} strokeWidth={1.8} />
-        </div>
+      <section
+        className={`pm-pet__hero${pet?.sick ? ' is-sick' : ''}${streak >= 3 ? ' is-streaking' : ''}`}
+      >
+        <button
+          type="button"
+          className="pm-pet__avatar"
+          onClick={touchPet}
+          aria-label="정령 쓰다듬기"
+        >
+          <Sprout size={44} strokeWidth={1.8} aria-hidden="true" />
+        </button>
         <div className="pm-pet__meta">
           <span className="pm-pet__stage">{pet?.evolutionStage ?? '알 단계'}</span>
           <h2 className="pm-pet__level">Lv.{pet?.level ?? 1}</h2>
@@ -802,7 +952,16 @@ function PetStage({
         ) : null}
       </section>
 
+      {dialogue ? (
+        <p className="pm-pet__bubble" role="status" aria-live="polite">
+          {dialogue}
+        </p>
+      ) : null}
+
       <div className="pm-pet__statline">
+        <span className={streak >= 1 ? 'pm-pet__streak' : undefined}>
+          {streak >= 1 ? `🔥 ${streak}일 연속 참여` : '연속 참여 시작 전'}
+        </span>
         <span>먹인 데이터 {consumedCount}개</span>
         <span>대기 {pending.length}개</span>
       </div>
@@ -941,7 +1100,9 @@ function ShopStage({
           const lack = balance != null && balance < item.cost
           return (
             <article key={item.id} className="pm-shop__card">
-              <span className="pm-shop__vendor">{item.vendor}</span>
+              <span className={`pm-shop__vendor pm-shop__vendor--${item.vendor}`}>
+                {VENDOR_LABEL[item.vendor] ?? item.vendor}
+              </span>
               <h3 className="pm-shop__label">{item.label}</h3>
               <div className="pm-shop__footer">
                 <span className="pm-shop__cost">{item.cost.toLocaleString()} P</span>

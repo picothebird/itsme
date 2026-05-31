@@ -93,6 +93,8 @@ describe('§7.8 stale data piece auto-consume', () => {
       tagVector: {},
       evolutionStage: null,
       sick: false,
+      streak: 0,
+      lastActiveDay: null,
     }
     petRepo.save(pet)
     return pet

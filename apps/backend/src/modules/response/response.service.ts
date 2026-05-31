@@ -1,5 +1,5 @@
 import { evaluate, PENALTY_DURATION_MS, type AnswerSample } from '../../domain/abuse.js'
-import { applySurveyCompletion } from '../../domain/pet.js'
+import { applyStreak, applySurveyCompletion } from '../../domain/pet.js'
 import { computeReward } from '../../domain/reward.js'
 import { badRequest, conflict, forbidden, notFound } from '../../lib/errors.js'
 import {
@@ -246,6 +246,15 @@ export const completeResponse = (responseId: string): CompletionOutcome => {
     },
   )
   petRepo.save({ ...pet, ...nextPet, sick: false })
+
+  // §정령 연속 참여 스트릭 — 완료일 기준 갱신
+  const today = new Date().toISOString().slice(0, 10)
+  const streakNext = applyStreak({ streak: pet.streak, lastActiveDay: pet.lastActiveDay }, today)
+  petRepo.save({
+    ...petRepo.get(response.pid),
+    streak: streakNext.streak,
+    lastActiveDay: streakNext.lastActiveDay,
+  })
 
   // §5.2.7 Create one DataPiece per completed response (idempotent by responseId)
   let dataPiece: DataPiece | null = null

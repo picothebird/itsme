@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   accumulateTagVector,
+  applyStreak,
   applySurveyCompletion,
   computeExpFromSurvey,
   dominantTag,
@@ -78,5 +79,35 @@ describe('pet / applySurveyCompletion', () => {
 
     expect(isEvolutionReady(next.level)).toBe(true)
     expect(next.evolutionStage).toBe('beauty')
+  })
+})
+
+describe('pet / applyStreak', () => {
+  it('starts a streak at 1 on first activity', () => {
+    expect(applyStreak({ streak: 0, lastActiveDay: null }, '2026-05-31')).toEqual({
+      streak: 1,
+      lastActiveDay: '2026-05-31',
+    })
+  })
+
+  it('increments when the previous activity was yesterday', () => {
+    expect(applyStreak({ streak: 3, lastActiveDay: '2026-05-30' }, '2026-05-31')).toEqual({
+      streak: 4,
+      lastActiveDay: '2026-05-31',
+    })
+  })
+
+  it('keeps the streak unchanged for same-day activity', () => {
+    expect(applyStreak({ streak: 4, lastActiveDay: '2026-05-31' }, '2026-05-31')).toEqual({
+      streak: 4,
+      lastActiveDay: '2026-05-31',
+    })
+  })
+
+  it('resets to 1 after a gap of more than one day', () => {
+    expect(applyStreak({ streak: 9, lastActiveDay: '2026-05-28' }, '2026-05-31')).toEqual({
+      streak: 1,
+      lastActiveDay: '2026-05-31',
+    })
   })
 })

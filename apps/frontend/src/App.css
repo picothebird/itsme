@@ -3725,6 +3725,11 @@ select:focus-visible,
   padding: 0 4px;
 }
 
+.pm-toast--warn {
+  background: var(--sev-warn-bg);
+  color: var(--sev-warn-fg);
+}
+
 /* Celebrate */
 .pm-stage--celebrate {
   position: relative;
@@ -4281,6 +4286,17 @@ select:focus-visible,
   font-size: 14px;
   line-height: 1.55;
   color: var(--color-ink-soft);
+}
+.pm-sheet__countdown {
+  margin: 0 0 18px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--sev-warn-bg);
+  color: var(--sev-warn-fg);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 .pm-sheet__actions {
   display: grid;
@@ -5049,11 +5065,29 @@ select:focus-visible,
   border-radius: var(--radius-lg);
   background: linear-gradient(140deg, var(--color-primary-soft), var(--color-surface-soft));
   border: 1px solid var(--color-hairline);
+  position: relative;
 }
 .pm-pet__hero.is-sick {
   background: linear-gradient(140deg, #fdeef0, var(--color-surface-soft));
 }
+.pm-pet__hero.is-streaking {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent);
+  animation: pm-pet-aura 2.4s ease-in-out infinite;
+}
+@keyframes pm-pet-aura {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 12%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary) 22%, transparent);
+  }
+}
 .pm-pet__avatar {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
   display: grid;
   place-items: center;
   width: 64px;
@@ -5062,6 +5096,32 @@ select:focus-visible,
   background: var(--color-surface);
   color: var(--color-primary);
   box-shadow: var(--shadow-1);
+  transition: transform var(--motion-fast, 140ms) ease;
+}
+.pm-pet__avatar:active {
+  transform: scale(0.92);
+}
+.pm-pet__bubble {
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink);
+  box-shadow: var(--shadow-1);
+  animation: pm-pet-bubble-in var(--motion-fast, 160ms) ease;
+}
+@keyframes pm-pet-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .pm-pet__meta {
   display: flex;
@@ -5121,6 +5181,10 @@ select:focus-visible,
   justify-content: space-between;
   font-size: 12.5px;
   color: var(--color-steel);
+}
+.pm-pet__streak {
+  font-weight: 700;
+  color: var(--color-primary);
 }
 /* Shared section heading + empty state for all panelist tabs */
 .pm-section-title {
@@ -5219,9 +5283,25 @@ select:focus-visible,
   box-shadow: var(--shadow-1);
 }
 .pm-shop__vendor {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-steel);
+  background: var(--color-surface-sunk);
+}
+.pm-shop__vendor--naverpay {
+  color: #0a8a3c;
+  background: #e6f6ec;
+}
+.pm-shop__vendor--starbucks {
+  color: #0a6b4e;
+  background: #e3f1ec;
+}
+.pm-shop__vendor--cu {
+  color: #8a2d8a;
+  background: #f6e6f6;
 }
 .pm-shop__label {
   margin: 0;

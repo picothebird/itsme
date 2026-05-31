@@ -174,6 +174,8 @@ export const petRepo = {
       tagVector: {},
       evolutionStage: null,
       sick: false,
+      streak: 0,
+      lastActiveDay: null,
     }
     pets.set(pid, created)
     return created

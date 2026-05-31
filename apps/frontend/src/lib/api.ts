@@ -44,7 +44,14 @@ export type FeedCard = {
 export type PanelistSummary = {
   pid: string
   wallet: { balance: number }
-  pet: { exp: number; level: number; evolutionStage: string | null; sick: boolean }
+  pet: {
+    exp: number
+    level: number
+    evolutionStage: string | null
+    sick: boolean
+    streak: number
+    lastActiveDay: string | null
+  }
 }
 
 export type DataPiece = {
@@ -163,11 +170,26 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(input),
     }),
+  getActiveResponse: (pid: string, surveyId: string) =>
+    request<{
+      response: { id: string; surveyId: string; status: string }
+      nextQuestionIndex: number
+    } | null>(
+      `/responses/active?pid=${encodeURIComponent(pid)}&surveyId=${encodeURIComponent(surveyId)}`,
+    ),
   submitAnswer: (
     responseId: string,
     input: { questionId: string; selectedChoiceIds: string[]; latencyMs: number },
   ) =>
-    request<{ abuse: { level: string; strikes: number } }>(`/responses/${responseId}/answer`, {
+    request<{
+      abuse: {
+        level: 'ok' | 'warn' | 'block'
+        reasons: string[]
+        strikes: number
+        blockedUntil?: string
+      }
+      nextQuestionIndex: number | null
+    }>(`/responses/${responseId}/answer`, {
       method: 'POST',
       body: JSON.stringify(input),
     }),

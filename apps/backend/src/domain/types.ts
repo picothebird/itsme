@@ -113,6 +113,8 @@ export type Pet = {
   tagVector: Record<string, number>
   evolutionStage: string | null
   sick: boolean
+  streak: number
+  lastActiveDay: string | null
 }
 
 export type DataPiece = {
