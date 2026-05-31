@@ -3174,6 +3174,7 @@ select:focus-visible,
 
 /* Top bar — app-shell header (brand left, balance right) */
 .pm-topbar {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3181,6 +3182,7 @@ select:focus-visible,
   padding: 12px 18px 12px;
   padding-top: calc(12px + env(safe-area-inset-top, 0px));
   background: var(--color-canvas);
+  border-bottom: 1px solid var(--color-hairline);
 }
 
 .pm-topbar--progress {
@@ -4356,7 +4358,6 @@ select:focus-visible,
   display: flex;
   flex-direction: column;
   gap: 6px;
-  overflow-y: auto;
 }
 
 .pm-yeargrid {
