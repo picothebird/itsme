@@ -10,6 +10,7 @@ import { authRouter } from './modules/auth/auth.routes.js'
 import { devRouter } from './modules/dev/dev.routes.js'
 import { feedRouter } from './modules/feed/feed.routes.js'
 import { panelRouter } from './modules/panel/panel.routes.js'
+import { researchRouter } from './modules/research/research.routes.js'
 import { responseRouter } from './modules/response/response.routes.js'
 import { semanticRouter } from './modules/semantic/semantic.routes.js'
 import { surveyRouter } from './modules/survey/survey.routes.js'
@@ -39,6 +40,7 @@ app.use('/responses', responseRouter)
 app.use('/feed', feedRouter)
 app.use('/semantic', semanticRouter)
 app.use('/panel', panelRouter)
+app.use('/research', researchRouter)
 app.use('/ai', aiRouter)
 app.use('/analytics', analyticsRouter)
 app.use('/wallet', walletRouter)

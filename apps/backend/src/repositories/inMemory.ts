@@ -1,8 +1,11 @@
 import { randomUUID } from 'node:crypto'
 
+import { MANAGED_STUDY_SEED } from '../domain/managedStudies.js'
 import type {
   Account,
+  Application,
   DataPiece,
+  ManagedStudy,
   Pet,
   RewardOrder,
   Session,
@@ -20,6 +23,15 @@ const wallets = new Map<string, Wallet>()
 const pets = new Map<string, Pet>()
 const dataPieces = new Map<string, DataPiece>()
 const rewardOrders = new Map<string, RewardOrder>()
+const managedStudies = new Map<string, ManagedStudy>()
+const applications = new Map<string, Application>()
+
+const seedManagedStudies = (): void => {
+  for (const study of MANAGED_STUDY_SEED) {
+    managedStudies.set(study.id, { ...study, screener: study.screener.map((s) => ({ ...s })) })
+  }
+}
+seedManagedStudies()
 
 export const generateId = (prefix: string): string => `${prefix}_${randomUUID().slice(0, 12)}`
 
@@ -32,6 +44,9 @@ export const resetStore = (): void => {
   pets.clear()
   dataPieces.clear()
   rewardOrders.clear()
+  managedStudies.clear()
+  applications.clear()
+  seedManagedStudies()
 }
 
 const providerKey = (provider: Account['provider'], providerUserId: string): string =>
@@ -192,5 +207,31 @@ export const rewardOrderRepo = {
   save: (order: RewardOrder): RewardOrder => {
     rewardOrders.set(order.id, order)
     return order
+  },
+}
+
+export const managedStudyRepo = {
+  list: (): ManagedStudy[] => Array.from(managedStudies.values()),
+  listOpen: (): ManagedStudy[] =>
+    Array.from(managedStudies.values()).filter((s) => s.status === 'open'),
+  get: (id: string): ManagedStudy | undefined => managedStudies.get(id),
+  save: (study: ManagedStudy): ManagedStudy => {
+    managedStudies.set(study.id, study)
+    return study
+  },
+}
+
+export const applicationRepo = {
+  list: (): Application[] => Array.from(applications.values()),
+  listByPid: (pid: string): Application[] =>
+    Array.from(applications.values()).filter((a) => a.pid === pid),
+  listByStudy: (studyId: string): Application[] =>
+    Array.from(applications.values()).filter((a) => a.studyId === studyId),
+  get: (id: string): Application | undefined => applications.get(id),
+  findByPidAndStudy: (pid: string, studyId: string): Application | undefined =>
+    Array.from(applications.values()).find((a) => a.pid === pid && a.studyId === studyId),
+  save: (application: Application): Application => {
+    applications.set(application.id, application)
+    return application
   },
 }

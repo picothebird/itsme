@@ -139,3 +139,48 @@ export type RewardOrder = {
   createdAt: string
   updatedAt: string
 }
+
+export type ManagedStudyType = 'interview' | 'usability' | 'diary'
+
+export type ManagedStudy = {
+  id: string
+  title: string
+  category: string
+  type: ManagedStudyType
+  summary: string
+  incentivePoints: number
+  estimatedMinutes: number
+  capacity: number
+  status: 'open' | 'closed'
+  screener: Array<{ id: string; text: string }>
+  createdAt: string
+}
+
+export type ApplicationStatus =
+  | 'applied'
+  | 'screening'
+  | 'review'
+  | 'selected'
+  | 'rejected'
+  | 'scheduled'
+  | 'in_session'
+  | 'completed'
+  | 'paid'
+
+export type ApplicationEvent = {
+  status: ApplicationStatus
+  note?: string
+  at: string
+}
+
+export type Application = {
+  id: string
+  pid: string
+  studyId: string
+  status: ApplicationStatus
+  screenerAnswers: Array<{ questionId: string; answer: string }>
+  scheduledAt?: string
+  history: ApplicationEvent[]
+  createdAt: string
+  updatedAt: string
+}

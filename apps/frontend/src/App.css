@@ -4871,6 +4871,107 @@ select:focus-visible,
   background: var(--color-surface-sunk);
 }
 
+/* Application + study cards (참여 탭) */
+.pm-app-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pm-app-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.pm-app-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pm-app-card__title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.pm-app-card__meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-steel);
+}
+.pm-app-status {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.pm-app-status--wait {
+  color: var(--color-steel);
+  background: var(--color-surface-sunk);
+}
+.pm-app-status--go {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.pm-app-status--stop {
+  color: #d23f57;
+  background: #fdeef0;
+}
+.pm-app-status--done {
+  color: var(--color-success);
+  background: rgba(26, 174, 57, 0.1);
+}
+.pm-study-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-1);
+}
+.pm-study-card__type {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-primary);
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+}
+.pm-study-card__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.pm-study-card__summary {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-steel);
+}
+.pm-study-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+.pm-study-card__reward {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
 /* Pet / data hub stage (정령) */
 .pm-pet {
   gap: 14px;

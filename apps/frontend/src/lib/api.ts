@@ -257,7 +257,63 @@ export const api = {
         body: JSON.stringify(input),
       }),
   },
+  research: {
+    studies: () => request<ManagedStudy[]>('/research/studies'),
+    study: (id: string) => request<ManagedStudy>(`/research/studies/${id}`),
+    apply: (input: {
+      pid: string
+      studyId: string
+      screenerAnswers?: Array<{ questionId: string; answer: string }>
+    }) =>
+      request<Application>('/research/applications', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+    myApplications: (pid: string) =>
+      request<ApplicationWithStudy[]>(`/research/applications/me?pid=${encodeURIComponent(pid)}`),
+  },
 }
+
+export type ManagedStudyType = 'interview' | 'usability' | 'diary'
+
+export type ManagedStudy = {
+  id: string
+  title: string
+  category: string
+  type: ManagedStudyType
+  summary: string
+  incentivePoints: number
+  estimatedMinutes: number
+  capacity: number
+  status: 'open' | 'closed'
+  screener: Array<{ id: string; text: string }>
+  createdAt: string
+}
+
+export type ApplicationStatus =
+  | 'applied'
+  | 'screening'
+  | 'review'
+  | 'selected'
+  | 'rejected'
+  | 'scheduled'
+  | 'in_session'
+  | 'completed'
+  | 'paid'
+
+export type Application = {
+  id: string
+  pid: string
+  studyId: string
+  status: ApplicationStatus
+  screenerAnswers: Array<{ questionId: string; answer: string }>
+  scheduledAt?: string
+  history: Array<{ status: ApplicationStatus; note?: string; at: string }>
+  createdAt: string
+  updatedAt: string
+}
+
+export type ApplicationWithStudy = Application & { study: ManagedStudy | null }
 
 export type RewardItem = {
   id: string

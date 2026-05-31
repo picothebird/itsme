@@ -28,6 +28,9 @@ import {
   type RewardItem,
   type RewardOrder,
   type DataPiece,
+  type ManagedStudy,
+  type ApplicationWithStudy,
+  type ApplicationStatus,
 } from '../lib/api'
 import { celebrate } from '../lib/celebrate'
 
@@ -227,6 +230,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
 
       {stage === 'deck' && tab === 'tasks' ? (
         <TasksStage
+          pid={pid}
           available={Math.max(0, feed.length - topCardIndex)}
           onGoDeck={() => setTab('deck')}
         />
@@ -490,6 +494,36 @@ const ORDER_STATUS_LABEL: Record<string, string> = {
   refunded: '환불',
 }
 
+const STUDY_TYPE_LABEL: Record<ManagedStudy['type'], string> = {
+  interview: '심층 인터뷰',
+  usability: '사용성 테스트',
+  diary: '다이어리',
+}
+
+const APP_STATUS_LABEL: Record<ApplicationStatus, string> = {
+  applied: '신청 완료',
+  screening: '스크리닝 중',
+  review: '검토 중',
+  selected: '선정됨',
+  rejected: '미선정',
+  scheduled: '일정 확정',
+  in_session: '진행 중',
+  completed: '완료',
+  paid: '보상 지급',
+}
+
+const APP_STATUS_TONE: Record<ApplicationStatus, 'wait' | 'go' | 'stop' | 'done'> = {
+  applied: 'wait',
+  screening: 'wait',
+  review: 'wait',
+  selected: 'go',
+  rejected: 'stop',
+  scheduled: 'go',
+  in_session: 'go',
+  completed: 'done',
+  paid: 'done',
+}
+
 const generateIdempotencyKey = (): string => {
   if (
     typeof globalThis.crypto !== 'undefined' &&
@@ -515,7 +549,66 @@ const petProgress = (
   return { ratio, toNext: Math.max(0, next - exp), max: false }
 }
 
-function TasksStage({ available, onGoDeck }: { available: number; onGoDeck: () => void }) {
+function TasksStage({
+  pid,
+  available,
+  onGoDeck,
+}: {
+  pid: string
+  available: number
+  onGoDeck: () => void
+}) {
+  const [studies, setStudies] = useState<ManagedStudy[]>([])
+  const [applications, setApplications] = useState<ApplicationWithStudy[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    try {
+      const [studyList, mine] = await Promise.all([
+        api.research.studies(),
+        api.research.myApplications(pid),
+      ])
+      setStudies(studyList)
+      setApplications(mine)
+    } catch {
+      setToast('리서치 정보를 불러오지 못했어요.')
+    } finally {
+      setLoading(false)
+    }
+  }, [pid])
+
+  const loadedRef = useRef(false)
+  useEffect(() => {
+    if (loadedRef.current) return
+    loadedRef.current = true
+    void load()
+  }, [load])
+
+  const appliedStudyIds = useMemo(() => new Set(applications.map((a) => a.studyId)), [applications])
+  const openStudies = useMemo(
+    () => studies.filter((s) => !appliedStudyIds.has(s.id)),
+    [studies, appliedStudyIds],
+  )
+
+  const apply = useCallback(
+    async (study: ManagedStudy) => {
+      if (busy) return
+      setBusy(study.id)
+      try {
+        await api.research.apply({ pid, studyId: study.id })
+        setToast(`신청 완료 · ${study.title}`)
+        await load()
+      } catch (err) {
+        setToast(err instanceof Error ? err.message : '신청에 실패했어요')
+      } finally {
+        setBusy(null)
+      }
+    },
+    [busy, pid, load],
+  )
+
   return (
     <main className="pm-stage pm-tasks">
       <h2 className="pm-shop__heading">오늘의 참여</h2>
@@ -537,18 +630,77 @@ function TasksStage({ available, onGoDeck }: { available: number; onGoDeck: () =
         </button>
       </article>
 
-      <article className="pm-task-card pm-task-card--soon">
-        <div className="pm-task-card__icon" aria-hidden>
-          <ClipboardList size={22} strokeWidth={2.2} />
+      {applications.length > 0 ? (
+        <>
+          <h2 className="pm-shop__heading">내 신청 현황</h2>
+          <ul className="pm-app-list">
+            {applications.map((app) => (
+              <li key={app.id} className="pm-app-card">
+                <div className="pm-app-card__head">
+                  <span className="pm-app-card__title">{app.study?.title ?? '리서치'}</span>
+                  <span className={`pm-app-status pm-app-status--${APP_STATUS_TONE[app.status]}`}>
+                    {APP_STATUS_LABEL[app.status]}
+                  </span>
+                </div>
+                <p className="pm-app-card__meta">
+                  {app.study ? `${STUDY_TYPE_LABEL[app.study.type]} · ` : ''}
+                  보상 {(app.study?.incentivePoints ?? 0).toLocaleString()} P
+                  {app.scheduledAt
+                    ? ` · 일정 ${new Date(app.scheduledAt).toLocaleDateString('ko-KR')}`
+                    : ''}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+
+      <h2 className="pm-shop__heading">신청 가능한 리서치</h2>
+      {loading ? (
+        <p className="pm-muted">리서치를 불러오는 중...</p>
+      ) : openStudies.length === 0 ? (
+        <div className="pm-pet__empty">
+          <ClipboardList size={28} strokeWidth={1.8} aria-hidden="true" />
+          <p>지금 신청할 수 있는 리서치가 없어요. 새로운 리서치가 곧 열려요.</p>
         </div>
-        <div className="pm-task-card__body">
-          <h3 className="pm-task-card__title">신청형 리서치 (UT·좌담회)</h3>
-          <p className="pm-task-card__desc">
-            심층 인터뷰·사용성 테스트는 신청 후 리서처 선정으로 진행돼요. 곧 제공될 예정이에요.
-          </p>
+      ) : (
+        <ul className="pm-app-list">
+          {openStudies.map((study) => (
+            <li key={study.id} className="pm-study-card">
+              <span className="pm-study-card__type">{STUDY_TYPE_LABEL[study.type]}</span>
+              <h3 className="pm-study-card__title">{study.title}</h3>
+              <p className="pm-study-card__summary">{study.summary}</p>
+              <div className="pm-study-card__footer">
+                <span className="pm-study-card__reward">
+                  {study.incentivePoints.toLocaleString()} P · 약 {study.estimatedMinutes}분
+                </span>
+                <button
+                  type="button"
+                  className="pm-btn pm-btn--primary pm-btn--sm"
+                  disabled={busy === study.id}
+                  onClick={() => void apply(study)}
+                >
+                  {busy === study.id ? '신청 중…' : '신청'}
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {toast ? (
+        <div className="pm-toast pm-toast--shop" role="status" aria-live="polite">
+          {toast}
+          <button
+            type="button"
+            className="pm-toast__close"
+            onClick={() => setToast(null)}
+            aria-label="알림 닫기"
+          >
+            ×
+          </button>
         </div>
-        <span className="pm-task-card__badge">준비 중</span>
-      </article>
+      ) : null}
     </main>
   )
 }
