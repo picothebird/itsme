@@ -211,6 +211,27 @@ export function ResearcherWorkspace() {
     }
   }, [pushLog, refresh, showToast, surveys])
 
+  const closeSurvey = useCallback(
+    async (survey: Survey) => {
+      if (busy) return
+      if (!window.confirm(`'${survey.title}' 설문을 종료할까요? 더 이상 노출되지 않아요.`)) return
+      setBusy(true)
+      try {
+        await api.closeSurvey(survey.id)
+        pushLog(`설문 종료 · ${survey.title}`)
+        showToast('설문을 종료했어요.', 'success')
+        await refresh()
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        setError(message)
+        showToast(`종료에 실패했어요. ${message}`, 'info')
+      } finally {
+        setBusy(false)
+      }
+    },
+    [busy, pushLog, refresh, showToast],
+  )
+
   const resetDemo = useCallback(async () => {
     if (busy) return
     if (!window.confirm('데모 데이터(설문·응답·지갑·펫)를 모두 초기화할까요?')) return
@@ -335,6 +356,7 @@ export function ResearcherWorkspace() {
             busy={busy}
             onGoStudio={() => setPage('studio')}
             onSeed={() => void seedSurvey()}
+            onClose={(survey) => void closeSurvey(survey)}
           />
         ) : null}
 
@@ -566,9 +588,10 @@ type SurveysPageProps = {
   busy: boolean
   onGoStudio: () => void
   onSeed: () => void
+  onClose: (survey: Survey) => void
 }
 
-function SurveysPage({ surveys, feed, busy, onGoStudio, onSeed }: SurveysPageProps) {
+function SurveysPage({ surveys, feed, busy, onGoStudio, onSeed, onClose }: SurveysPageProps) {
   const grouped: Record<Survey['status'], Survey[]> = {
     draft: surveys.filter((s) => s.status === 'draft'),
     live: surveys.filter((s) => s.status === 'live'),
@@ -617,6 +640,16 @@ function SurveysPage({ surveys, feed, busy, onGoStudio, onSeed }: SurveysPagePro
                       <span className="board__cardDeploy">
                         {s.deployment.pointsPerUser}P · 목표 {s.deployment.targetCount}명
                       </span>
+                    ) : null}
+                    {status === 'live' ? (
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm board__cardClose"
+                        onClick={() => onClose(s)}
+                        disabled={busy}
+                      >
+                        종료
+                      </button>
                     ) : null}
                   </article>
                 ))

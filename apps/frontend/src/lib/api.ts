@@ -149,6 +149,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(input),
     }),
+  closeSurvey: (id: string) =>
+    request<Survey>(`/surveys/${id}/close`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
   listFeed: async () => {
     const data = await request<{ items: FeedCard[]; nextCursor: string | null }>('/feed')
     return data.items

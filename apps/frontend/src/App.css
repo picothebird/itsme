@@ -4723,6 +4723,10 @@ select:focus-visible,
   font-weight: 600;
   color: var(--color-primary);
 }
+.board__cardClose {
+  align-self: flex-start;
+  margin-top: 4px;
+}
 .board__col--draft .board__title {
   color: var(--color-slate);
 }
