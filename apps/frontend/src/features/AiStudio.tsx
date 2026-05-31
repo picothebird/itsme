@@ -1,8 +1,28 @@
 import { useCallback, useMemo, useState } from 'react'
+import {
+  Megaphone,
+  Split,
+  GitCompareArrows,
+  BookOpen,
+  Ruler,
+  Copy,
+  ListPlus,
+  AlertOctagon,
+  AlertCircle,
+  Info,
+  CircleDot,
+  ListChecks,
+  SmilePlus,
+  AlignLeft,
+  Wand2,
+  X as XIcon,
+  type LucideIcon,
+} from 'lucide-react'
 
 import { api, type AuditFinding, type AuditResult, type Survey, type Targeting } from '../lib/api'
 import { MobilePreview } from './MobilePreview'
 import { PublishModal } from './PublishModal'
+import { InfoDot } from '../components/ui/Tooltip'
 
 const RULE_LABELS: Record<AuditFinding['rule'], string> = {
   leading: '유도성 표현',
@@ -12,6 +32,39 @@ const RULE_LABELS: Record<AuditFinding['rule'], string> = {
   too_long: '문장이 너무 길어요',
   duplicate: '중복 문항',
   missing_choices: '보기 부족',
+}
+
+/** Icon + plain-language explanation for each audit rule (shown via tooltip). */
+const RULE_META: Record<AuditFinding['rule'], { icon: LucideIcon; hint: string }> = {
+  leading: {
+    icon: Megaphone,
+    hint: '답을 특정 방향으로 유도하는 표현이에요. 중립적으로 바꿔 보세요.',
+  },
+  double_barreled: {
+    icon: Split,
+    hint: '한 문항에서 두 가지를 동시에 물어요. 문항을 나누면 응답이 정확해져요.',
+  },
+  contradiction: {
+    icon: GitCompareArrows,
+    hint: '앞 문항과 논리가 충돌해요. 보기나 표현을 맞춰 주세요.',
+  },
+  jargon: { icon: BookOpen, hint: '응답자가 모를 수 있는 전문 용어예요. 쉬운 말로 풀어 주세요.' },
+  too_long: { icon: Ruler, hint: '문장이 길어 이해가 어려워요. 한 문장으로 줄여 보세요.' },
+  duplicate: { icon: Copy, hint: '다른 문항과 의미가 겹쳐요. 하나로 합치는 것을 추천해요.' },
+  missing_choices: { icon: ListPlus, hint: '선택지가 부족해요. 빠진 보기를 추가해 주세요.' },
+}
+
+const SEVERITY_META: Record<AuditFinding['severity'], { icon: LucideIcon; label: string }> = {
+  high: { icon: AlertOctagon, label: '심각' },
+  warn: { icon: AlertCircle, label: '주의' },
+  info: { icon: Info, label: '참고' },
+}
+
+const QTYPE_META: Record<string, { icon: LucideIcon; label: string }> = {
+  single: { icon: CircleDot, label: '단일 선택' },
+  multi: { icon: ListChecks, label: '다중 선택' },
+  likert: { icon: SmilePlus, label: '척도' },
+  text: { icon: AlignLeft, label: '주관식' },
 }
 
 const SEVERITY_RANK: Record<AuditFinding['severity'], number> = { high: 0, warn: 1, info: 2 }
@@ -179,11 +232,14 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
     <section className="card ai-studio" aria-labelledby="ai-studio-heading">
       <div className="card__head">
         <div>
-          <h3 id="ai-studio-heading">AI 설문 도우미</h3>
-          <p className="ai-studio__sub">
-            조사 목적을 적으면 초안 문항을 만들고, 유도 표현이나 논리 모순을 짚어 수정안까지 제안해
-            드려요.
-          </p>
+          <h3 id="ai-studio-heading">
+            AI 설문 도우미
+            <InfoDot
+              label="조사 목적을 적으면 초안 문항을 만들고, 유도 표현·논리 모순을 짚어 수정안까지 제안해 드려요."
+              placement="bottom"
+            />
+          </h3>
+          <p className="ai-studio__sub">조사 목적만 적으면 초안부터 검수까지 한 번에.</p>
         </div>
         <span className={`pill pill--${step === 'published' ? 'live' : 'draft'}`}>{stage}</span>
       </div>
@@ -266,7 +322,7 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
             onClick={() => setError(null)}
             aria-label="오류 메시지 닫기"
           >
-            ✕
+            <XIcon size={15} strokeWidth={2.2} aria-hidden="true" />
           </button>
         </div>
       ) : null}
@@ -290,9 +346,15 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
 
           {summary ? (
             <div className="ai-studio__chips">
-              <span className="chip chip--high">심각 {summary.high}</span>
-              <span className="chip chip--warn">주의 {summary.warn}</span>
-              <span className="chip chip--info">참고 {summary.info}</span>
+              <span className="chip chip--high">
+                <AlertOctagon size={12} strokeWidth={2.4} aria-hidden="true" /> 심각 {summary.high}
+              </span>
+              <span className="chip chip--warn">
+                <AlertCircle size={12} strokeWidth={2.4} aria-hidden="true" /> 주의 {summary.warn}
+              </span>
+              <span className="chip chip--info">
+                <Info size={12} strokeWidth={2.4} aria-hidden="true" /> 참고 {summary.info}
+              </span>
             </div>
           ) : null}
 
@@ -303,7 +365,16 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
                 <li key={q.id} className="ai-studio__q">
                   <div className="ai-studio__qHead">
                     <span className="ai-studio__qIdx">Q{idx + 1}</span>
-                    <span className="ai-studio__qType">{q.type}</span>
+                    {(() => {
+                      const meta = QTYPE_META[q.type] ?? QTYPE_META.text
+                      const QIcon = meta.icon
+                      return (
+                        <span className="ai-studio__qType">
+                          <QIcon size={12} strokeWidth={2.2} aria-hidden="true" />
+                          {meta.label}
+                        </span>
+                      )
+                    })()}
                   </div>
                   <p className="ai-studio__qText">{q.text}</p>
                   {q.choices && q.choices.length > 0 ? (
@@ -315,36 +386,50 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
                   ) : null}
                   {findingsForQ.length > 0 ? (
                     <ul className="ai-studio__findings">
-                      {findingsForQ.map((f) => (
-                        <li key={f.id} className={`finding finding--${f.severity}`}>
-                          <div className="finding__head">
-                            <span className="finding__rule">{RULE_LABELS[f.rule]}</span>
-                            <span className={`finding__sev finding__sev--${f.severity}`}>
-                              {f.severity === 'high'
-                                ? '심각'
-                                : f.severity === 'warn'
-                                  ? '주의'
-                                  : '참고'}
-                            </span>
-                          </div>
-                          <p className="finding__msg">{f.message}</p>
-                          {f.suggestion ? <p className="finding__sug">{f.suggestion}</p> : null}
-                          {f.fix ? (
-                            <div className="finding__fix">
-                              <span className="finding__fixLabel">수정안</span>
-                              <code className="finding__fixText">{f.fix.text}</code>
-                              <button
-                                type="button"
-                                className="btn btn--secondary btn--sm"
-                                onClick={() => void applyFinding(f)}
-                                disabled={applyingId !== null || isBusy}
-                              >
-                                {applyingId === f.id ? '적용하는 중…' : '적용하기'}
-                              </button>
+                      {findingsForQ.map((f) => {
+                        const rule = RULE_META[f.rule]
+                        const RuleIcon = rule.icon
+                        const sev = SEVERITY_META[f.severity]
+                        const SevIcon = sev.icon
+                        return (
+                          <li key={f.id} className={`finding finding--${f.severity}`}>
+                            <div className="finding__head">
+                              <span className="finding__rule">
+                                <RuleIcon size={14} strokeWidth={2.2} aria-hidden="true" />
+                                {RULE_LABELS[f.rule]}
+                                <InfoDot label={rule.hint} />
+                              </span>
+                              <span className={`finding__sev finding__sev--${f.severity}`}>
+                                <SevIcon size={12} strokeWidth={2.4} aria-hidden="true" />
+                                {sev.label}
+                              </span>
                             </div>
-                          ) : null}
-                        </li>
-                      ))}
+                            <p className="finding__msg">{f.message}</p>
+                            {f.suggestion ? <p className="finding__sug">{f.suggestion}</p> : null}
+                            {f.fix ? (
+                              <div className="finding__fix">
+                                <span className="finding__fixLabel">수정안</span>
+                                <code className="finding__fixText">{f.fix.text}</code>
+                                <button
+                                  type="button"
+                                  className="btn btn--secondary btn--sm finding__apply"
+                                  onClick={() => void applyFinding(f)}
+                                  disabled={applyingId !== null || isBusy}
+                                >
+                                  {applyingId === f.id ? (
+                                    '적용하는 중…'
+                                  ) : (
+                                    <>
+                                      <Wand2 size={13} strokeWidth={2.2} aria-hidden="true" />
+                                      적용하기
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            ) : null}
+                          </li>
+                        )
+                      })}
                     </ul>
                   ) : null}
                 </li>

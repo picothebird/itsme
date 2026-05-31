@@ -1,6 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import {
+  X,
+  Check,
+  Gem,
+  Clock,
+  ListChecks,
+  Coins,
+  Angry,
+  Frown,
+  Meh,
+  Smile,
+  Laugh,
+  Sparkles,
+} from 'lucide-react'
 
 import { api, type FeedCard, type PanelistSummary, type Survey } from '../lib/api'
+import { celebrate } from '../lib/celebrate'
 
 type Stage = 'deck' | 'responding' | 'complete'
 
@@ -140,18 +156,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
           onClick={stage === 'responding' ? () => setConfirmExit(true) : onClose}
           aria-label={stage === 'responding' ? '응답 닫기' : '체험 종료'}
         >
-          <svg
-            viewBox="0 0 24 24"
-            width="22"
-            height="22"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
+          <X size={22} strokeWidth={2.2} aria-hidden="true" />
         </button>
         <div className="pm-topbar__center">
           {stage === 'responding' && responding ? (
@@ -164,9 +169,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
           )}
         </div>
         <div className="pm-balance" aria-label="현재 포인트">
-          <span className="pm-balance__icon" aria-hidden>
-            ◆
-          </span>
+          <Gem className="pm-balance__icon" size={15} strokeWidth={2.2} aria-hidden="true" />
           <span className="pm-balance__value">{me?.wallet.balance ?? 0}</span>
         </div>
       </header>
@@ -380,18 +383,7 @@ function DeckStage({
           onClick={onPass}
           aria-label="패스"
         >
-          <svg
-            viewBox="0 0 24 24"
-            width="22"
-            height="22"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
+          <X size={24} strokeWidth={2.4} aria-hidden="true" />
         </button>
         <button type="button" className="pm-btn pm-btn--primary pm-btn--xl" onClick={onAccept}>
           참여하고 {currentCard.pointsPerUser} P 받기
@@ -402,18 +394,7 @@ function DeckStage({
           onClick={onAccept}
           aria-label="참여"
         >
-          <svg
-            viewBox="0 0 24 24"
-            width="22"
-            height="22"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M5 12l5 5L20 7" />
-          </svg>
+          <Check size={24} strokeWidth={2.8} aria-hidden="true" />
         </button>
       </div>
 
@@ -428,19 +409,25 @@ function CardBody({ card }: { card: FeedCard }) {
     <>
       <header className="pm-card__head">
         <span className="pm-card__category">{card.category}</span>
-        <span className="pm-card__time">약 {minutes}분</span>
+        <span className="pm-card__time">
+          <Clock size={13} strokeWidth={2} aria-hidden="true" />
+          {minutes}분
+        </span>
       </header>
       <h2 className="pm-card__title">{card.title}</h2>
       <div className="pm-card__stats">
         <div className="pm-card__stat">
+          <ListChecks className="pm-card__stat-icon" size={18} strokeWidth={2} aria-hidden="true" />
           <span className="pm-card__stat-value">{card.questionCount}</span>
           <span className="pm-card__stat-label">문항</span>
         </div>
         <div className="pm-card__stat">
+          <Coins className="pm-card__stat-icon" size={18} strokeWidth={2} aria-hidden="true" />
           <span className="pm-card__stat-value">{card.pointsPerUser}</span>
           <span className="pm-card__stat-label">포인트</span>
         </div>
         <div className="pm-card__stat">
+          <Clock className="pm-card__stat-icon" size={18} strokeWidth={2} aria-hidden="true" />
           <span className="pm-card__stat-value">{minutes}</span>
           <span className="pm-card__stat-label">분</span>
         </div>
@@ -552,20 +539,7 @@ function ResponseQuestion({
                   disabled={submitting}
                 >
                   <span className="pm-choice__bullet" aria-hidden>
-                    {isSelected ? (
-                      <svg
-                        viewBox="0 0 24 24"
-                        width="14"
-                        height="14"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M5 12l5 5L20 7" />
-                      </svg>
-                    ) : null}
+                    {isSelected ? <Check size={14} strokeWidth={3} /> : null}
                   </span>
                   <span className="pm-choice__label">{c.label}</span>
                 </button>
@@ -591,6 +565,15 @@ function ResponseQuestion({
   )
 }
 
+const LIKERT_FACES = [Angry, Frown, Meh, Smile, Laugh]
+
+function likertFace(index: number, count: number) {
+  if (count === 5) return LIKERT_FACES[index]
+  // Map any scale length onto the 5 faces by relative position.
+  const ratio = count <= 1 ? 0 : index / (count - 1)
+  return LIKERT_FACES[Math.round(ratio * 4)]
+}
+
 function LikertScale({
   choices,
   selectedId,
@@ -605,11 +588,13 @@ function LikertScale({
   if (choices.length === 0) return null
   const minLabel = choices[0]?.label
   const maxLabel = choices[choices.length - 1]?.label
+  const selectedIndex = choices.findIndex((c) => c.id === selectedId)
   return (
     <div className="pm-likert" role="radiogroup" aria-label="동의 정도">
-      <div className="pm-likert__scale">
+      <div className="pm-likert__scale" data-count={choices.length}>
         {choices.map((c, i) => {
           const isSelected = c.id === selectedId
+          const Face = likertFace(i, choices.length)
           return (
             <button
               key={c.id}
@@ -621,13 +606,16 @@ function LikertScale({
               onClick={() => onPick(c.id)}
               disabled={disabled}
             >
-              <span className="pm-likert__num">{i + 1}</span>
+              <Face className="pm-likert__face" size={26} strokeWidth={2} aria-hidden="true" />
             </button>
           )
         })}
       </div>
       <div className="pm-likert__anchors">
         <span>{minLabel}</span>
+        <span aria-live="polite" className="pm-likert__current">
+          {selectedIndex >= 0 ? choices[selectedIndex]?.label : ''}
+        </span>
         <span>{maxLabel}</span>
       </div>
     </div>
@@ -644,25 +632,39 @@ function CompleteStage({
   onContinue: () => void
 }) {
   const newBalance = useMemo(() => me?.wallet.balance ?? 0, [me])
+  const firedRef = useRef(false)
+  useEffect(() => {
+    if (firedRef.current) return
+    firedRef.current = true
+    celebrate({ intensity: 'big' })
+  }, [])
   return (
     <main className="pm-stage pm-stage--center pm-stage--celebrate">
-      <div className="pm-burst" aria-hidden>
-        <div className="pm-burst__ring" />
-        <div className="pm-burst__ring pm-burst__ring--2" />
-      </div>
-      <p className="pm-celebrate__eyebrow">응답 완료</p>
-      <p className="pm-celebrate__points">
-        +{reward.pointsAwarded}
-        <span className="pm-celebrate__unit">P</span>
-      </p>
-      <p className="pm-celebrate__body">
-        정령 Lv.{reward.pet.level} · {reward.pet.evolutionStage ?? '알'} · 누적 {newBalance} P
-      </p>
-      <div className="pm-celebrate__actions">
-        <button type="button" className="pm-btn pm-btn--primary pm-btn--xl" onClick={onContinue}>
-          다음 설문 보기
-        </button>
-      </div>
+      <motion.div
+        className="pm-celebrate__inner"
+        initial={{ opacity: 0, scale: 0.82, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+      >
+        <div className="pm-burst" aria-hidden>
+          <div className="pm-burst__ring" />
+          <div className="pm-burst__ring pm-burst__ring--2" />
+          <Sparkles className="pm-burst__spark" size={30} aria-hidden="true" />
+        </div>
+        <p className="pm-celebrate__eyebrow">응답 완료</p>
+        <p className="pm-celebrate__points">
+          +{reward.pointsAwarded}
+          <span className="pm-celebrate__unit">P</span>
+        </p>
+        <p className="pm-celebrate__body">
+          정령 Lv.{reward.pet.level} · {reward.pet.evolutionStage ?? '알'} · 누적 {newBalance} P
+        </p>
+        <div className="pm-celebrate__actions">
+          <button type="button" className="pm-btn pm-btn--primary pm-btn--xl" onClick={onContinue}>
+            다음 설문 보기
+          </button>
+        </div>
+      </motion.div>
     </main>
   )
 }

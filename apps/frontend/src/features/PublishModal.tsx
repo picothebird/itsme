@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { X as XIcon } from 'lucide-react'
 
 import { api, type ReachEstimate, type Targeting } from '../lib/api'
+import { InfoDot } from '../components/ui/Tooltip'
 
 type Props = {
   open: boolean
@@ -111,7 +113,7 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
         <header className="modal__head">
           <h3 id="publish-modal-title">발행 설정 · {surveyTitle}</h3>
           <button type="button" className="modal__close" aria-label="닫기" onClick={onClose}>
-            ✕
+            <XIcon size={16} strokeWidth={2.2} aria-hidden="true" />
           </button>
         </header>
         <p className="modal__sub">
@@ -120,7 +122,10 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
 
         <div className="modal__grid">
           <label className="field">
-            <span className="field__label">응답자당 포인트</span>
+            <span className="field__label">
+              응답자당 포인트
+              <InfoDot label="응답 1건당 지급하는 보상 포인트예요. 높을수록 응답률이 올라가지만 예산도 늘어나요." />
+            </span>
             <input
               type="number"
               min={1}
@@ -130,7 +135,10 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
             />
           </label>
           <label className="field">
-            <span className="field__label">목표 응답 수</span>
+            <span className="field__label">
+              목표 응답 수
+              <InfoDot label="모으고 싶은 응답 개수예요. 이 수와 포인트를 곱한 값이 총 예산이 돼요." />
+            </span>
             <input
               type="number"
               min={1}
@@ -197,7 +205,10 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
 
         <div className={`reach-card${blocked ? ' is-blocked' : ''}`} aria-live="polite">
           <div className="reach-card__row">
-            <span className="reach-card__label">예상 도달 모수</span>
+            <span className="reach-card__label">
+              예상 도달 모수
+              <InfoDot label="설정한 타겟 조건에 맞는 패널 수예요. 50명 미만이면 발행이 차단되니 타겟을 넓혀 주세요." />
+            </span>
             <strong className="reach-card__value">
               {estimating
                 ? '계산하는 중…'

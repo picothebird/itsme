@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Check, Lock, X as XIcon } from 'lucide-react'
 
 import { api, type FeedCard, type PanelistSummary, type Survey } from '../lib/api'
 import { WalletPanel } from './WalletPanel'
 import { AiStudio } from './AiStudio'
 import { DashboardOverview } from './DashboardOverview'
+import { InfoDot } from '../components/ui/Tooltip'
 
 const DEMO_PID = 'pid_demo_researcher'
 
@@ -36,6 +38,21 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 type StepState = 'idle' | 'active' | 'done'
 type LogEntry = { id: string; time: string; message: string }
 type Toast = { id: number; kind: 'info' | 'success'; message: string }
+
+/** Step number badge that reflects completion state at a glance. */
+function StepNum({ n, state }: { n: number; state: StepState }) {
+  return (
+    <span className={`step__num step__num--${state}`} aria-hidden="true">
+      {state === 'done' ? (
+        <Check size={15} strokeWidth={3} />
+      ) : state === 'idle' ? (
+        <Lock size={13} strokeWidth={2.4} />
+      ) : (
+        n
+      )}
+    </span>
+  )
+}
 
 const makeLogEntry = (message: string): LogEntry => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -276,7 +293,7 @@ export function ResearcherPanel() {
               onClick={() => setError(null)}
               aria-label="오류 메시지 닫기"
             >
-              ✕
+              <XIcon size={15} strokeWidth={2.2} aria-hidden="true" />
             </button>
           </div>
         ) : null}
@@ -284,13 +301,11 @@ export function ResearcherPanel() {
         <div className="steps" style={{ marginTop: 16 }}>
           <article className="step" data-state={stateFor(1)}>
             <div className="step__head">
-              <span className="step__num">1</span>
+              <StepNum n={1} state={stateFor(1)} />
               <span className="step__title">설문 설계</span>
+              <InfoDot label="질문 유형과 카테고리를 골라 초안을 만들어요. 데모는 단일선택·리커트 섞인 3문항이에요." />
             </div>
-            <p className="step__body">
-              질문 유형과 카테고리를 골라 초안을 만들어요. 데모 설문은 단일선택과 리커트 척도가 섞인
-              3문항으로 구성돼 있어요.
-            </p>
+            <p className="step__body">질문 유형과 카테고리를 골라 초안을 만들어요.</p>
             <div className="step__footer">
               <span className="step__meta">초안 {surveys.length}개</span>
               <button
@@ -306,13 +321,11 @@ export function ResearcherPanel() {
 
           <article className="step" data-state={stateFor(2)}>
             <div className="step__head">
-              <span className="step__num">2</span>
+              <StepNum n={2} state={stateFor(2)} />
               <span className="step__title">타겟 발행</span>
+              <InfoDot label="포인트와 타겟 규모를 설정해 라이브 피드에 노출해요. 도달 모수가 50명 미만이면 자동으로 차단돼요." />
             </div>
-            <p className="step__body">
-              포인트와 타겟 규모를 설정해 라이브 피드에 노출해요. 도달 모수가 50명 미만이면 자동으로
-              차단돼요.
-            </p>
+            <p className="step__body">포인트와 타겟 규모를 설정해 라이브 피드에 노출해요.</p>
             <div className="step__footer">
               <span className="step__meta">라이브 {liveCount}건</span>
               <span className={`pill ${liveCount > 0 ? 'pill--live' : 'pill--draft'}`}>
@@ -323,13 +336,11 @@ export function ResearcherPanel() {
 
           <article className="step" data-state={stateFor(3)}>
             <div className="step__head">
-              <span className="step__num">3</span>
+              <StepNum n={3} state={stateFor(3)} />
               <span className="step__title">응답 수집</span>
+              <InfoDot label="응답이 제출되면 보상 포인트와 펫 EXP가 자동 적립돼요. 어뷰즈 신호가 감지되면 즉시 차단돼요." />
             </div>
-            <p className="step__body">
-              데모 패널리스트가 응답을 제출하면 보상 포인트와 펫 EXP가 자동으로 적립돼요. 어뷰즈
-              신호가 감지되면 즉시 응답이 차단돼요.
-            </p>
+            <p className="step__body">응답이 제출되면 보상 포인트와 펫 EXP가 자동 적립돼요.</p>
             <div className="step__footer">
               <span className="step__meta">
                 {panelist ? `${panelist.wallet.balance.toLocaleString()} P` : '0 P'}

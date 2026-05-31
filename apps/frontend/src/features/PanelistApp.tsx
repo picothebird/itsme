@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { X, Check, Sparkles } from 'lucide-react'
 
 import { api, getAuthToken, setAuthToken, type Account } from '../lib/api'
 import { PanelistMobile } from './PanelistMobile'
+import { InfoDot } from '../components/ui/Tooltip'
+import { celebrate } from '../lib/celebrate'
 
 type Props = {
   onClose: () => void
@@ -109,18 +112,7 @@ export function PanelistApp({ onClose }: Props) {
     <div className="pm-root" role="dialog" aria-modal="true" aria-label="패널 로그인">
       <header className="pm-topbar">
         <button type="button" className="pm-iconbtn" onClick={onClose} aria-label="닫기">
-          <svg
-            viewBox="0 0 24 24"
-            width="22"
-            height="22"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
+          <X size={22} strokeWidth={2.2} aria-hidden="true" />
         </button>
         <div className="pm-topbar__center">
           <span className="pm-topbar__title">잇츠미</span>
@@ -192,10 +184,11 @@ function LoginStage({
             onClick={() => onLogin(p.id)}
             disabled={busy}
           >
-            {p.label}
+            <ProviderIcon id={p.id} />
+            <span className="pm-oauth__label">{p.label}</span>
           </button>
         ))}
-        <p className="pm-login__legal">가입 시 이용약관과 개인정보 처리방침에 동의하게 돼요.</p>
+        <p className="pm-login__legal">가입 시 이용약관·개인정보 처리방침에 동의하게 돼요.</p>
       </div>
     </main>
   )
@@ -283,20 +276,7 @@ function OnboardingStage({
                 onClick={() => setGender(g.v)}
               >
                 <span className="pm-choice__bullet" aria-hidden>
-                  {gender === g.v ? (
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="14"
-                      height="14"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M5 12l5 5L20 7" />
-                    </svg>
-                  ) : null}
+                  {gender === g.v ? <Check size={14} strokeWidth={3} /> : null}
                 </span>
                 <span className="pm-choice__label">{g.l}</span>
               </button>
@@ -307,7 +287,13 @@ function OnboardingStage({
 
       {step === 2 ? (
         <section className="pm-onboard__step">
-          <h2 className="pm-q__text">관심사를 골라주세요</h2>
+          <h2 className="pm-q__text">
+            관심사를 골라주세요
+            <InfoDot
+              label="입력한 정보는 맞춤 설문 추천에만 쓰이고, 설정에서 언제든 바꾸거나 삭제할 수 있어요."
+              placement="bottom"
+            />
+          </h2>
           <p className="pm-q__hint">정령이 좋아하는 주제가 돼요. (1개 이상)</p>
           <div className="pm-taggrid">
             {INTEREST_OPTIONS.map((label) => (
@@ -321,9 +307,6 @@ function OnboardingStage({
               </button>
             ))}
           </div>
-          <p className="pm-onboard__note">
-            입력한 정보는 맞춤 설문 추천에만 쓰이고, 언제든 설정에서 바꾸거나 삭제할 수 있어요.
-          </p>
         </section>
       ) : null}
 
@@ -355,7 +338,10 @@ function HatchStage({ hatch, onStart }: { hatch: HatchResult; onStart: () => voi
   const [cracked, setCracked] = useState(false)
 
   useEffect(() => {
-    const t = window.setTimeout(() => setCracked(true), 900)
+    const t = window.setTimeout(() => {
+      setCracked(true)
+      celebrate({ intensity: 'big' })
+    }, 900)
     return () => window.clearTimeout(t)
   }, [])
 
@@ -373,7 +359,10 @@ function HatchStage({ hatch, onStart }: { hatch: HatchResult; onStart: () => voi
       <p className="pm-celebrate__eyebrow" aria-live="polite">
         {cracked ? '정령이 깨어났어요!' : '알을 깨우는 중...'}
       </p>
-      <h1 className="pm-hatch__title">나만의 데이터 정령 탄생</h1>
+      <h1 className="pm-hatch__title">
+        <Sparkles size={18} strokeWidth={2.2} aria-hidden="true" />
+        나만의 데이터 정령 탄생
+      </h1>
 
       {hatch.welcomeBonus > 0 ? (
         <p className="pm-celebrate__points">
@@ -396,6 +385,53 @@ function HatchStage({ hatch, onStart }: { hatch: HatchResult; onStart: () => voi
         </button>
       </div>
     </main>
+  )
+}
+
+/**
+ * Brand glyphs for the social providers. Inline SVG keeps the bundle lean and
+ * avoids shipping a full brand-icon package for three logos.
+ */
+function ProviderIcon({ id }: { id: 'kakao' | 'apple' | 'google' }) {
+  if (id === 'kakao') {
+    return (
+      <svg className="pm-oauth__icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M12 3C6.99 3 3 6.2 3 10.13c0 2.52 1.68 4.73 4.2 5.99-.18.65-.67 2.43-.77 2.81-.12.47.17.46.36.34.15-.1 2.4-1.63 3.37-2.29.41.06.82.09 1.24.09 5.01 0 9-3.2 9-7.13S17.01 3 12 3Z"
+        />
+      </svg>
+    )
+  }
+  if (id === 'apple') {
+    return (
+      <svg className="pm-oauth__icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M16.36 12.78c.03 2.86 2.5 3.81 2.53 3.82-.02.07-.4 1.36-1.31 2.69-.79 1.15-1.61 2.29-2.9 2.32-1.27.02-1.68-.75-3.13-.75-1.45 0-1.9.73-3.1.78-1.25.05-2.2-1.24-3-2.39-1.62-2.34-2.86-6.61-1.2-9.5.83-1.43 2.3-2.34 3.9-2.36 1.22-.02 2.38.82 3.13.82.75 0 2.16-1.02 3.64-.87.62.03 2.36.25 3.48 1.89-.09.06-2.08 1.22-2.05 3.62ZM14.03 4.5c.66-.8 1.1-1.92.98-3.03-.95.04-2.1.63-2.78 1.43-.61.71-1.15 1.84-1 2.93 1.06.08 2.14-.54 2.8-1.33Z"
+        />
+      </svg>
+    )
+  }
+  return (
+    <svg className="pm-oauth__icon" viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">
+      <path
+        fill="#4285F4"
+        d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17Z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M11.69 28.18c-.44-1.32-.69-2.73-.69-4.18s.25-2.86.69-4.18v-5.7H4.34A21.99 21.99 0 0 0 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07Z"
+      />
+    </svg>
   )
 }
 
