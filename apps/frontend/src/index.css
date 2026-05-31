@@ -218,3 +218,85 @@ button {
     scroll-behavior: auto !important;
   }
 }
+
+/* Dark mode — token-level override only. We re-map the semantic surface/ink/
+   hairline/tint/tone/severity tokens to dark equivalents so the whole UI
+   follows the OS preference without touching component CSS. Brand primary and
+   on-accent (#fff text on colored buttons) intentionally stay as-is. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* Brand — lift soft fill so it reads on dark surfaces */
+    --color-primary: #8d7dff;
+    --color-primary-pressed: #a99cff;
+    --color-primary-soft: rgba(141, 125, 255, 0.16);
+    --color-accent-blue: #6ba6ff;
+
+    /* Surfaces — layered near-black grays */
+    --color-canvas: #121317;
+    --color-surface: #1a1c22;
+    --color-surface-soft: #21242c;
+    --color-surface-sunk: #282c35;
+
+    /* Ink — inverted, kept slightly cool */
+    --color-ink: #edeff2;
+    --color-ink-strong: #ffffff;
+    --color-charcoal: #d4d8de;
+    --color-slate: #b8bec8;
+    --color-steel: #98a0ac;
+    --color-stone: #79818d;
+    --color-muted: #5b626d;
+
+    /* Hairlines — light lines at low opacity */
+    --color-hairline: rgba(255, 255, 255, 0.1);
+    --color-hairline-soft: rgba(255, 255, 255, 0.06);
+
+    /* Pastel tints — deep, desaturated so light ink stays readable on them */
+    --tint-peach: #3a2a1c;
+    --tint-rose: #3a212e;
+    --tint-mint: #1d3a27;
+    --tint-lavender: #2b2640;
+    --tint-sky: #1e2e42;
+    --tint-yellow: #3a3417;
+
+    /* Semantic — brighten foregrounds, deepen soft fills */
+    --color-success: #4ade80;
+    --color-warning: #fba94c;
+    --color-danger: #ff6b6b;
+    --color-success-soft: rgba(74, 222, 128, 0.16);
+    --color-warning-soft: rgba(251, 169, 76, 0.16);
+    --color-danger-soft: rgba(255, 107, 107, 0.16);
+
+    /* Status tone */
+    --tone-wait-fg: var(--color-steel);
+    --tone-wait-bg: var(--color-surface-sunk);
+    --tone-go-fg: var(--color-primary);
+    --tone-go-bg: var(--color-primary-soft);
+    --tone-stop-fg: #ff8095;
+    --tone-stop-bg: #3a212a;
+    --tone-done-fg: var(--color-success);
+    --tone-done-bg: var(--color-success-soft);
+    --tone-warn-fg: #e9c46a;
+    --tone-warn-bg: #322b16;
+    --tone-warn-line: #5c4f24;
+
+    /* Severity & extended status palette */
+    --sev-high-fg: #ff9d96;
+    --sev-high-bg: #3a1f1d;
+    --sev-high-line: #ff6b6b;
+    --sev-high-surface: #271817;
+    --sev-warn-fg: #f4c66b;
+    --sev-warn-bg: #352a14;
+    --sev-warn-line: #d97706;
+    --sev-warn-surface: #221c10;
+    --sev-info-fg: #aeb6ff;
+    --sev-info-bg: #232447;
+    --sev-info-line: #6366f1;
+    --sev-info-surface: #181a2e;
+    --sev-ok-fg: #7ee2a6;
+    --sev-ok-bg: #1c3a28;
+    --sev-danger-fg: #ff9d96;
+    --sev-danger-bg: #3a1f1d;
+  }
+}

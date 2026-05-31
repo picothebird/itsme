@@ -4031,7 +4031,7 @@ select:focus-visible,
 .pm-chip {
   appearance: none;
   border: 1.5px solid var(--color-line);
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 12px;
   padding: 12px 8px;
   font-size: 14px;
@@ -4190,7 +4190,7 @@ select:focus-visible,
 .pm-likert__dot {
   appearance: none;
   border: 1.5px solid var(--color-line);
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 16px;
   aspect-ratio: 1 / 1;
   display: flex;
@@ -4322,7 +4322,7 @@ select:focus-visible,
 
 /* ===== Ghost button + row CTA + onboard note ===== */
 .pm-btn--ghost {
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-ink-soft);
   border: 1.5px solid var(--color-line);
 }
