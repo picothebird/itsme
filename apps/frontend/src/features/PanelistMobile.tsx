@@ -1156,8 +1156,10 @@ function PetStage({
           )}
         </div>
         {progress ? (
-          <div className="pm-pet__bar" aria-label="다음 레벨까지 진행도">
-            <div className="pm-pet__bar-fill" style={{ width: `${progress.ratio * 100}%` }} />
+          <div className="pm-pet__progress">
+            <div className="pm-pet__bar" aria-label="다음 레벨까지 진행도">
+              <div className="pm-pet__bar-fill" style={{ width: `${progress.ratio * 100}%` }} />
+            </div>
             <span className="pm-pet__bar-text">
               {progress.max ? '최대 레벨' : `다음 레벨까지 ${progress.toNext} EXP`}
             </span>
