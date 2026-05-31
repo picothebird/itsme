@@ -3268,6 +3268,36 @@ select:focus-visible,
   }
 }
 
+/* Tab stages fade-up on enter (Toss-like) */
+.pm-feed,
+.pm-tasks,
+.pm-pet,
+.pm-shop {
+  animation: pm-stage-up 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes pm-stage-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pm-feed,
+  .pm-tasks,
+  .pm-pet,
+  .pm-shop,
+  .pm-stage--response,
+  .pm-root {
+    animation: none;
+  }
+}
+
 .pm-muted {
   color: var(--color-stone);
   font-size: 14px;
@@ -3466,11 +3496,14 @@ select:focus-visible,
   position: relative;
   overflow: hidden;
   box-shadow: 0 16px 36px -18px rgba(86, 69, 212, 0.55);
-  transition: transform var(--motion-fast) ease;
+  transition:
+    transform var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease;
 }
 
 .pm-hero:active {
   transform: scale(0.985);
+  box-shadow: 0 4px 14px -6px rgba(86, 69, 212, 0.45);
 }
 
 .pm-hero__badge {
@@ -3546,7 +3579,10 @@ select:focus-visible,
   padding: 18px 4px;
   cursor: pointer;
   text-align: left;
-  transition: background var(--motion-fast) ease;
+  border-radius: 12px;
+  transition:
+    background var(--motion-fast) ease,
+    transform var(--motion-fast) ease;
 }
 
 .pm-feed-row:last-child {
@@ -3554,7 +3590,8 @@ select:focus-visible,
 }
 
 .pm-feed-row:active {
-  background: var(--color-surface-soft);
+  background: var(--color-primary-soft);
+  transform: scale(0.985);
 }
 
 .pm-feed-row__body {
@@ -3609,6 +3646,11 @@ select:focus-visible,
 .pm-feed-row__chev {
   flex: none;
   color: var(--color-muted);
+  transition: transform var(--motion-fast) ease;
+}
+
+.pm-feed-row:active .pm-feed-row__chev {
+  transform: translateX(2px);
 }
 
 /* Buttons (PM-scoped, larger touch targets) */
@@ -3651,6 +3693,26 @@ select:focus-visible,
   font-size: 16px;
   border-radius: 16px;
   width: 100%;
+}
+
+.pm-btn--sm {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 13px;
+  border-radius: 12px;
+}
+
+/* Keyboard focus rings (a11y) — only on keyboard nav, not touch/mouse */
+.pm-btn:focus-visible,
+.pm-choice:focus-visible,
+.pm-hero:focus-visible,
+.pm-feed-row:focus-visible,
+.pm-iconbtn:focus-visible,
+.pm-bottomnav__item:focus-visible,
+.pm-likert__dot:focus-visible,
+.pm-shop__card:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* Response — question */
@@ -3723,6 +3785,7 @@ select:focus-visible,
 
 .pm-choice:active:not(:disabled) {
   transform: scale(0.985);
+  background: var(--color-primary-soft);
 }
 
 .pm-choice.is-selected {
@@ -3750,6 +3813,25 @@ select:focus-visible,
 .pm-choice.is-selected .pm-choice__bullet {
   border-color: var(--color-primary);
   background: var(--color-primary);
+  animation: pm-bullet-pop 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes pm-bullet-pop {
+  0% {
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pm-choice.is-selected .pm-choice__bullet {
+    animation: none;
+  }
 }
 
 .pm-choice__label {
@@ -4322,6 +4404,8 @@ select:focus-visible,
   background: var(--color-surface);
   border-radius: 16px;
   aspect-ratio: 1 / 1;
+  min-width: 52px;
+  min-height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5022,14 +5106,30 @@ select:focus-visible,
   font-weight: 600;
   color: var(--color-steel);
   cursor: pointer;
-  transition: color var(--motion-fast);
+  transition:
+    color var(--motion-fast),
+    background var(--motion-fast),
+    transform var(--motion-fast);
 }
 .pm-bottomnav__item svg {
   color: var(--color-steel);
+  transition:
+    color var(--motion-fast),
+    transform var(--motion-fast);
+}
+.pm-bottomnav__item:active {
+  transform: scale(0.92);
 }
 .pm-bottomnav__item.is-active,
 .pm-bottomnav__item.is-active svg {
   color: var(--color-primary);
+}
+.pm-bottomnav__item.is-active {
+  background: var(--color-primary-soft);
+  font-weight: 700;
+}
+.pm-bottomnav__item.is-active svg {
+  transform: translateY(-1px) scale(1.05);
 }
 
 /* Tasks stage (참여) */
@@ -5525,6 +5625,13 @@ select:focus-visible,
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-1);
+  transition:
+    box-shadow var(--motion-fast) ease,
+    transform var(--motion-fast) ease;
+}
+.pm-shop__card:hover {
+  box-shadow: 0 8px 22px -12px rgba(15, 17, 21, 0.28);
+  transform: translateY(-1px);
 }
 .pm-shop__vendor {
   align-self: flex-start;
@@ -5540,8 +5647,8 @@ select:focus-visible,
   background: #e6f6ec;
 }
 .pm-shop__vendor--starbucks {
-  color: #0a6b4e;
-  background: #e3f1ec;
+  color: #00704a;
+  background: #d8efe2;
 }
 .pm-shop__vendor--cu {
   color: #8a2d8a;
