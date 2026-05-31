@@ -15,6 +15,9 @@ import {
   Sparkles,
   Layers,
   Gift,
+  Sprout,
+  Heart,
+  ClipboardList,
 } from 'lucide-react'
 
 import {
@@ -24,11 +27,12 @@ import {
   type Survey,
   type RewardItem,
   type RewardOrder,
+  type DataPiece,
 } from '../lib/api'
 import { celebrate } from '../lib/celebrate'
 
 type Stage = 'deck' | 'responding' | 'complete'
-type Tab = 'deck' | 'shop'
+type Tab = 'deck' | 'tasks' | 'pet' | 'shop'
 
 type Reward = {
   pointsAwarded: number
@@ -221,6 +225,17 @@ export function PanelistMobile({ pid, onClose }: Props) {
         />
       ) : null}
 
+      {stage === 'deck' && tab === 'tasks' ? (
+        <TasksStage
+          available={Math.max(0, feed.length - topCardIndex)}
+          onGoDeck={() => setTab('deck')}
+        />
+      ) : null}
+
+      {stage === 'deck' && tab === 'pet' ? (
+        <PetStage pid={pid} pet={me?.pet ?? null} onChanged={loadAll} />
+      ) : null}
+
       {stage === 'deck' && tab === 'shop' ? (
         <ShopStage pid={pid} balance={me?.wallet.balance ?? null} onRedeemed={loadAll} />
       ) : null}
@@ -248,6 +263,24 @@ export function PanelistMobile({ pid, onClose }: Props) {
           >
             <Layers size={20} strokeWidth={2.2} aria-hidden="true" />
             <span>설문</span>
+          </button>
+          <button
+            type="button"
+            className={`pm-bottomnav__item${tab === 'tasks' ? ' is-active' : ''}`}
+            onClick={() => setTab('tasks')}
+            aria-current={tab === 'tasks' ? 'page' : undefined}
+          >
+            <ClipboardList size={20} strokeWidth={2.2} aria-hidden="true" />
+            <span>참여</span>
+          </button>
+          <button
+            type="button"
+            className={`pm-bottomnav__item${tab === 'pet' ? ' is-active' : ''}`}
+            onClick={() => setTab('pet')}
+            aria-current={tab === 'pet' ? 'page' : undefined}
+          >
+            <Sprout size={20} strokeWidth={2.2} aria-hidden="true" />
+            <span>정령</span>
           </button>
           <button
             type="button"
@@ -465,6 +498,194 @@ const generateIdempotencyKey = (): string => {
     return `idem-${globalThis.crypto.randomUUID().replaceAll('-', '').slice(0, 24)}`
   }
   return `idem-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+const PET_LEVEL_THRESHOLDS = [0, 50, 120, 220, 360, 540, 760, 1020, 1320, 1660, 2040]
+
+const petProgress = (
+  exp: number,
+  level: number,
+): { ratio: number; toNext: number; max: boolean } => {
+  const idx = Math.min(Math.max(0, level - 1), PET_LEVEL_THRESHOLDS.length - 1)
+  const base = PET_LEVEL_THRESHOLDS[idx] ?? 0
+  const next = PET_LEVEL_THRESHOLDS[idx + 1]
+  if (next == null) return { ratio: 1, toNext: 0, max: true }
+  const span = next - base
+  const ratio = span > 0 ? Math.max(0, Math.min(1, (exp - base) / span)) : 1
+  return { ratio, toNext: Math.max(0, next - exp), max: false }
+}
+
+function TasksStage({ available, onGoDeck }: { available: number; onGoDeck: () => void }) {
+  return (
+    <main className="pm-stage pm-tasks">
+      <h2 className="pm-shop__heading">오늘의 참여</h2>
+      <article className="pm-task-card">
+        <div className="pm-task-card__icon" aria-hidden>
+          <Layers size={22} strokeWidth={2.2} />
+        </div>
+        <div className="pm-task-card__body">
+          <h3 className="pm-task-card__title">대기 중인 설문 {available}개</h3>
+          <p className="pm-task-card__desc">스와이프로 빠르게 참여하고 포인트를 모아요.</p>
+        </div>
+        <button
+          type="button"
+          className="pm-btn pm-btn--primary pm-btn--sm"
+          onClick={onGoDeck}
+          disabled={available === 0}
+        >
+          {available === 0 ? '완료' : '참여'}
+        </button>
+      </article>
+
+      <article className="pm-task-card pm-task-card--soon">
+        <div className="pm-task-card__icon" aria-hidden>
+          <ClipboardList size={22} strokeWidth={2.2} />
+        </div>
+        <div className="pm-task-card__body">
+          <h3 className="pm-task-card__title">신청형 리서치 (UT·좌담회)</h3>
+          <p className="pm-task-card__desc">
+            심층 인터뷰·사용성 테스트는 신청 후 리서처 선정으로 진행돼요. 곧 제공될 예정이에요.
+          </p>
+        </div>
+        <span className="pm-task-card__badge">준비 중</span>
+      </article>
+    </main>
+  )
+}
+
+function PetStage({
+  pid,
+  pet,
+  onChanged,
+}: {
+  pid: string
+  pet: PanelistSummary['pet'] | null
+  onChanged: () => void
+}) {
+  const [pending, setPending] = useState<DataPiece[]>([])
+  const [consumedCount, setConsumedCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    try {
+      const data = await api.dataPieces(pid)
+      setPending(data.pending)
+      setConsumedCount(data.consumed.length)
+    } catch {
+      setToast('데이터 조각을 불러오지 못했어요.')
+    } finally {
+      setLoading(false)
+    }
+  }, [pid])
+
+  const loadedRef = useRef(false)
+  useEffect(() => {
+    if (loadedRef.current) return
+    loadedRef.current = true
+    void load()
+  }, [load])
+
+  const feedOne = useCallback(
+    async (piece: DataPiece) => {
+      if (busy) return
+      setBusy(piece.id)
+      try {
+        const result = await api.feedPiece({ pid, pieceId: piece.id })
+        if (result.evolved) setToast('정령이 진화했어요! ✨')
+        else if (result.leveledUp) setToast(`레벨 업! Lv.${result.pet.level}`)
+        else setToast(`+${piece.bonusExp} EXP`)
+        await load()
+        onChanged()
+      } catch (err) {
+        setToast(err instanceof Error ? err.message : '급식에 실패했어요')
+      } finally {
+        setBusy(null)
+      }
+    },
+    [busy, pid, load, onChanged],
+  )
+
+  const progress = pet ? petProgress(pet.exp, pet.level) : null
+
+  return (
+    <main className="pm-stage pm-pet">
+      <section className={`pm-pet__hero${pet?.sick ? ' is-sick' : ''}`}>
+        <div className="pm-pet__avatar" aria-hidden>
+          <Sprout size={44} strokeWidth={1.8} />
+        </div>
+        <div className="pm-pet__meta">
+          <span className="pm-pet__stage">{pet?.evolutionStage ?? '알 단계'}</span>
+          <h2 className="pm-pet__level">Lv.{pet?.level ?? 1}</h2>
+          {pet?.sick ? (
+            <span className="pm-pet__sick">
+              <Heart size={13} strokeWidth={2.4} aria-hidden="true" /> 정령이 시들했어요 · 데이터를
+              먹여주세요
+            </span>
+          ) : (
+            <span className="pm-pet__exp">EXP {pet?.exp ?? 0}</span>
+          )}
+        </div>
+        {progress ? (
+          <div className="pm-pet__bar" aria-label="다음 레벨까지 진행도">
+            <div className="pm-pet__bar-fill" style={{ width: `${progress.ratio * 100}%` }} />
+            <span className="pm-pet__bar-text">
+              {progress.max ? '최대 레벨' : `다음 레벨까지 ${progress.toNext} EXP`}
+            </span>
+          </div>
+        ) : null}
+      </section>
+
+      <div className="pm-pet__statline">
+        <span>먹인 데이터 {consumedCount}개</span>
+        <span>대기 {pending.length}개</span>
+      </div>
+
+      <h2 className="pm-shop__heading">데이터 조각 먹이기</h2>
+      {loading ? (
+        <p className="pm-muted">데이터 조각을 불러오는 중...</p>
+      ) : pending.length === 0 ? (
+        <div className="pm-pet__empty">
+          <Sparkles size={28} strokeWidth={1.8} aria-hidden="true" />
+          <p>설문에 응답하면 데이터 조각이 쌓여요. 모아서 정령에게 먹여주세요.</p>
+        </div>
+      ) : (
+        <ul className="pm-pet__pieces">
+          {pending.map((piece) => (
+            <li key={piece.id} className="pm-pet__piece">
+              <div className="pm-pet__piece-info">
+                <span className="pm-pet__piece-tag">{piece.categoryTag}</span>
+                <span className="pm-pet__piece-exp">+{piece.bonusExp} EXP</span>
+              </div>
+              <button
+                type="button"
+                className="pm-btn pm-btn--primary pm-btn--sm"
+                disabled={busy === piece.id}
+                onClick={() => void feedOne(piece)}
+              >
+                {busy === piece.id ? '급식 중…' : '먹이기'}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {toast ? (
+        <div className="pm-toast pm-toast--shop" role="status" aria-live="polite">
+          {toast}
+          <button
+            type="button"
+            className="pm-toast__close"
+            onClick={() => setToast(null)}
+            aria-label="알림 닫기"
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
+    </main>
+  )
 }
 
 function ShopStage({

@@ -4785,7 +4785,7 @@ select:focus-visible,
 .pm-bottomnav {
   flex: none;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 4px;
   padding: 8px 12px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
@@ -4812,6 +4812,194 @@ select:focus-visible,
 }
 .pm-bottomnav__item.is-active,
 .pm-bottomnav__item.is-active svg {
+  color: var(--color-primary);
+}
+
+/* Tasks stage (참여) */
+.pm-tasks {
+  gap: 12px;
+}
+.pm-task-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.pm-task-card--soon {
+  background: var(--color-surface-soft);
+}
+.pm-task-card__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.pm-task-card__body {
+  flex: 1;
+  min-width: 0;
+}
+.pm-task-card__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.pm-task-card__desc {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-steel);
+}
+.pm-task-card__badge {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-steel);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--color-surface-sunk);
+}
+
+/* Pet / data hub stage (정령) */
+.pm-pet {
+  gap: 14px;
+}
+.pm-pet__hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(140deg, var(--color-primary-soft), var(--color-surface-soft));
+  border: 1px solid var(--color-hairline);
+}
+.pm-pet__hero.is-sick {
+  background: linear-gradient(140deg, #fdeef0, var(--color-surface-soft));
+}
+.pm-pet__avatar {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-1);
+}
+.pm-pet__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pm-pet__stage {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.pm-pet__level {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+.pm-pet__exp {
+  font-size: 12.5px;
+  color: var(--color-steel);
+}
+.pm-pet__sick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d23f57;
+}
+.pm-pet__bar {
+  grid-column: 1 / -1;
+  position: relative;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--color-surface-sunk);
+  overflow: hidden;
+}
+.pm-pet__bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-pressed, #4537b8));
+  border-radius: 999px;
+  transition: width var(--motion-base, 240ms) ease;
+}
+.pm-pet__bar-text {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-ink);
+  mix-blend-mode: luminosity;
+}
+.pm-pet__statline {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--color-steel);
+}
+.pm-pet__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 28px 20px;
+  border: 1px dashed var(--color-hairline);
+  border-radius: var(--radius-lg);
+  color: var(--color-steel);
+}
+.pm-pet__empty p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.pm-pet__pieces {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pm-pet__piece {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.pm-pet__piece-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pm-pet__piece-tag {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.pm-pet__piece-exp {
+  font-size: 12px;
+  font-weight: 600;
   color: var(--color-primary);
 }
 

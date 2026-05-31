@@ -47,6 +47,17 @@ export type PanelistSummary = {
   pet: { exp: number; level: number; evolutionStage: string | null; sick: boolean }
 }
 
+export type DataPiece = {
+  id: string
+  pid: string
+  surveyId: string
+  responseId: string
+  categoryTag: string
+  bonusExp: number
+  createdAt: string
+  consumedAt?: string
+}
+
 export type Account = {
   pid: string
   provider: 'kakao' | 'apple' | 'google'
@@ -165,6 +176,17 @@ export const api = {
     }),
   panelistSummary: (pid: string) =>
     request<PanelistSummary>(`/panel/me?pid=${encodeURIComponent(pid)}`),
+  dataPieces: (pid: string) =>
+    request<{ pending: DataPiece[]; consumed: DataPiece[]; autoConsumed: number }>(
+      `/panel/me/data-pieces?pid=${encodeURIComponent(pid)}`,
+    ),
+  feedPiece: (input: { pid: string; pieceId: string }) =>
+    request<{
+      piece: DataPiece
+      pet: { exp: number; level: number; evolutionStage: string | null }
+      leveledUp: boolean
+      evolved: boolean
+    }>('/panel/me/feed', { method: 'POST', body: JSON.stringify(input) }),
   resetDemo: () =>
     request<{ cleared: boolean }>('/dev/reset', {
       method: 'POST',
