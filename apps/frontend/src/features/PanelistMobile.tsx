@@ -507,6 +507,24 @@ function ProgressDots({ total, current }: { total: number; current: number }) {
   )
 }
 
+/** 리스트형 스켈레톤 행 — 아바타 + 2줄 텍스트 (참여/정령 탭 로딩) */
+function SkeletonRows({ count = 3, avatar = true }: { count?: number; avatar?: boolean }) {
+  return (
+    <div className="pm-skel" aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="pm-skel__row">
+          {avatar ? <span className="pm-skel__box pm-skel__box--avatar" /> : null}
+          <span className="pm-skel__col">
+            <span className="pm-skel__box pm-skel__box--line pm-skel__box--w60" />
+            <span className="pm-skel__box pm-skel__box--line is-sm pm-skel__box--w40" />
+          </span>
+          <span className="pm-skel__box pm-skel__box--pill" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function DeckStage({
   loading,
   cards,
@@ -520,9 +538,21 @@ function DeckStage({
 }) {
   if (loading) {
     return (
-      <main className="pm-stage pm-stage--center">
-        <div className="pm-spinner" aria-hidden />
-        <p className="pm-muted">설문을 불러오는 중...</p>
+      <main className="pm-stage pm-feed" aria-busy="true" aria-label="설문을 불러오는 중">
+        <div className="pm-feed__head">
+          <span
+            className="pm-skel__box pm-skel__box--line pm-skel__box--w80"
+            style={{ height: 24 }}
+          />
+          <span
+            className="pm-skel__box pm-skel__box--line is-sm pm-skel__box--w40"
+            style={{ marginTop: 12 }}
+          />
+        </div>
+        <span className="pm-skel__box pm-skel__hero" aria-hidden="true" />
+        <div style={{ marginTop: 16 }}>
+          <SkeletonRows count={3} avatar={false} />
+        </div>
       </main>
     )
   }
@@ -800,7 +830,7 @@ function TasksStage({
 
       <h2 className="pm-section-title">신청 가능한 리서치</h2>
       {loading ? (
-        <p className="pm-muted">리서치를 불러오는 중...</p>
+        <SkeletonRows count={3} avatar={false} />
       ) : openStudies.length === 0 ? (
         <div className="pm-emptybox">
           <ClipboardList size={28} strokeWidth={1.8} aria-hidden="true" />
@@ -977,7 +1007,7 @@ function PetStage({
 
       <h2 className="pm-section-title">데이터 조각 먹이기</h2>
       {loading ? (
-        <p className="pm-muted">데이터 조각을 불러오는 중...</p>
+        <SkeletonRows count={3} />
       ) : pending.length === 0 ? (
         <div className="pm-emptybox">
           <Sparkles size={28} strokeWidth={1.8} aria-hidden="true" />
@@ -1087,8 +1117,22 @@ function ShopStage({
 
   if (loading) {
     return (
-      <main className="pm-stage pm-stage--center">
-        <p className="pm-muted">상점을 불러오는 중...</p>
+      <main className="pm-stage pm-shop" aria-busy="true" aria-label="상점을 불러오는 중">
+        <span
+          className="pm-skel__box"
+          style={{ height: 64, borderRadius: 16 }}
+          aria-hidden="true"
+        />
+        <span
+          className="pm-skel__box pm-skel__box--line pm-skel__box--w40"
+          style={{ marginTop: 4 }}
+          aria-hidden="true"
+        />
+        <div className="pm-skel__grid" aria-hidden="true">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <span key={i} className="pm-skel__box pm-skel__card" />
+          ))}
+        </div>
       </main>
     )
   }
