@@ -20,11 +20,13 @@ import {
   LogOut,
   MessageCircle,
   ArrowUp,
+  Download,
 } from 'lucide-react'
 
 import {
   api,
   streamChat,
+  downloadItsme,
   type ChatMessage,
   type Account,
   type FeedCard,
@@ -38,6 +40,7 @@ import {
   type ApplicationStatus,
 } from '../lib/api'
 import { celebrate } from '../lib/celebrate'
+import { readPmTheme, setPmTheme, type PmTheme } from '../lib/pmTheme'
 import { useDialogA11y } from '../lib/useDialogA11y'
 import { useAutoDismissToast } from '../lib/useAutoDismissToast'
 import { PetCreature } from './PetCreature'
@@ -90,6 +93,8 @@ export function PanelistMobile({ pid, account, onClose, onLogout }: Props) {
   const [confirmExit, setConfirmExit] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [reduceFx, setReduceFx] = useState(readReduceFx)
+  const [theme, setTheme] = useState<PmTheme>(readPmTheme)
+  const [exporting, setExporting] = useState(false)
 
   const loadAll = useCallback(async () => {
     const [feedList, summary] = await Promise.all([
@@ -293,6 +298,26 @@ export function PanelistMobile({ pid, account, onClose, onLogout }: Props) {
       }
       return next
     })
+  }
+
+  useEffect(() => {
+    setPmTheme(theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+  }
+
+  const handleExportItsme = async () => {
+    if (exporting) return
+    setExporting(true)
+    try {
+      await downloadItsme(pid)
+    } catch {
+      setError('파일을 내보내지 못했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setExporting(false)
+    }
   }
 
   return (
@@ -570,6 +595,22 @@ export function PanelistMobile({ pid, account, onClose, onLogout }: Props) {
             <ul className="pm-settings__list">
               <li className="pm-settings__row">
                 <div className="pm-settings__rowtext">
+                  <span className="pm-settings__label">다크 모드</span>
+                  <span className="pm-settings__desc">어두운 배경으로 눈부심을 줄여요.</span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={theme === 'dark'}
+                  aria-label="다크 모드"
+                  className={`pm-switch${theme === 'dark' ? ' is-on' : ''}`}
+                  onClick={toggleTheme}
+                >
+                  <span className="pm-switch__dot" aria-hidden />
+                </button>
+              </li>
+              <li className="pm-settings__row">
+                <div className="pm-settings__rowtext">
                   <span className="pm-settings__label">효과·애니메이션 줄이기</span>
                   <span className="pm-settings__desc">보상 시 콘페티 등 화려한 효과를 꺼요.</span>
                 </div>
@@ -582,6 +623,23 @@ export function PanelistMobile({ pid, account, onClose, onLogout }: Props) {
                   onClick={toggleReduceFx}
                 >
                   <span className="pm-switch__dot" aria-hidden />
+                </button>
+              </li>
+              <li className="pm-settings__row">
+                <div className="pm-settings__rowtext">
+                  <span className="pm-settings__label">내 데이터 내보내기</span>
+                  <span className="pm-settings__desc">
+                    프로필·활동 요약을 itsme.md 파일로 저장해요.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="pm-settings__action"
+                  onClick={handleExportItsme}
+                  disabled={exporting}
+                >
+                  <Download size={16} strokeWidth={2.2} aria-hidden="true" />
+                  {exporting ? '준비 중…' : 'itsme.md'}
                 </button>
               </li>
             </ul>

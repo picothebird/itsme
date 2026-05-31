@@ -2,8 +2,9 @@ import { Router } from 'express'
 
 import { asyncHandler } from '../../lib/asyncHandler.js'
 import { parseOrThrow } from '../../lib/validate.js'
+import { buildItsmeMarkdown } from '../../domain/ai/chat.js'
 import { applyAuditFix, generateDraftSurvey, getAuditSession, runAudit } from './ai.service.js'
-import { streamChatReply } from './chat.service.js'
+import { buildPanelistContext, streamChatReply } from './chat.service.js'
 import { applyFixSchema, auditSurveySchema, chatSchema, generateDraftSchema } from './ai.schemas.js'
 
 export const aiRouter = Router()
@@ -73,5 +74,18 @@ aiRouter.post(
       if (!aborted) res.write('data: [DONE]\n\n')
       res.end()
     }
+  }),
+)
+
+// itsme.md — 사용자의 프로필·응답 데이터를 마크다운 카드로 내려받는다.
+aiRouter.get(
+  '/itsme/:pid',
+  asyncHandler((req, res) => {
+    const pid = String(req.params.pid)
+    const profile = buildPanelistContext(pid)
+    const markdown = buildItsmeMarkdown(profile)
+    res.setHeader('Content-Type', 'text/markdown; charset=utf-8')
+    res.setHeader('Content-Disposition', 'attachment; filename="itsme.md"')
+    res.send(markdown)
   }),
 )

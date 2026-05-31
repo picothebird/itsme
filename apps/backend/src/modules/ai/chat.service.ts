@@ -48,6 +48,7 @@ export const buildPanelistContext = (pid: string): PanelistProfile => {
 
   return {
     displayName: account?.displayName,
+    provider: account?.provider,
     age: account?.birthYear ? currentYear - account.birthYear : undefined,
     gender: account?.gender,
     interests: account?.interests ?? [],

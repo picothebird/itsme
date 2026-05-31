@@ -6,6 +6,7 @@ import type { Gender } from '../types.js'
  */
 export type PanelistProfile = {
   displayName?: string
+  provider?: string
   age?: number
   gender?: Gender
   interests: string[]
@@ -48,6 +49,67 @@ export const summarizeProfile = (profile: PanelistProfile): string => {
   bits.push(`포인트 ${profile.pointsBalance.toLocaleString()}P`)
   bits.push(`정령 Lv.${profile.petLevel}`)
   return bits.join(' · ')
+}
+
+const PROVIDER_LABEL: Record<string, string> = {
+  kakao: '카카오',
+  apple: 'Apple',
+  google: 'Google',
+}
+
+/** 사용자 데이터를 "itsme.md" 프로필 카드(마크다운)로 내보낸다. */
+export const buildItsmeMarkdown = (profile: PanelistProfile, generatedAt = new Date()): string => {
+  const name = profile.displayName?.trim() || '회원'
+  const dateText = generatedAt.toISOString().slice(0, 10)
+  const lines: string[] = []
+
+  lines.push(`# itsme · ${name}`)
+  lines.push('')
+  lines.push('> 나를 이해하는 AI가 정리한 개인 프로필 카드')
+  lines.push(`> 생성일: ${dateText}`)
+  lines.push('')
+
+  lines.push('## 기본 정보')
+  lines.push(`- 이름: ${name}`)
+  if (profile.provider) {
+    lines.push(`- 로그인: ${PROVIDER_LABEL[profile.provider] ?? profile.provider}`)
+  }
+  lines.push(`- 연령대: ${profile.age ? `${Math.floor(profile.age / 10) * 10}대` : '비공개'}`)
+  lines.push(`- 성별: ${profile.gender ? GENDER_LABEL[profile.gender] : '비공개'}`)
+  lines.push('')
+
+  lines.push('## 관심사')
+  if (profile.interests.length > 0) {
+    for (const it of profile.interests) lines.push(`- ${it}`)
+  } else {
+    lines.push('- (아직 등록한 관심사가 없어요)')
+  }
+  lines.push('')
+
+  lines.push('## 활동 요약')
+  lines.push(`- 누적 응답: ${profile.answeredCount}건`)
+  if (profile.categories.length > 0) {
+    const cats = profile.categories
+      .slice(0, 5)
+      .map((c) => `${c.name}(${c.count})`)
+      .join(', ')
+    lines.push(`- 자주 참여한 주제: ${cats}`)
+  }
+  lines.push(`- 보유 포인트: ${profile.pointsBalance.toLocaleString()}P`)
+  lines.push(`- 정령 레벨: Lv.${profile.petLevel}`)
+  lines.push('')
+
+  if (profile.recentTexts.length > 0) {
+    lines.push('## 최근 생각 (주관식 응답)')
+    for (const t of profile.recentTexts) lines.push(`- "${t}"`)
+    lines.push('')
+  }
+
+  lines.push('---')
+  lines.push('이 파일은 itsme에서 내보낸 개인 데이터 요약입니다.')
+  lines.push('')
+
+  return lines.join('\n')
 }
 
 /** OpenAI 시스템 프롬프트. 사용자 데이터를 컨텍스트로 주입한다. */

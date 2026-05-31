@@ -3,6 +3,7 @@ import { X, Check, Sparkles } from 'lucide-react'
 
 import { api, getAuthToken, setAuthToken, type Account } from '../lib/api'
 import { PanelistMobile } from './PanelistMobile'
+import { applyPmTheme, readPmTheme } from '../lib/pmTheme'
 import { PetCreature } from './PetCreature'
 import { creatureStageFromLevel } from '../lib/petStage'
 import { InfoDot } from '../components/ui/Tooltip'
@@ -51,6 +52,10 @@ export function PanelistApp({ onClose }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const checkedRef = useRef(false)
+
+  useEffect(() => {
+    applyPmTheme(readPmTheme())
+  }, [])
 
   useEffect(() => {
     if (checkedRef.current) return

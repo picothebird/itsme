@@ -3116,6 +3116,68 @@ select:focus-visible,
   --tone-warn-line: #fbe3a8;
 }
 
+/* ───── Dark theme (user opt-in via settings) ─────
+   Activated by data-pm-theme="dark" on <html>. Overrides every token the
+   light lock pins, with values tuned for full contrast across topbar, sheets,
+   chat, cards and bottom nav. */
+:root[data-pm-theme='dark'] .pm-root {
+  color-scheme: dark;
+  --color-primary: #8f80ff;
+  --color-primary-pressed: #a99dff;
+  --color-primary-soft: rgba(143, 128, 255, 0.18);
+  --color-primary-strong: #a99dff;
+  --color-accent-blue: #6aa6ff;
+
+  --color-canvas: #14161b;
+  --color-surface: #1c1f26;
+  --color-surface-soft: #232730;
+  --color-surface-sunk: #2a2f3a;
+
+  --color-ink: #f3f5f8;
+  --color-ink-strong: #ffffff;
+  --color-ink-soft: #c2c9d4;
+  --color-charcoal: #d4dae3;
+  --color-slate: #b6bdc9;
+  --color-steel: #99a2b0;
+  --color-stone: #7c8593;
+  --color-muted: #626b78;
+
+  --color-hairline: #2d333e;
+  --color-hairline-soft: #262b34;
+  --color-line: #2d333e;
+
+  --tint-peach: #3a2c20;
+  --tint-rose: #3a2632;
+  --tint-mint: #1f3528;
+  --tint-lavender: #2c2842;
+  --tint-sky: #1f2f42;
+  --tint-yellow: #3a3422;
+
+  --color-success: #46d36a;
+  --color-warning: #ff924d;
+  --color-danger: #ff6b6b;
+  --color-success-soft: rgba(70, 211, 106, 0.16);
+  --color-warning-soft: rgba(255, 146, 77, 0.16);
+  --color-danger-soft: rgba(255, 107, 107, 0.16);
+
+  --tone-wait-fg: var(--color-steel);
+  --tone-wait-bg: var(--color-surface-sunk);
+  --tone-go-fg: var(--color-primary-strong);
+  --tone-go-bg: var(--color-primary-soft);
+  --tone-stop-fg: #ff8095;
+  --tone-stop-bg: rgba(255, 107, 107, 0.14);
+  --tone-done-fg: var(--color-success);
+  --tone-done-bg: var(--color-success-soft);
+  --tone-warn-fg: #f0c14b;
+  --tone-warn-bg: rgba(240, 193, 75, 0.12);
+  --tone-warn-line: rgba(240, 193, 75, 0.32);
+}
+
+/* 데스크톱 프레임: 다크 모드에서는 주변 배경을 더 깊게. */
+:root[data-pm-theme='dark'] .pm-root--standalone {
+  background: linear-gradient(160deg, #0c0d11 0%, #15171d 100%);
+}
+
 @keyframes pm-overlay-in {
   from {
     opacity: 0;
@@ -3352,6 +3414,7 @@ select:focus-visible,
   font-size: 19px;
   font-weight: 800;
   letter-spacing: -0.01em;
+  color: var(--color-ink);
 }
 
 .pm-chat__herodesc {
@@ -3359,7 +3422,7 @@ select:focus-visible,
   max-width: 280px;
   font-size: 13.5px;
   line-height: 1.5;
-  color: var(--color-text-soft);
+  color: var(--color-slate);
 }
 
 .pm-chat__suggestions {
@@ -3373,7 +3436,7 @@ select:focus-visible,
 .pm-chat__chip {
   border: 1px solid var(--color-hairline);
   background: var(--color-surface);
-  color: var(--color-text);
+  color: var(--color-ink);
   border-radius: 999px;
   padding: 9px 14px;
   font-size: 13px;
@@ -3449,7 +3512,7 @@ select:focus-visible,
 
 .pm-chat__msg--ai .pm-chat__bubble {
   background: var(--color-surface);
-  color: var(--color-text);
+  color: var(--color-ink);
   border: 1px solid var(--color-hairline);
   border-bottom-left-radius: 6px;
 }
@@ -3478,7 +3541,7 @@ select:focus-visible,
 .pm-chat__error {
   margin: 0 20px 4px;
   font-size: 12.5px;
-  color: var(--color-danger, #d23f3f);
+  color: var(--color-danger);
 }
 
 .pm-chat__composer {
@@ -3502,7 +3565,7 @@ select:focus-visible,
   font-size: 14px;
   line-height: 1.4;
   background: var(--color-surface);
-  color: var(--color-text);
+  color: var(--color-ink);
   transition: border-color var(--motion-fast) ease;
 }
 
@@ -5106,6 +5169,32 @@ select:focus-visible,
 }
 .pm-switch.is-on .pm-switch__dot {
   transform: translateX(20px);
+}
+.pm-settings__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.14s ease,
+    opacity 0.14s ease;
+}
+.pm-settings__action:active {
+  background: var(--color-primary);
+  color: #fff;
+}
+.pm-settings__action:disabled {
+  opacity: 0.55;
+  cursor: progress;
 }
 .pm-settings__logout {
   display: flex;

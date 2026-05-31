@@ -163,6 +163,27 @@ export const streamChat = async (input: {
   }
 }
 
+/** itsme.md(개인 데이터 요약 마크다운)를 내려받아 브라우저 다운로드를 트리거한다. */
+export const downloadItsme = async (pid: string): Promise<void> => {
+  const response = await fetch(`${apiBaseUrl}/ai/itsme/${encodeURIComponent(pid)}`, {
+    headers: {
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    },
+  })
+  if (!response.ok) {
+    throw new Error(`파일을 내보낼 수 없어요 (${response.status})`)
+  }
+  const blob = await response.blob()
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = 'itsme.md'
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  URL.revokeObjectURL(url)
+}
+
 export const api = {
   auth: {
     login: (input: {
