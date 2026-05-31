@@ -282,6 +282,39 @@ export const api = {
         body: JSON.stringify(input),
       }),
   },
+  semantic: {
+    search: (q: string, limit?: number) =>
+      request<{ query: string; results: ScoredSurvey[] }>(
+        `/semantic/search?q=${encodeURIComponent(q)}${limit ? `&limit=${limit}` : ''}`,
+      ),
+    similar: (surveyId: string, limit?: number) =>
+      request<{ surveyId: string; neighbors: SurveyEdge[] }>(
+        `/semantic/surveys/${surveyId}/similar${limit ? `?limit=${limit}` : ''}`,
+      ),
+    duplicates: (surveyId: string) =>
+      request<{ surveyId: string; duplicates: DuplicatePair[] }>(
+        `/semantic/surveys/${surveyId}/duplicates`,
+      ),
+  },
+}
+
+export type ScoredSurvey = {
+  surveyId: string
+  title: string
+  category: string
+  score: number
+}
+
+export type SurveyEdge = {
+  surveyId: string
+  title: string
+  score: number
+}
+
+export type DuplicatePair = {
+  a: { index: number; text: string }
+  b: { index: number; text: string }
+  score: number
 }
 
 export type ManagedStudyType = 'interview' | 'usability' | 'diary'

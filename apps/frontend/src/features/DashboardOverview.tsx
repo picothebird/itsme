@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 
-import { api, type DashboardSummary, type Survey, type SurveyAnalytics } from '../lib/api'
+import {
+  api,
+  type DashboardSummary,
+  type Survey,
+  type SurveyAnalytics,
+  type SurveyEdge,
+  type DuplicatePair,
+} from '../lib/api'
 
 type Props = {
   surveys: Survey[]
@@ -29,6 +36,8 @@ export function DashboardOverview({ surveys, onLog, view = 'full' }: Props) {
   const [analytics, setAnalytics] = useState<SurveyAnalytics | null>(null)
   const [analyticsLoading, setAnalyticsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [similar, setSimilar] = useState<SurveyEdge[]>([])
+  const [duplicates, setDuplicates] = useState<DuplicatePair[]>([])
 
   const showKpi = view === 'kpi' || view === 'full'
   const showBoard = view === 'insights' || view === 'full'
@@ -70,6 +79,30 @@ export function DashboardOverview({ surveys, onLog, view = 'full' }: Props) {
     return () => {
       alive = false
       window.clearInterval(id)
+    }
+  }, [selectedId])
+
+  useEffect(() => {
+    if (!selectedId) return
+    let alive = true
+    const load = async () => {
+      try {
+        const [sim, dup] = await Promise.all([
+          api.semantic.similar(selectedId, 5),
+          api.semantic.duplicates(selectedId),
+        ])
+        if (!alive) return
+        setSimilar(sim.neighbors)
+        setDuplicates(dup.duplicates)
+      } catch {
+        if (!alive) return
+        setSimilar([])
+        setDuplicates([])
+      }
+    }
+    void load()
+    return () => {
+      alive = false
     }
   }, [selectedId])
 
@@ -163,89 +196,137 @@ export function DashboardOverview({ surveys, onLog, view = 'full' }: Props) {
           </div>
 
           {selectedId ? (
-            <div className="analytics-card">
-              <div className="analytics-card__head">
-                <div>
-                  <h3>응답 분석</h3>
-                  <p className="analytics-card__sub">
-                    {analytics ? analytics.surveyId : selectedId} · 10초마다 자동으로 갱신돼요
-                  </p>
+            <>
+              <div className="analytics-card">
+                <div className="analytics-card__head">
+                  <div>
+                    <h3>응답 분석</h3>
+                    <p className="analytics-card__sub">
+                      {analytics ? analytics.surveyId : selectedId} · 10초마다 자동으로 갱신돼요
+                    </p>
+                  </div>
+                  <div className="analytics-card__actions">
+                    <a
+                      className="btn btn--ghost"
+                      href={api.analytics.exportCsvUrl(selectedId)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      CSV 내보내기
+                    </a>
+                    <button
+                      type="button"
+                      className="btn btn--ghost"
+                      onClick={() => setSelectedId(null)}
+                    >
+                      닫기
+                    </button>
+                  </div>
                 </div>
-                <div className="analytics-card__actions">
-                  <a
-                    className="btn btn--ghost"
-                    href={api.analytics.exportCsvUrl(selectedId)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    CSV 내보내기
-                  </a>
-                  <button
-                    type="button"
-                    className="btn btn--ghost"
-                    onClick={() => setSelectedId(null)}
-                  >
-                    닫기
-                  </button>
-                </div>
+
+                {analyticsLoading && !analytics ? (
+                  <p className="empty">분석 데이터를 불러오는 중이에요…</p>
+                ) : analytics ? (
+                  <>
+                    <div className="analytics-totals">
+                      <Stat label="시작" value={analytics.totals.started} />
+                      <Stat label="완료" value={analytics.totals.completed} />
+                      <Stat label="진행중" value={analytics.totals.inProgress} />
+                      <Stat label="차단" value={analytics.totals.blocked} />
+                      <Stat label="완료율" value={`${analytics.totals.completionRate}%`} />
+                      <Stat
+                        label="평균 소요"
+                        value={formatDuration(analytics.totals.averageDurationMs)}
+                      />
+                    </div>
+
+                    <ol className="analytics-questions">
+                      {analytics.questions.map((q) => (
+                        <li key={q.questionId} className="analytics-q">
+                          <div className="analytics-q__head">
+                            <span className="analytics-q__idx">Q{q.questionIndex + 1}</span>
+                            <span className="analytics-q__text">{q.text}</span>
+                            <span className="analytics-q__meta">
+                              도달 {q.reached} · 응답 {q.answered} · 이탈 {q.dropoffRate}%
+                            </span>
+                          </div>
+                          {q.choices && q.choices.length > 0 ? (
+                            <div className="analytics-bars">
+                              {q.choices.map((c) => (
+                                <div key={c.choiceId} className="analytics-bar">
+                                  <span className="analytics-bar__label">{c.label}</span>
+                                  <div className="analytics-bar__track">
+                                    <div
+                                      className="analytics-bar__fill"
+                                      style={{ width: `${c.ratio}%` }}
+                                    />
+                                  </div>
+                                  <span className="analytics-bar__value">
+                                    {c.count} ({c.ratio}%)
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="analytics-q__noChoices">
+                              서술형 문항입니다 · 객관식 분포 없음
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  </>
+                ) : (
+                  <p className="empty">표시할 데이터가 없어요</p>
+                )}
               </div>
 
-              {analyticsLoading && !analytics ? (
-                <p className="empty">분석 데이터를 불러오는 중이에요…</p>
-              ) : analytics ? (
-                <>
-                  <div className="analytics-totals">
-                    <Stat label="시작" value={analytics.totals.started} />
-                    <Stat label="완료" value={analytics.totals.completed} />
-                    <Stat label="진행중" value={analytics.totals.inProgress} />
-                    <Stat label="차단" value={analytics.totals.blocked} />
-                    <Stat label="완료율" value={`${analytics.totals.completionRate}%`} />
-                    <Stat
-                      label="평균 소요"
-                      value={formatDuration(analytics.totals.averageDurationMs)}
-                    />
+              <div className="sem-card">
+                <div className="card__head">
+                  <h3>유사·중복 점검</h3>
+                  <span className="card__count">
+                    유사 {similar.length} · 중복 {duplicates.length}
+                  </span>
+                </div>
+                <div className="sem-grid">
+                  <div className="sem-col">
+                    <h4 className="sem-col__title">비슷한 설문</h4>
+                    {similar.length === 0 ? (
+                      <p className="empty">비슷한 설문이 없어요.</p>
+                    ) : (
+                      <ul className="sem-list">
+                        {similar.map((n) => (
+                          <li key={n.surveyId} className="sem-item">
+                            <span className="sem-item__title">{n.title}</span>
+                            <span className="sem-item__score">{Math.round(n.score * 100)}%</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-
-                  <ol className="analytics-questions">
-                    {analytics.questions.map((q) => (
-                      <li key={q.questionId} className="analytics-q">
-                        <div className="analytics-q__head">
-                          <span className="analytics-q__idx">Q{q.questionIndex + 1}</span>
-                          <span className="analytics-q__text">{q.text}</span>
-                          <span className="analytics-q__meta">
-                            도달 {q.reached} · 응답 {q.answered} · 이탈 {q.dropoffRate}%
-                          </span>
-                        </div>
-                        {q.choices && q.choices.length > 0 ? (
-                          <div className="analytics-bars">
-                            {q.choices.map((c) => (
-                              <div key={c.choiceId} className="analytics-bar">
-                                <span className="analytics-bar__label">{c.label}</span>
-                                <div className="analytics-bar__track">
-                                  <div
-                                    className="analytics-bar__fill"
-                                    style={{ width: `${c.ratio}%` }}
-                                  />
-                                </div>
-                                <span className="analytics-bar__value">
-                                  {c.count} ({c.ratio}%)
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="analytics-q__noChoices">
-                            서술형 문항입니다 · 객관식 분포 없음
-                          </p>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                </>
-              ) : (
-                <p className="empty">표시할 데이터가 없어요</p>
-              )}
-            </div>
+                  <div className="sem-col">
+                    <h4 className="sem-col__title">중복 의심 문항</h4>
+                    {duplicates.length === 0 ? (
+                      <p className="empty">중복 문항이 없어요.</p>
+                    ) : (
+                      <ul className="sem-list">
+                        {duplicates.map((d, i) => (
+                          <li key={`${d.a.index}-${d.b.index}-${i}`} className="sem-dup">
+                            <span className="sem-dup__score">{Math.round(d.score * 100)}%</span>
+                            <span className="sem-dup__pair">
+                              Q{d.a.index + 1} ↔ Q{d.b.index + 1}
+                            </span>
+                            <span className="sem-dup__text">
+                              {d.a.text} / {d.b.text}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
           ) : null}
         </>
       ) : null}
