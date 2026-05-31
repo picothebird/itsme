@@ -1879,7 +1879,10 @@ function CompleteStage({
               <span className="pm-track__icon" aria-hidden="true">
                 <Sparkles size={18} strokeWidth={2.2} />
               </span>
-              <span className="pm-track__label">정령 성장</span>
+              <span className="pm-track__titles">
+                <span className="pm-track__label">정령 성장</span>
+                <span className="pm-track__sub">쌓아서 진화</span>
+              </span>
               <span className="pm-track__delta">+{reward.pet.expGained} EXP</span>
             </header>
             <div className="pm-track__bar" aria-hidden="true">
@@ -1912,7 +1915,10 @@ function CompleteStage({
               <span className="pm-track__icon" aria-hidden="true">
                 <Gem size={18} strokeWidth={2.2} />
               </span>
-              <span className="pm-track__label">포인트 적립</span>
+              <span className="pm-track__titles">
+                <span className="pm-track__label">포인트 적립</span>
+                <span className="pm-track__sub">교환·현금화</span>
+              </span>
               <span className="pm-track__delta">+{reward.pointsAwarded.toLocaleString()} P</span>
             </header>
             <footer className="pm-track__foot pm-track__foot--single">

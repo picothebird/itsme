@@ -4842,11 +4842,26 @@ select:focus-visible,
   flex: none;
 }
 
+.pm-track__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
 .pm-track__label {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: -0.3px;
   color: var(--color-ink-strong);
+}
+
+.pm-track__sub {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--pm-track-accent);
+  opacity: 0.82;
 }
 
 .pm-track__delta {
