@@ -1597,6 +1597,11 @@ function ResponseStage({
   )
 }
 
+// 렌더 중 impure 호출을 피하기 위한 모듈 스코프 시간 헬퍼.
+function nowMs(): number {
+  return Date.now()
+}
+
 function ResponseQuestion({
   survey,
   questionIndex,
@@ -1611,6 +1616,20 @@ function ResponseQuestion({
   const question = survey.questions[questionIndex]
   const [selected, setSelected] = useState<string[]>([])
   const [text, setText] = useState('')
+  // 과속 사전 가드 — 설계: docs/설문4종_직관화_및_과속가드_설계.md
+  const mountedAtRef = useRef(0)
+  const guardWarnedRef = useRef(false)
+  const [guard, setGuard] = useState<string | null>(null)
+
+  useEffect(() => {
+    mountedAtRef.current = nowMs()
+  }, [questionIndex])
+
+  useEffect(() => {
+    if (!guard) return
+    const t = window.setTimeout(() => setGuard(null), 1900)
+    return () => window.clearTimeout(t)
+  }, [guard])
 
   if (!question) return null
 
@@ -1619,9 +1638,20 @@ function ResponseQuestion({
   const isMulti = question.type === 'multi'
   const isText = question.type === 'text'
 
+  // 정상 사용자는 막지 않는 느슨한 최소 숙독시간(차단이 아닌 1회 안내용).
+  const clientMinDwellMs = Math.min(1600, Math.max(450, question.text.length * 22))
+  const passesGuard = () => {
+    const elapsed = nowMs() - mountedAtRef.current
+    if (elapsed >= clientMinDwellMs || guardWarnedRef.current) return true
+    guardWarnedRef.current = true
+    setGuard('문항을 충분히 읽고 답해 주세요 🙂')
+    return false
+  }
+
   const handleSingleTap = (choiceId: string) => {
     if (submitting) return
     setSelected([choiceId])
+    if (!passesGuard()) return
     window.setTimeout(() => onAnswer([choiceId]), 220)
   }
 
@@ -1645,8 +1675,18 @@ function ResponseQuestion({
           <p className="pm-q__hint">가장 가까운 정도를 골라 주세요</p>
         ) : isMulti ? (
           <p className="pm-q__hint">해당하는 항목을 모두 선택할 수 있어요</p>
+        ) : isSingle ? (
+          <p className="pm-q__hint">하나만 골라 주세요 · 누르면 바로 다음으로</p>
+        ) : isText ? (
+          <p className="pm-q__hint">자유롭게 적어 주세요</p>
         ) : null}
       </div>
+
+      {guard ? (
+        <div className="pm-toast pm-toast--guard" role="status" aria-live="polite">
+          {guard}
+        </div>
+      ) : null}
 
       {isLikert ? (
         <LikertScale
@@ -1658,15 +1698,20 @@ function ResponseQuestion({
       ) : (
         <div className="pm-choices">
           {isText ? (
-            <textarea
-              className="pm-textarea"
-              placeholder="자유롭게 적어 주세요"
-              aria-label="자유 응답"
-              maxLength={500}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={5}
-            />
+            <div>
+              <textarea
+                className="pm-textarea"
+                placeholder="자유롭게 적어 주세요"
+                aria-label="자유 응답"
+                maxLength={500}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={5}
+              />
+              <p className="pm-textarea__count" aria-live="polite">
+                {text.length} / 500
+              </p>
+            </div>
           ) : (
             choices.map((c) => {
               const isSelected = selected.includes(c.id)
@@ -1695,7 +1740,10 @@ function ResponseQuestion({
           <button
             type="button"
             className="pm-btn pm-btn--primary pm-btn--xl"
-            onClick={() => onAnswer(isText ? [] : selected)}
+            onClick={() => {
+              if (!passesGuard()) return
+              onAnswer(isText ? [] : selected)
+            }}
             disabled={!canConfirm || submitting}
           >
             {submitting

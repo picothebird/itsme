@@ -3051,7 +3051,8 @@ select:focus-visible,
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: var(--color-canvas);
+  background: var(--pm-bg-glow, none), var(--color-canvas);
+  background-attachment: fixed;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3114,6 +3115,22 @@ select:focus-visible,
   --tone-warn-fg: #b8860b;
   --tone-warn-bg: #fff8e8;
   --tone-warn-line: #fbe3a8;
+
+  /* ───── Glassmorphism (light — 화사한 글래스) ─────
+     유리가 비칠 배경 글로우 + 반투명 표면/테두리/그림자 토큰.
+     설계: docs/글래스모피즘_토큰_및_모바일적용_설계.md */
+  --pm-bg-glow:
+    radial-gradient(120% 90% at 0% 0%, rgba(86, 69, 212, 0.1) 0%, transparent 50%),
+    radial-gradient(120% 90% at 100% 0%, rgba(49, 130, 246, 0.08) 0%, transparent 45%),
+    radial-gradient(140% 120% at 50% 100%, rgba(255, 145, 180, 0.07) 0%, transparent 55%);
+  --pm-glass-bg: rgba(255, 255, 255, 0.62);
+  --pm-glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --pm-glass-blur: saturate(180%) blur(20px);
+  --pm-glass-blur-strong: saturate(180%) blur(28px);
+  --pm-glass-border: rgba(255, 255, 255, 0.7);
+  --pm-glass-shadow: 0 8px 30px rgba(31, 28, 56, 0.1);
+  --pm-glass-hi: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --pm-glass-tint: rgba(86, 69, 212, 0.1);
 }
 
 /* ───── Dark theme (user opt-in via settings) ─────
@@ -3171,11 +3188,53 @@ select:focus-visible,
   --tone-warn-fg: #f0c14b;
   --tone-warn-bg: rgba(240, 193, 75, 0.12);
   --tone-warn-line: rgba(240, 193, 75, 0.32);
+
+  /* ───── Glassmorphism (dark — 세련된 애플 다크) ─────
+     어두운 반투명 + 밝은 rim. 흰 유리가 아니라 어두운 유리 + 미세 하이라이트. */
+  --pm-bg-glow:
+    radial-gradient(120% 90% at 0% 0%, rgba(143, 128, 255, 0.16) 0%, transparent 50%),
+    radial-gradient(120% 90% at 100% 0%, rgba(106, 166, 255, 0.12) 0%, transparent 45%),
+    radial-gradient(140% 120% at 50% 100%, rgba(255, 120, 170, 0.08) 0%, transparent 55%);
+  --pm-glass-bg: rgba(28, 31, 38, 0.58);
+  --pm-glass-bg-strong: rgba(30, 33, 41, 0.78);
+  --pm-glass-blur: saturate(150%) blur(22px);
+  --pm-glass-blur-strong: saturate(150%) blur(30px);
+  --pm-glass-border: rgba(255, 255, 255, 0.1);
+  --pm-glass-shadow: 0 10px 36px rgba(0, 0, 0, 0.45);
+  --pm-glass-hi: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --pm-glass-tint: rgba(143, 128, 255, 0.2);
 }
 
 /* 데스크톱 프레임: 다크 모드에서는 주변 배경을 더 깊게. */
 :root[data-pm-theme='dark'] .pm-root--standalone {
   background: linear-gradient(160deg, #0c0d11 0%, #15171d 100%);
+}
+
+/* ───── Glass surface utility ─────
+   한 겹 원칙: 글래스 위에 또 글래스를 얹지 않는다. */
+.pm-glass {
+  background: var(--pm-glass-bg);
+  backdrop-filter: var(--pm-glass-blur);
+  -webkit-backdrop-filter: var(--pm-glass-blur);
+  border: 1px solid var(--pm-glass-border);
+  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+}
+
+/* 접근성·성능 폴백: 투명도 민감 사용자 / 블러 미지원 → 불투명 표면 */
+@media (prefers-reduced-transparency: reduce) {
+  .pm-root {
+    --pm-glass-bg: var(--color-surface);
+    --pm-glass-bg-strong: var(--color-surface);
+    --pm-glass-blur: none;
+    --pm-glass-blur-strong: none;
+    --pm-bg-glow: none;
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .pm-root {
+    --pm-glass-bg: var(--color-surface);
+    --pm-glass-bg-strong: var(--color-surface);
+  }
 }
 
 @keyframes pm-overlay-in {
@@ -3244,8 +3303,10 @@ select:focus-visible,
   gap: 12px;
   padding: 12px 18px 12px;
   padding-top: calc(12px + env(safe-area-inset-top, 0px));
-  background: var(--color-canvas);
-  border-bottom: 1px solid var(--color-hairline);
+  background: var(--pm-glass-bg);
+  backdrop-filter: var(--pm-glass-blur);
+  -webkit-backdrop-filter: var(--pm-glass-blur);
+  border-bottom: 1px solid var(--pm-glass-border);
 }
 
 .pm-topbar--progress {
@@ -4323,9 +4384,12 @@ select:focus-visible,
   align-items: center;
   gap: 14px;
   padding: 18px 18px;
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-hairline);
-  border-radius: 16px;
+  background: var(--pm-glass-bg);
+  backdrop-filter: var(--pm-glass-blur);
+  -webkit-backdrop-filter: var(--pm-glass-blur);
+  border: 1px solid var(--pm-glass-border);
+  border-radius: 18px;
+  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
   font-size: 16px;
   font-weight: 500;
   color: var(--color-ink);
@@ -4335,23 +4399,27 @@ select:focus-visible,
   transition:
     border-color var(--motion-fast) ease,
     background var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease,
     transform var(--motion-fast) ease;
   word-break: keep-all;
 }
 
 .pm-choice:hover:not(:disabled) {
-  border-color: var(--color-ink-soft, #d1d6db);
+  border-color: var(--color-primary);
 }
 
 .pm-choice:active:not(:disabled) {
   transform: scale(0.985);
-  background: var(--color-primary-soft);
+  background: var(--pm-glass-tint);
 }
 
 .pm-choice.is-selected {
   border-color: var(--color-primary);
-  background: var(--color-primary-soft);
+  background: var(--pm-glass-tint);
   color: var(--color-primary);
+  box-shadow:
+    0 8px 26px var(--color-primary-soft),
+    var(--pm-glass-hi);
 }
 
 .pm-choice__bullet {
@@ -4402,14 +4470,25 @@ select:focus-visible,
   width: 100%;
   min-height: 140px;
   padding: 16px;
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-hairline);
-  border-radius: 16px;
+  background: var(--pm-glass-bg);
+  backdrop-filter: var(--pm-glass-blur);
+  -webkit-backdrop-filter: var(--pm-glass-blur);
+  border: 1px solid var(--pm-glass-border);
+  border-radius: 18px;
+  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
   font-size: 16px;
   line-height: 1.6;
   color: var(--color-ink);
   font-family: inherit;
   resize: vertical;
+}
+
+.pm-textarea__count {
+  margin: 8px 4px 0;
+  text-align: right;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-stone);
 }
 
 .pm-textarea:focus {
@@ -4429,9 +4508,13 @@ select:focus-visible,
 .pm-toast {
   margin: 8px 16px 0;
   padding: 12px 14px;
-  background: var(--sev-danger-bg);
+  background: var(--pm-glass-bg);
+  backdrop-filter: var(--pm-glass-blur);
+  -webkit-backdrop-filter: var(--pm-glass-blur);
+  border: 1px solid var(--pm-glass-border);
+  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
   color: var(--sev-danger-fg);
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 13px;
   font-weight: 500;
   display: flex;
@@ -4452,8 +4535,14 @@ select:focus-visible,
 }
 
 .pm-toast--warn {
-  background: var(--sev-warn-bg);
   color: var(--sev-warn-fg);
+  border-color: var(--tone-warn-line);
+}
+
+/* 과속 사전 가드: 비파괴적 안내 (설계: docs/설문4종_직관화_및_과속가드_설계.md) */
+.pm-toast--guard {
+  color: var(--color-primary-strong);
+  border-color: var(--color-primary);
 }
 
 /* Celebrate */
@@ -5057,8 +5146,11 @@ select:focus-visible,
 }
 .pm-likert__dot {
   appearance: none;
-  border: 1.5px solid var(--color-line);
-  background: var(--color-surface);
+  border: 1px solid var(--pm-glass-border);
+  background: var(--pm-glass-bg);
+  backdrop-filter: var(--pm-glass-blur);
+  -webkit-backdrop-filter: var(--pm-glass-blur);
+  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
   border-radius: 16px;
   aspect-ratio: 1 / 1;
   min-width: 52px;
@@ -5098,8 +5190,11 @@ select:focus-visible,
 }
 .pm-likert__dot.is-selected {
   border-color: currentColor;
-  background: color-mix(in srgb, currentColor 14%, #fff);
+  background: color-mix(in srgb, currentColor 18%, var(--pm-glass-bg));
   transform: scale(1.06);
+  box-shadow:
+    0 8px 22px color-mix(in srgb, currentColor 30%, transparent),
+    var(--pm-glass-hi);
 }
 .pm-likert__anchors {
   display: grid;
@@ -5139,10 +5234,15 @@ select:focus-visible,
 .pm-sheet__panel {
   position: relative;
   width: 100%;
-  background: var(--color-canvas);
+  background: var(--pm-glass-bg-strong);
+  backdrop-filter: var(--pm-glass-blur-strong);
+  -webkit-backdrop-filter: var(--pm-glass-blur-strong);
+  border-top: 1px solid var(--pm-glass-border);
   border-radius: 22px 22px 0 0;
   padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
-  box-shadow: 0 -10px 40px rgba(17, 16, 32, 0.18);
+  box-shadow:
+    0 -10px 40px rgba(17, 16, 32, 0.18),
+    var(--pm-glass-hi);
   animation: pm-sheet-up 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 }
 .pm-sheet__title {
@@ -5901,8 +6001,10 @@ select:focus-visible,
   gap: 4px;
   padding: 8px 12px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid var(--color-hairline);
-  background: var(--color-surface);
+  border-top: 1px solid var(--pm-glass-border);
+  background: var(--pm-glass-bg);
+  backdrop-filter: var(--pm-glass-blur);
+  -webkit-backdrop-filter: var(--pm-glass-blur);
 }
 .pm-bottomnav__item {
   display: flex;
