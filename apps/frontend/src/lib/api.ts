@@ -98,6 +98,71 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
   return body.data
 }
 
+export type ChatMessage = {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+/**
+ * "나를 이해하는 AI" 대화를 SSE로 받아 토큰이 도착할 때마다 onDelta를 호출한다.
+ * AbortSignal로 중단할 수 있다.
+ */
+export const streamChat = async (input: {
+  pid: string
+  messages: ChatMessage[]
+  onDelta: (delta: string) => void
+  signal?: AbortSignal
+}): Promise<void> => {
+  const response = await fetch(`${apiBaseUrl}/ai/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    },
+    body: JSON.stringify({ pid: input.pid, messages: input.messages }),
+    signal: input.signal,
+  })
+
+  if (!response.ok || !response.body) {
+    throw new Error(`대화를 시작할 수 없어요 (${response.status})`)
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+
+    const events = buffer.split('\n\n')
+    buffer = events.pop() ?? ''
+
+    for (const block of events) {
+      const lines = block.split('\n')
+      let isError = false
+      const dataParts: string[] = []
+      for (const line of lines) {
+        if (line.startsWith('event:') && line.slice(6).trim() === 'error') isError = true
+        else if (line.startsWith('data:')) dataParts.push(line.slice(5).trimStart())
+      }
+      const data = dataParts.join('\n')
+      if (!data) continue
+      if (data === '[DONE]') return
+      try {
+        const parsed = JSON.parse(data) as { delta?: string; message?: string }
+        if (isError) throw new Error(parsed.message ?? '대화 중 오류가 발생했어요')
+        if (parsed.delta) input.onDelta(parsed.delta)
+      } catch (err) {
+        if (isError) throw err
+        // 파싱 불가한 라인은 무시
+      }
+    }
+  }
+}
+
 export const api = {
   auth: {
     login: (input: {

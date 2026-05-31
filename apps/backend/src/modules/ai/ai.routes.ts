@@ -3,7 +3,8 @@ import { Router } from 'express'
 import { asyncHandler } from '../../lib/asyncHandler.js'
 import { parseOrThrow } from '../../lib/validate.js'
 import { applyAuditFix, generateDraftSurvey, getAuditSession, runAudit } from './ai.service.js'
-import { applyFixSchema, auditSurveySchema, generateDraftSchema } from './ai.schemas.js'
+import { streamChatReply } from './chat.service.js'
+import { applyFixSchema, auditSurveySchema, chatSchema, generateDraftSchema } from './ai.schemas.js'
 
 export const aiRouter = Router()
 
@@ -39,5 +40,38 @@ aiRouter.post(
     const input = parseOrThrow(applyFixSchema, req.body, 'ai.apply')
     const result = applyAuditFix(String(req.params.id), input.findingId)
     res.json({ ok: true, data: result })
+  }),
+)
+
+// "나를 이해하는 AI" 대화 — Server-Sent Events로 토큰을 흘려보낸다.
+aiRouter.post(
+  '/chat',
+  asyncHandler(async (req, res) => {
+    const input = parseOrThrow(chatSchema, req.body, 'ai.chat')
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    })
+
+    let aborted = false
+    res.on('close', () => {
+      aborted = true
+    })
+
+    try {
+      for await (const delta of streamChatReply(input.pid, input.messages)) {
+        if (aborted) break
+        res.write(`data: ${JSON.stringify({ delta })}\n\n`)
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '대화 생성 중 오류가 발생했어요'
+      res.write(`event: error\ndata: ${JSON.stringify({ message })}\n\n`)
+    } finally {
+      if (!aborted) res.write('data: [DONE]\n\n')
+      res.end()
+    }
   }),
 )

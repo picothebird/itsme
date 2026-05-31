@@ -18,10 +18,14 @@ import {
   ClipboardList,
   Settings,
   LogOut,
+  MessageCircle,
+  ArrowUp,
 } from 'lucide-react'
 
 import {
   api,
+  streamChat,
+  type ChatMessage,
   type Account,
   type FeedCard,
   type PanelistSummary,
@@ -40,7 +44,7 @@ import { PetCreature } from './PetCreature'
 import { creatureStageFromLevel } from '../lib/petStage'
 
 type Stage = 'deck' | 'responding' | 'complete'
-type Tab = 'deck' | 'tasks' | 'pet' | 'shop'
+type Tab = 'deck' | 'tasks' | 'pet' | 'chat' | 'shop'
 
 type Reward = {
   pointsAwarded: number
@@ -354,12 +358,17 @@ export function PanelistMobile({ pid, account, onClose, onLogout }: Props) {
           </div>
         )}
         <div className="pm-topbar__actions">
-          <div className="pm-balance" aria-label="현재 포인트">
+          <button
+            type="button"
+            className="pm-balance pm-balance--btn"
+            onClick={() => setTab('shop')}
+            aria-label={`현재 포인트 ${me?.wallet.balance ?? 0}, 상점 열기`}
+          >
             <Gem className="pm-balance__icon" size={15} strokeWidth={2.2} aria-hidden="true" />
             <span className="pm-balance__value" aria-live="polite" aria-atomic="true">
               {me?.wallet.balance ?? 0}
             </span>
-          </div>
+          </button>
           {stage !== 'responding' ? (
             <button
               type="button"
@@ -422,6 +431,8 @@ export function PanelistMobile({ pid, account, onClose, onLogout }: Props) {
         <PetStage pid={pid} pet={me?.pet ?? null} onChanged={loadAll} />
       ) : null}
 
+      {stage === 'deck' && tab === 'chat' ? <ChatStage pid={pid} account={account} /> : null}
+
       {stage === 'deck' && tab === 'shop' ? (
         <ShopStage pid={pid} balance={me?.wallet.balance ?? null} onRedeemed={loadAll} />
       ) : null}
@@ -470,12 +481,12 @@ export function PanelistMobile({ pid, account, onClose, onLogout }: Props) {
           </button>
           <button
             type="button"
-            className={`pm-bottomnav__item${tab === 'shop' ? ' is-active' : ''}`}
-            onClick={() => setTab('shop')}
-            aria-current={tab === 'shop' ? 'page' : undefined}
+            className={`pm-bottomnav__item${tab === 'chat' ? ' is-active' : ''}`}
+            onClick={() => setTab('chat')}
+            aria-current={tab === 'chat' ? 'page' : undefined}
           >
-            <Gift size={20} strokeWidth={2.2} aria-hidden="true" />
-            <span>상점</span>
+            <MessageCircle size={20} strokeWidth={2.2} aria-hidden="true" />
+            <span>AI</span>
           </button>
         </nav>
       ) : null}
@@ -1152,6 +1163,172 @@ function PetStage({
           </button>
         </div>
       ) : null}
+    </main>
+  )
+}
+
+const CHAT_SUGGESTIONS = [
+  '내 관심사를 분석해줘',
+  '나한테 맞는 설문 추천해줘',
+  '내 응답 데이터는 어떻게 쓰여?',
+  '포인트를 더 잘 모으려면?',
+]
+
+function ChatStage({ pid, account }: { pid: string; account?: Account }) {
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [streamingText, setStreamingText] = useState('')
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [input, setInput] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  const name = account?.displayName?.trim() || '회원'
+
+  useEffect(
+    () => () => {
+      abortRef.current?.abort()
+    },
+    [],
+  )
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [messages, streamingText, isStreaming])
+
+  const send = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim()
+      if (!trimmed || isStreaming) return
+      setError(null)
+      setInput('')
+      const nextMessages: ChatMessage[] = [...messages, { role: 'user', content: trimmed }]
+      setMessages(nextMessages)
+      setIsStreaming(true)
+      setStreamingText('')
+
+      const controller = new AbortController()
+      abortRef.current = controller
+      let acc = ''
+      try {
+        await streamChat({
+          pid,
+          messages: nextMessages,
+          signal: controller.signal,
+          onDelta: (delta) => {
+            acc += delta
+            setStreamingText(acc)
+          },
+        })
+        setMessages((prev) => [...prev, { role: 'assistant', content: acc }])
+      } catch (err) {
+        if (!controller.signal.aborted) {
+          setError(err instanceof Error ? err.message : '응답을 받지 못했어요')
+          if (acc) setMessages((prev) => [...prev, { role: 'assistant', content: acc }])
+        }
+      } finally {
+        setStreamingText('')
+        setIsStreaming(false)
+        abortRef.current = null
+      }
+    },
+    [isStreaming, messages, pid],
+  )
+
+  const isEmpty = messages.length === 0 && !isStreaming
+
+  return (
+    <main className="pm-stage pm-chat" aria-label="나를 이해하는 AI">
+      <div className="pm-chat__scroll" ref={scrollRef}>
+        {isEmpty ? (
+          <div className="pm-chat__hero">
+            <span className="pm-chat__heroicon" aria-hidden="true">
+              <Sparkles size={26} strokeWidth={2} />
+            </span>
+            <h2 className="pm-chat__herotitle">나를 이해하는 AI</h2>
+            <p className="pm-chat__herodesc">
+              {name}님의 설문 응답과 관심사를 바탕으로 대화해요. 무엇이든 물어보세요.
+            </p>
+            <div className="pm-chat__suggestions">
+              {CHAT_SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className="pm-chat__chip"
+                  onClick={() => void send(s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <ul className="pm-chat__list">
+            {messages.map((m, i) => (
+              <li
+                key={i}
+                className={`pm-chat__msg pm-chat__msg--${m.role === 'user' ? 'user' : 'ai'}`}
+              >
+                {m.role === 'assistant' ? (
+                  <span className="pm-chat__avatar" aria-hidden="true">
+                    <Sparkles size={14} strokeWidth={2.2} />
+                  </span>
+                ) : null}
+                <div className="pm-chat__bubble">{m.content}</div>
+              </li>
+            ))}
+            {isStreaming ? (
+              <li className="pm-chat__msg pm-chat__msg--ai">
+                <span className="pm-chat__avatar" aria-hidden="true">
+                  <Sparkles size={14} strokeWidth={2.2} />
+                </span>
+                <div className="pm-chat__bubble">
+                  {streamingText}
+                  <span className="pm-chat__cursor" aria-hidden="true" />
+                </div>
+              </li>
+            ) : null}
+          </ul>
+        )}
+      </div>
+
+      {error ? (
+        <p className="pm-chat__error" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      <form
+        className="pm-chat__composer"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void send(input)
+        }}
+      >
+        <textarea
+          className="pm-chat__input"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              void send(input)
+            }
+          }}
+          placeholder="메시지를 입력하세요"
+          rows={1}
+          aria-label="메시지 입력"
+        />
+        <button
+          type="submit"
+          className="pm-chat__send"
+          disabled={isStreaming || !input.trim()}
+          aria-label="보내기"
+        >
+          <ArrowUp size={18} strokeWidth={2.6} aria-hidden="true" />
+        </button>
+      </form>
     </main>
   )
 }

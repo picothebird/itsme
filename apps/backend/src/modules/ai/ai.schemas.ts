@@ -21,6 +21,20 @@ export const applyFixSchema = z.object({
   findingId: z.string().min(1),
 })
 
+export const chatSchema = z.object({
+  pid: z.string().min(1),
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string().min(1).max(2000),
+      }),
+    )
+    .min(1)
+    .max(40),
+})
+
 export type GenerateDraftInput = z.infer<typeof generateDraftSchema>
 export type AuditSurveyInput = z.infer<typeof auditSurveySchema>
 export type ApplyFixInput = z.infer<typeof applyFixSchema>
+export type ChatInput = z.infer<typeof chatSchema>
