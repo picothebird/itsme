@@ -37,7 +37,7 @@ type Reward = {
 
 type Props = {
   pid: string
-  onClose: () => void
+  onClose?: () => void
 }
 
 export function PanelistMobile({ pid, onClose }: Props) {
@@ -159,16 +159,25 @@ export function PanelistMobile({ pid, onClose }: Props) {
   }, [])
 
   return (
-    <div className="pm-root" role="dialog" aria-modal="true" aria-label="패널 모바일 체험">
+    <div
+      className={`pm-root${onClose ? '' : ' pm-root--standalone'}`}
+      role={onClose ? 'dialog' : undefined}
+      aria-modal={onClose ? 'true' : undefined}
+      aria-label="패널 모바일 체험"
+    >
       <header className="pm-topbar">
-        <button
-          type="button"
-          className="pm-iconbtn"
-          onClick={stage === 'responding' ? () => setConfirmExit(true) : onClose}
-          aria-label={stage === 'responding' ? '응답 닫기' : '체험 종료'}
-        >
-          <X size={22} strokeWidth={2.2} aria-hidden="true" />
-        </button>
+        {stage === 'responding' || onClose ? (
+          <button
+            type="button"
+            className="pm-iconbtn"
+            onClick={stage === 'responding' ? () => setConfirmExit(true) : onClose}
+            aria-label={stage === 'responding' ? '응답 닫기' : '체험 종료'}
+          >
+            <X size={22} strokeWidth={2.2} aria-hidden="true" />
+          </button>
+        ) : (
+          <div style={{ width: 44 }} />
+        )}
         <div className="pm-topbar__center">
           {stage === 'responding' && responding ? (
             <ProgressDots

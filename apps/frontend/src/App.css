@@ -57,41 +57,14 @@ select:focus-visible,
   background: var(--color-primary);
 }
 
-.topbar__nav {
-  display: flex;
-  gap: 2px;
-  background: var(--color-surface-sunk);
-  padding: 4px;
-  border-radius: var(--radius-pill);
-}
-
-.topbar__nav button {
-  border: 0;
-  background: transparent;
-  padding: 7px 16px;
-  border-radius: var(--radius-pill);
-  font-size: 13px;
+.brand__suffix {
+  font-family: var(--font-display);
   font-weight: 500;
-  color: var(--color-slate);
-  cursor: pointer;
-  transition:
-    background var(--motion-fast),
-    color var(--motion-fast);
-}
-
-.topbar__nav button:hover:not(:disabled) {
-  color: var(--color-ink);
-}
-
-.topbar__nav button[aria-current='page'] {
-  background: var(--color-canvas);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-1);
-}
-
-.topbar__nav button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  font-size: 13px;
+  color: var(--color-steel);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunk);
 }
 
 .topbar__meta {
@@ -3080,6 +3053,15 @@ select:focus-visible,
     position: fixed;
     inset: 0;
     z-index: -1;
+  }
+
+  /* Standalone (main user service): soft neutral backdrop instead of dark dim */
+  .pm-root--standalone {
+    background: radial-gradient(120% 120% at 50% 0%, #eef0f4 0%, #e3e6ec 100%);
+  }
+  .pm-root--standalone::before {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 

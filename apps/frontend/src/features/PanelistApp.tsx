@@ -7,7 +7,7 @@ import { InfoDot } from '../components/ui/Tooltip'
 import { celebrate } from '../lib/celebrate'
 
 type Props = {
-  onClose: () => void
+  onClose?: () => void
 }
 
 type Phase = 'loading' | 'login' | 'onboarding' | 'hatch' | 'app'
@@ -109,11 +109,20 @@ export function PanelistApp({ onClose }: Props) {
   }
 
   return (
-    <div className="pm-root" role="dialog" aria-modal="true" aria-label="패널 로그인">
+    <div
+      className={`pm-root${onClose ? '' : ' pm-root--standalone'}`}
+      role={onClose ? 'dialog' : undefined}
+      aria-modal={onClose ? 'true' : undefined}
+      aria-label="패널 로그인"
+    >
       <header className="pm-topbar">
-        <button type="button" className="pm-iconbtn" onClick={onClose} aria-label="닫기">
-          <X size={22} strokeWidth={2.2} aria-hidden="true" />
-        </button>
+        {onClose ? (
+          <button type="button" className="pm-iconbtn" onClick={onClose} aria-label="닫기">
+            <X size={22} strokeWidth={2.2} aria-hidden="true" />
+          </button>
+        ) : (
+          <div style={{ width: 44 }} />
+        )}
         <div className="pm-topbar__center">
           <span className="pm-topbar__title">잇츠미</span>
         </div>
