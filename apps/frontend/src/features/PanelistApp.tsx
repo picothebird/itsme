@@ -121,12 +121,12 @@ export function PanelistApp({ onClose }: Props) {
             <X size={22} strokeWidth={2.2} aria-hidden="true" />
           </button>
         ) : (
-          <div style={{ width: 44 }} />
+          <div className="pm-topbar__spacer" aria-hidden />
         )}
         <div className="pm-topbar__center">
           <span className="pm-topbar__title">잇츠미</span>
         </div>
-        <div style={{ width: 44 }} />
+        <div className="pm-topbar__spacer" aria-hidden />
       </header>
 
       {error ? (
@@ -145,6 +145,7 @@ export function PanelistApp({ onClose }: Props) {
 
       {phase === 'loading' ? (
         <main className="pm-stage pm-stage--center">
+          <div className="pm-spinner" aria-hidden />
           <p className="pm-muted">불러오는 중...</p>
         </main>
       ) : null}

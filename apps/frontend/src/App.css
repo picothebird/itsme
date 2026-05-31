@@ -3158,6 +3158,10 @@ select:focus-visible,
   min-width: 0;
 }
 
+.pm-topbar__spacer {
+  width: 44px;
+}
+
 .pm-topbar__title {
   font-family: var(--font-display);
   font-weight: 700;
@@ -3249,6 +3253,21 @@ select:focus-visible,
 .pm-muted {
   color: var(--color-stone);
   font-size: 14px;
+}
+
+.pm-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--color-hairline);
+  border-top-color: var(--color-primary);
+  animation: pm-spin 720ms linear infinite;
+}
+
+@keyframes pm-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty state */

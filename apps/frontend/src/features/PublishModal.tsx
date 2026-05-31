@@ -78,7 +78,8 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
   if (!open) return null
 
   const budget = pointsPerUser * targetCount
-  const blocked = estimate ? !estimate.feasible : false
+  const ageInvalid = ageMin > ageMax
+  const blocked = ageInvalid || (estimate ? !estimate.feasible : false)
 
   const toggleGender = (g: 'male' | 'female' | 'unspecified') => {
     setGenders((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]))
@@ -168,6 +169,12 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
             />
           </label>
         </div>
+
+        {ageInvalid ? (
+          <p className="modal__error" role="alert">
+            연령 최소가 최대보다 클 수 없어요. 범위를 다시 확인해 주세요.
+          </p>
+        ) : null}
 
         <fieldset className="chipset">
           <legend>성별</legend>
