@@ -726,7 +726,7 @@ function TasksStage({
         </div>
         <div className="pm-task-card__body">
           <h3 className="pm-task-card__title">대기 중인 설문 {available}개</h3>
-          <p className="pm-task-card__desc">스와이프로 빠르게 참여하고 포인트를 모아요.</p>
+          <p className="pm-task-card__desc">바로 참여하고 포인트를 모아요.</p>
         </div>
         <button
           type="button"
@@ -1338,14 +1338,23 @@ function CompleteStage({
           <div className="pm-burst__ring pm-burst__ring--2" />
           <Sparkles className="pm-burst__spark" size={30} aria-hidden="true" />
         </div>
-        <p className="pm-celebrate__eyebrow">응답 완료</p>
+        <p className="pm-celebrate__eyebrow">응답을 완료했어요</p>
         <p className="pm-celebrate__points">
           +{reward.pointsAwarded}
           <span className="pm-celebrate__unit">P</span>
         </p>
-        <p className="pm-celebrate__body">
-          정령 Lv.{reward.pet.level} · {reward.pet.evolutionStage ?? '알'} · 누적 {newBalance} P
-        </p>
+        <dl className="pm-celebrate__summary">
+          <div className="pm-celebrate__summary-item">
+            <dt>정령</dt>
+            <dd>
+              Lv.{reward.pet.level} · {reward.pet.evolutionStage ?? '알'}
+            </dd>
+          </div>
+          <div className="pm-celebrate__summary-item">
+            <dt>누적 포인트</dt>
+            <dd>{newBalance.toLocaleString()} P</dd>
+          </div>
+        </dl>
         <div className="pm-celebrate__actions">
           <button type="button" className="pm-btn pm-btn--primary pm-btn--xl" onClick={onContinue}>
             다음 설문 보기
