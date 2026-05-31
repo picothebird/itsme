@@ -12,10 +12,19 @@ import {
   X as XIcon,
   ArrowRight,
   Clock,
+  Users,
   type LucideIcon,
 } from 'lucide-react'
 
-import { api, type FeedCard, type PanelistSummary, type Survey } from '../lib/api'
+import {
+  api,
+  type FeedCard,
+  type PanelistSummary,
+  type Survey,
+  type ManagedStudy,
+  type Application,
+  type ApplicationStatus,
+} from '../lib/api'
 import { AiStudio } from './AiStudio'
 import { DashboardOverview } from './DashboardOverview'
 import { InfoDot } from '../components/ui/Tooltip'
@@ -63,11 +72,12 @@ const makeLogEntry = (message: string): LogEntry => ({
   message,
 })
 
-type PageId = 'dashboard' | 'surveys' | 'studio' | 'insights'
+type PageId = 'dashboard' | 'surveys' | 'research' | 'studio' | 'insights'
 
 const NAV: { id: PageId; label: string; icon: LucideIcon; hint: string }[] = [
   { id: 'dashboard', label: '대시보드', icon: LayoutDashboard, hint: '운영 현황 요약' },
   { id: 'surveys', label: '설문', icon: FolderKanban, hint: '초안·라이브·종료 관리' },
+  { id: 'research', label: '관리 리서치', icon: Users, hint: '신청·선정·일정 관리' },
   { id: 'studio', label: '설계 스튜디오', icon: Wand2, hint: 'AI로 설문 만들기' },
   { id: 'insights', label: '인사이트', icon: BarChart3, hint: '응답 분석과 내보내기' },
 ]
@@ -359,6 +369,8 @@ export function ResearcherWorkspace() {
             onClose={(survey) => void closeSurvey(survey)}
           />
         ) : null}
+
+        {page === 'research' ? <ResearchPage onLog={pushLog} onToast={showToast} /> : null}
 
         {page === 'studio' ? (
           <AiStudio onPublished={() => void refresh()} onLog={pushLog} onToast={showToast} />
@@ -691,6 +703,233 @@ function SurveysPage({ surveys, feed, busy, onGoStudio, onSeed, onClose }: Surve
           </div>
         )}
       </section>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Managed research page                                               */
+/* ------------------------------------------------------------------ */
+
+const STUDY_TYPE_LABEL: Record<ManagedStudy['type'], string> = {
+  interview: '심층 인터뷰',
+  usability: '사용성 테스트',
+  diary: '다이어리',
+}
+
+const APP_STATUS_LABEL: Record<ApplicationStatus, string> = {
+  applied: '신청 완료',
+  screening: '스크리닝 중',
+  review: '검토 중',
+  selected: '선정됨',
+  rejected: '미선정',
+  scheduled: '일정 확정',
+  in_session: '진행 중',
+  completed: '완료',
+  paid: '보상 지급',
+}
+
+const APP_STATUS_TONE: Record<ApplicationStatus, 'wait' | 'go' | 'stop' | 'done'> = {
+  applied: 'wait',
+  screening: 'wait',
+  review: 'wait',
+  selected: 'go',
+  rejected: 'stop',
+  scheduled: 'go',
+  in_session: 'go',
+  completed: 'done',
+  paid: 'done',
+}
+
+// Mirrors backend APPLICATION_TRANSITIONS for offering valid next actions.
+const APP_NEXT: Record<ApplicationStatus, ApplicationStatus[]> = {
+  applied: ['screening', 'rejected'],
+  screening: ['review', 'rejected'],
+  review: ['selected', 'rejected'],
+  selected: ['scheduled', 'rejected'],
+  scheduled: ['in_session', 'rejected'],
+  in_session: ['completed'],
+  completed: ['paid'],
+  rejected: [],
+  paid: [],
+}
+
+type ResearchPageProps = {
+  onLog: (m: string) => void
+  onToast: (m: string, kind?: Toast['kind']) => void
+}
+
+function ResearchPage({ onLog, onToast }: ResearchPageProps) {
+  const [studies, setStudies] = useState<ManagedStudy[]>([])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [applicants, setApplicants] = useState<Application[]>([])
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const loadedRef = useRef(false)
+
+  const loadApplicants = useCallback(
+    async (studyId: string) => {
+      try {
+        const list = await api.research.applicants(studyId)
+        setApplicants(list)
+      } catch (err) {
+        onToast(err instanceof Error ? err.message : '신청자를 불러오지 못했어요.', 'info')
+        setApplicants([])
+      }
+    },
+    [onToast],
+  )
+
+  const loadStudies = useCallback(async () => {
+    try {
+      const list = await api.research.studies()
+      setStudies(list)
+      const firstId = list[0]?.id ?? null
+      setSelectedId((prev) => prev ?? firstId)
+      if (firstId) await loadApplicants(firstId)
+    } catch (err) {
+      onToast(err instanceof Error ? err.message : '스터디를 불러오지 못했어요.', 'info')
+    }
+  }, [onToast, loadApplicants])
+
+  useEffect(() => {
+    if (loadedRef.current) return
+    loadedRef.current = true
+    void loadStudies()
+  }, [loadStudies])
+
+  const selectStudy = useCallback(
+    (studyId: string) => {
+      setSelectedId(studyId)
+      void loadApplicants(studyId)
+    },
+    [loadApplicants],
+  )
+
+  const selectedStudy = useMemo(
+    () => studies.find((s) => s.id === selectedId) ?? null,
+    [studies, selectedId],
+  )
+
+  const counts = useMemo(() => {
+    const selectedCount = applicants.filter((a) =>
+      ['selected', 'scheduled', 'in_session', 'completed', 'paid'].includes(a.status),
+    ).length
+    return { total: applicants.length, selected: selectedCount }
+  }, [applicants])
+
+  const transition = useCallback(
+    async (application: Application, to: ApplicationStatus) => {
+      if (!selectedId) return
+      setBusyId(application.id)
+      try {
+        await api.research.transition(application.id, { to })
+        onLog(`신청 ${application.id} → ${APP_STATUS_LABEL[to]}`)
+        onToast(`${APP_STATUS_LABEL[to]}(으)로 변경했어요.`, 'success')
+        await loadApplicants(selectedId)
+      } catch (err) {
+        onToast(err instanceof Error ? err.message : '상태를 변경하지 못했어요.', 'info')
+      } finally {
+        setBusyId(null)
+      }
+    },
+    [selectedId, loadApplicants, onLog, onToast],
+  )
+
+  return (
+    <div className="page-grid">
+      <section className="card" aria-label="관리 리서치">
+        <div className="card__head">
+          <h3>관리 리서치</h3>
+          <span className="card__count">스터디 {studies.length}개</span>
+        </div>
+        {studies.length === 0 ? (
+          <p className="empty">진행 중인 관리 리서치가 없어요.</p>
+        ) : (
+          <div className="rs-studies">
+            {studies.map((study) => {
+              const isActive = study.id === selectedId
+              return (
+                <button
+                  key={study.id}
+                  type="button"
+                  className={`rs-study${isActive ? ' is-active' : ''}`}
+                  onClick={() => selectStudy(study.id)}
+                  aria-pressed={isActive}
+                >
+                  <span className="rs-study__type">{STUDY_TYPE_LABEL[study.type]}</span>
+                  <span className="rs-study__title">{study.title}</span>
+                  <span className="rs-study__meta">
+                    {study.incentivePoints.toLocaleString()}P · {study.estimatedMinutes}분 · 정원{' '}
+                    {study.capacity}명
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </section>
+
+      {selectedStudy ? (
+        <section className="card" aria-label="신청자 관리">
+          <div className="card__head">
+            <h3>{selectedStudy.title} · 신청자</h3>
+            <span className="card__count">
+              {counts.total}명 신청 · {counts.selected}명 선정
+            </span>
+          </div>
+
+          {applicants.length === 0 ? (
+            <p className="empty">아직 신청자가 없어요.</p>
+          ) : (
+            <div className="rs-applist">
+              {applicants.map((app) => {
+                const tone = APP_STATUS_TONE[app.status]
+                const nexts = APP_NEXT[app.status]
+                return (
+                  <article key={app.id} className="rs-app">
+                    <div className="rs-app__main">
+                      <span className="rs-app__pid">{app.pid}</span>
+                      <span className={`rs-app__status rs-app__status--${tone}`}>
+                        {APP_STATUS_LABEL[app.status]}
+                      </span>
+                    </div>
+                    <div className="rs-app__meta">
+                      <span>응답 {app.screenerAnswers.length}개</span>
+                      <span>·</span>
+                      <span>이력 {app.history.length}단계</span>
+                      {app.scheduledAt ? (
+                        <>
+                          <span>·</span>
+                          <span>일정 {new Date(app.scheduledAt).toLocaleString('ko-KR')}</span>
+                        </>
+                      ) : null}
+                    </div>
+                    {nexts.length > 0 ? (
+                      <div className="rs-app__actions">
+                        {nexts.map((to) => (
+                          <button
+                            key={to}
+                            type="button"
+                            className={`btn btn--sm ${
+                              to === 'rejected' ? 'btn--ghost' : 'btn--secondary'
+                            }`}
+                            onClick={() => void transition(app, to)}
+                            disabled={busyId === app.id}
+                          >
+                            {APP_STATUS_LABEL[to]}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="rs-app__final">최종 상태예요.</p>
+                    )}
+                  </article>
+                )
+              })}
+            </div>
+          )}
+        </section>
+      ) : null}
     </div>
   )
 }

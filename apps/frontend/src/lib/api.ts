@@ -271,6 +271,16 @@ export const api = {
       }),
     myApplications: (pid: string) =>
       request<ApplicationWithStudy[]>(`/research/applications/me?pid=${encodeURIComponent(pid)}`),
+    applicants: (studyId: string) =>
+      request<Application[]>(`/research/studies/${studyId}/applications`),
+    transition: (
+      applicationId: string,
+      input: { to: ApplicationStatus; note?: string; scheduledAt?: string },
+    ) =>
+      request<Application>(`/research/applications/${applicationId}/transition`, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
   },
 }
 

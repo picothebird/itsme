@@ -33,7 +33,7 @@
 
 ## Phase 4 — 신청형 관리 리서치 (질적 차별화)
 
-- [x] 4.1 상태기계: applied→screening→review→selected/rejected→scheduled→in_session→completed→paid (백엔드 도메인·라우트·테스트 + 유저 신청/현황 연동)
+- [x] 4.1 상태기계: applied→screening→review→selected/rejected→scheduled→in_session→completed→paid (백엔드 도메인·라우트·테스트 + 유저 신청/현황 연동 + 리서처 콘솔 신청자 관리/상태 전이 UI)
 - [ ] 4.2 스크리너 빌더 + 후보 리스트 + 리서처 선정(수동/자동 점수)
 - [ ] 4.3 일정 예약(캘린더) + 세션(인터뷰/UT/일기 다회차) + 인센티브 정산
 
