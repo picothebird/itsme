@@ -6,7 +6,9 @@ const BRAND = ['#5645d4', '#7b6cf0', '#22c55e', '#f5d75e', '#ff64c8']
 export function celebrate(options?: { intensity?: 'small' | 'big' }) {
   const prefersReduced =
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-  if (prefersReduced) return
+  const userOptedOut =
+    typeof localStorage !== 'undefined' && localStorage.getItem('pm-reduce-motion') === '1'
+  if (prefersReduced || userOptedOut) return
 
   const big = options?.intensity === 'big'
   confetti({

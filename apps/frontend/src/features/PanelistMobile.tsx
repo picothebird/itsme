@@ -16,10 +16,13 @@ import {
   Sprout,
   Heart,
   ClipboardList,
+  Settings,
+  LogOut,
 } from 'lucide-react'
 
 import {
   api,
+  type Account,
   type FeedCard,
   type PanelistSummary,
   type Survey,
@@ -46,10 +49,22 @@ type Reward = {
 
 type Props = {
   pid: string
+  account?: Account
   onClose?: () => void
+  onLogout?: () => void
 }
 
-export function PanelistMobile({ pid, onClose }: Props) {
+const PROVIDER_LABEL: Record<Account['provider'], string> = {
+  kakao: '카카오',
+  apple: 'Apple',
+  google: 'Google',
+}
+
+const REDUCE_FX_KEY = 'pm-reduce-motion'
+const readReduceFx = () =>
+  typeof localStorage !== 'undefined' && localStorage.getItem(REDUCE_FX_KEY) === '1'
+
+export function PanelistMobile({ pid, account, onClose, onLogout }: Props) {
   const [stage, setStage] = useState<Stage>('deck')
   const [tab, setTab] = useState<Tab>('deck')
   const [feed, setFeed] = useState<FeedCard[]>([])
@@ -69,6 +84,8 @@ export function PanelistMobile({ pid, onClose }: Props) {
   const [warning, setWarning] = useState<string | null>(null)
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null)
   const [confirmExit, setConfirmExit] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [reduceFx, setReduceFx] = useState(readReduceFx)
 
   const loadAll = useCallback(async () => {
     const [feedList, summary] = await Promise.all([
@@ -260,6 +277,19 @@ export function PanelistMobile({ pid, onClose }: Props) {
     blockedUntil !== null && cooldownLeft > 0,
     () => setBlockedUntil(null),
   )
+  const settingsSheetRef = useDialogA11y<HTMLDivElement>(settingsOpen, () => setSettingsOpen(false))
+
+  const toggleReduceFx = () => {
+    setReduceFx((prev) => {
+      const next = !prev
+      try {
+        localStorage.setItem(REDUCE_FX_KEY, next ? '1' : '0')
+      } catch {
+        // localStorage 접근 불가 시 무시 (세션 한정으로 동작)
+      }
+      return next
+    })
+  }
 
   return (
     <div
@@ -323,11 +353,23 @@ export function PanelistMobile({ pid, onClose }: Props) {
             <span className="pm-topbar__wordmark">itsme</span>
           </div>
         )}
-        <div className="pm-balance" aria-label="현재 포인트">
-          <Gem className="pm-balance__icon" size={15} strokeWidth={2.2} aria-hidden="true" />
-          <span className="pm-balance__value" aria-live="polite" aria-atomic="true">
-            {me?.wallet.balance ?? 0}
-          </span>
+        <div className="pm-topbar__actions">
+          <div className="pm-balance" aria-label="현재 포인트">
+            <Gem className="pm-balance__icon" size={15} strokeWidth={2.2} aria-hidden="true" />
+            <span className="pm-balance__value" aria-live="polite" aria-atomic="true">
+              {me?.wallet.balance ?? 0}
+            </span>
+          </div>
+          {stage !== 'responding' ? (
+            <button
+              type="button"
+              className="pm-iconbtn pm-iconbtn--sm"
+              onClick={() => setSettingsOpen(true)}
+              aria-label="설정"
+            >
+              <Settings size={20} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+          ) : null}
         </div>
       </header>
 
@@ -488,6 +530,66 @@ export function PanelistMobile({ pid, onClose }: Props) {
                 확인
               </button>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {settingsOpen ? (
+        <div className="pm-sheet" role="dialog" aria-modal="true" aria-label="설정">
+          <div className="pm-sheet__scrim" onClick={() => setSettingsOpen(false)} aria-hidden />
+          <div className="pm-sheet__panel" ref={settingsSheetRef} tabIndex={-1}>
+            <h3 className="pm-sheet__title">설정</h3>
+
+            {account ? (
+              <div className="pm-settings__account">
+                <span className="pm-settings__avatar" aria-hidden>
+                  {(account.displayName ?? '나').trim().charAt(0) || '나'}
+                </span>
+                <div className="pm-settings__id">
+                  <span className="pm-settings__name">
+                    {account.displayName ?? '데이터 정령 친구'}
+                  </span>
+                  <span className="pm-settings__provider">
+                    {PROVIDER_LABEL[account.provider]}로 로그인 중
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
+            <ul className="pm-settings__list">
+              <li className="pm-settings__row">
+                <div className="pm-settings__rowtext">
+                  <span className="pm-settings__label">효과·애니메이션 줄이기</span>
+                  <span className="pm-settings__desc">보상 시 콘페티 등 화려한 효과를 꺼요.</span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={reduceFx}
+                  aria-label="효과·애니메이션 줄이기"
+                  className={`pm-switch${reduceFx ? ' is-on' : ''}`}
+                  onClick={toggleReduceFx}
+                >
+                  <span className="pm-switch__dot" aria-hidden />
+                </button>
+              </li>
+            </ul>
+
+            {onLogout ? (
+              <button
+                type="button"
+                className="pm-settings__logout"
+                onClick={() => {
+                  setSettingsOpen(false)
+                  onLogout()
+                }}
+              >
+                <LogOut size={18} strokeWidth={2.2} aria-hidden="true" />
+                로그아웃
+              </button>
+            ) : null}
+
+            <p className="pm-settings__version">itsme · v0.1.0</p>
           </div>
         </div>
       ) : null}

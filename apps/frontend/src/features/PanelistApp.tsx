@@ -106,8 +106,27 @@ export function PanelistApp({ onClose }: Props) {
     }
   }
 
+  const handleLogout = async () => {
+    try {
+      await api.auth.logout()
+    } catch {
+      // 서버 응답과 무관하게 로컬 세션은 즉시 정리한다.
+    }
+    setAuthToken(null)
+    setAccount(null)
+    setHatch(null)
+    setPhase('login')
+  }
+
   if (phase === 'app' && account) {
-    return <PanelistMobile pid={account.pid} onClose={onClose} />
+    return (
+      <PanelistMobile
+        pid={account.pid}
+        account={account}
+        onClose={onClose}
+        onLogout={onClose ? undefined : handleLogout}
+      />
+    )
   }
 
   return (
