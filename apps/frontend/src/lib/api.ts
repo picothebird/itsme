@@ -138,7 +138,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(input),
     }),
-  listFeed: () => request<FeedCard[]>('/feed'),
+  listFeed: async () => {
+    const data = await request<{ items: FeedCard[]; nextCursor: string | null }>('/feed')
+    return data.items
+  },
   startResponse: (input: { pid: string; surveyId: string }) =>
     request<{ id: string }>('/responses/start', {
       method: 'POST',

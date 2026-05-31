@@ -63,8 +63,10 @@ function App() {
       }
     }
     void load()
+    const id = window.setInterval(() => void load(), 15000)
     return () => {
       isMounted = false
+      window.clearInterval(id)
     }
   }, [requestHealth])
 

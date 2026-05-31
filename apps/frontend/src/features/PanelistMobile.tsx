@@ -30,6 +30,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
   const [reward, setReward] = useState<Reward | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [confirmExit, setConfirmExit] = useState(false)
 
   const loadAll = useCallback(async () => {
     const [feedList, summary] = await Promise.all([
@@ -120,6 +121,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
   )
 
   const exitResponse = useCallback(() => {
+    setConfirmExit(false)
     setResponding(null)
     setStage('deck')
   }, [])
@@ -135,7 +137,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
         <button
           type="button"
           className="pm-iconbtn"
-          onClick={stage === 'responding' ? exitResponse : onClose}
+          onClick={stage === 'responding' ? () => setConfirmExit(true) : onClose}
           aria-label={stage === 'responding' ? '응답 닫기' : '체험 종료'}
         >
           <svg
@@ -207,6 +209,34 @@ export function PanelistMobile({ pid, onClose }: Props) {
 
       {stage === 'complete' && reward ? (
         <CompleteStage reward={reward} me={me} onContinue={continueAfterReward} />
+      ) : null}
+
+      {confirmExit ? (
+        <div className="pm-sheet" role="dialog" aria-modal="true" aria-label="응답 중단 확인">
+          <div className="pm-sheet__scrim" onClick={() => setConfirmExit(false)} aria-hidden />
+          <div className="pm-sheet__panel">
+            <h3 className="pm-sheet__title">응답을 중단할까요?</h3>
+            <p className="pm-sheet__body">
+              지금 나가면 작성 중이던 답변은 저장되지 않아요. 마저 응답하면 포인트를 받을 수 있어요.
+            </p>
+            <div className="pm-sheet__actions">
+              <button
+                type="button"
+                className="pm-btn pm-btn--ghost pm-btn--xl"
+                onClick={exitResponse}
+              >
+                나가기
+              </button>
+              <button
+                type="button"
+                className="pm-btn pm-btn--primary pm-btn--xl"
+                onClick={() => setConfirmExit(false)}
+              >
+                계속 응답하기
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   )
@@ -459,7 +489,8 @@ function ResponseQuestion({
 
   if (!question) return null
 
-  const isSingle = question.type === 'single' || question.type === 'likert'
+  const isLikert = question.type === 'likert'
+  const isSingle = question.type === 'single'
   const isMulti = question.type === 'multi'
   const isText = question.type === 'text'
 
@@ -485,55 +516,64 @@ function ResponseQuestion({
           {questionIndex + 1} / {survey.questions.length}
         </p>
         <h2 className="pm-q__text">{question.text}</h2>
-        {isSingle && question.type === 'likert' ? (
+        {isLikert ? (
           <p className="pm-q__hint">가장 가까운 정도를 골라 주세요</p>
         ) : isMulti ? (
           <p className="pm-q__hint">해당하는 항목을 모두 선택할 수 있어요</p>
         ) : null}
       </div>
 
-      <div className="pm-choices">
-        {isText ? (
-          <textarea
-            className="pm-textarea"
-            placeholder="자유롭게 적어 주세요"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows={5}
-          />
-        ) : (
-          choices.map((c) => {
-            const isSelected = selected.includes(c.id)
-            return (
-              <button
-                key={c.id}
-                type="button"
-                className={`pm-choice${isSelected ? ' is-selected' : ''}`}
-                onClick={() => (isSingle ? handleSingleTap(c.id) : toggleMulti(c.id))}
-                disabled={submitting}
-              >
-                <span className="pm-choice__bullet" aria-hidden>
-                  {isSelected ? (
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="14"
-                      height="14"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M5 12l5 5L20 7" />
-                    </svg>
-                  ) : null}
-                </span>
-                <span className="pm-choice__label">{c.label}</span>
-              </button>
-            )
-          })
-        )}
-      </div>
+      {isLikert ? (
+        <LikertScale
+          choices={choices}
+          selectedId={selected[0] ?? null}
+          disabled={submitting}
+          onPick={handleSingleTap}
+        />
+      ) : (
+        <div className="pm-choices">
+          {isText ? (
+            <textarea
+              className="pm-textarea"
+              placeholder="자유롭게 적어 주세요"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              rows={5}
+            />
+          ) : (
+            choices.map((c) => {
+              const isSelected = selected.includes(c.id)
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`pm-choice${isSelected ? ' is-selected' : ''}`}
+                  onClick={() => (isSingle ? handleSingleTap(c.id) : toggleMulti(c.id))}
+                  disabled={submitting}
+                >
+                  <span className="pm-choice__bullet" aria-hidden>
+                    {isSelected ? (
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M5 12l5 5L20 7" />
+                      </svg>
+                    ) : null}
+                  </span>
+                  <span className="pm-choice__label">{c.label}</span>
+                </button>
+              )
+            })
+          )}
+        </div>
+      )}
 
       {(isMulti || isText) && (
         <div className="pm-bottom-cta">
@@ -548,6 +588,49 @@ function ResponseQuestion({
         </div>
       )}
     </>
+  )
+}
+
+function LikertScale({
+  choices,
+  selectedId,
+  disabled,
+  onPick,
+}: {
+  choices: { id: string; label: string }[]
+  selectedId: string | null
+  disabled: boolean
+  onPick: (choiceId: string) => void
+}) {
+  if (choices.length === 0) return null
+  const minLabel = choices[0]?.label
+  const maxLabel = choices[choices.length - 1]?.label
+  return (
+    <div className="pm-likert" role="radiogroup" aria-label="동의 정도">
+      <div className="pm-likert__scale">
+        {choices.map((c, i) => {
+          const isSelected = c.id === selectedId
+          return (
+            <button
+              key={c.id}
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              aria-label={c.label}
+              className={`pm-likert__dot pm-likert__dot--${i + 1}${isSelected ? ' is-selected' : ''}`}
+              onClick={() => onPick(c.id)}
+              disabled={disabled}
+            >
+              <span className="pm-likert__num">{i + 1}</span>
+            </button>
+          )
+        })}
+      </div>
+      <div className="pm-likert__anchors">
+        <span>{minLabel}</span>
+        <span>{maxLabel}</span>
+      </div>
+    </div>
   )
 }
 

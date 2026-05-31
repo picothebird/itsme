@@ -7,7 +7,12 @@ type Props = {
   onClose: () => void
 }
 
-type Phase = 'loading' | 'login' | 'onboarding' | 'app'
+type Phase = 'loading' | 'login' | 'onboarding' | 'hatch' | 'app'
+
+type HatchResult = {
+  welcomeBonus: number
+  pet: { level: number; evolutionStage: string | null }
+}
 
 const PROVIDERS: Array<{
   id: 'kakao' | 'apple' | 'google'
@@ -37,6 +42,7 @@ const currentYear = new Date().getFullYear()
 export function PanelistApp({ onClose }: Props) {
   const [phase, setPhase] = useState<Phase>(() => (getAuthToken() ? 'loading' : 'login'))
   const [account, setAccount] = useState<Account | null>(null)
+  const [hatch, setHatch] = useState<HatchResult | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const checkedRef = useRef(false)
@@ -86,7 +92,8 @@ export function PanelistApp({ onClose }: Props) {
     try {
       const res = await api.auth.onboarding(input)
       setAccount(res.account)
-      setPhase('app')
+      setHatch({ welcomeBonus: res.welcomeBonus, pet: res.pet })
+      setPhase('hatch')
     } catch (err) {
       setError(err instanceof Error ? err.message : '온보딩에 실패했어요')
     } finally {
@@ -144,6 +151,10 @@ export function PanelistApp({ onClose }: Props) {
       {phase === 'login' ? <LoginStage busy={busy} onLogin={handleLogin} /> : null}
 
       {phase === 'onboarding' ? <OnboardingStage busy={busy} onSubmit={handleOnboard} /> : null}
+
+      {phase === 'hatch' && hatch ? (
+        <HatchStage hatch={hatch} onStart={() => setPhase('app')} />
+      ) : null}
     </div>
   )
 }
@@ -224,6 +235,8 @@ function OnboardingStage({
       onSubmit({ birthYear, gender, interests })
     }
   }
+
+  const back = () => setStep((s) => Math.max(0, s - 1))
 
   return (
     <main className="pm-stage pm-onboard">
@@ -308,10 +321,23 @@ function OnboardingStage({
               </button>
             ))}
           </div>
+          <p className="pm-onboard__note">
+            입력한 정보는 맞춤 설문 추천에만 쓰이고, 언제든 설정에서 바꾸거나 삭제할 수 있어요.
+          </p>
         </section>
       ) : null}
 
-      <div className="pm-bottom-cta">
+      <div className="pm-bottom-cta pm-bottom-cta--row">
+        {step > 0 ? (
+          <button
+            type="button"
+            className="pm-btn pm-btn--ghost pm-btn--xl"
+            onClick={back}
+            disabled={busy}
+          >
+            이전
+          </button>
+        ) : null}
         <button
           type="button"
           className="pm-btn pm-btn--primary pm-btn--xl"
@@ -319,6 +345,54 @@ function OnboardingStage({
           disabled={!canNext || busy}
         >
           {step < 2 ? '다음' : busy ? '정령을 깨우는 중...' : '정령 깨우기'}
+        </button>
+      </div>
+    </main>
+  )
+}
+
+function HatchStage({ hatch, onStart }: { hatch: HatchResult; onStart: () => void }) {
+  const [cracked, setCracked] = useState(false)
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setCracked(true), 900)
+    return () => window.clearTimeout(t)
+  }, [])
+
+  return (
+    <main className="pm-stage pm-stage--center pm-hatch">
+      <div className={`pm-hatch__egg${cracked ? ' is-cracked' : ''}`} aria-hidden>
+        <div className="pm-hatch__egg-top" />
+        <div className="pm-hatch__egg-bottom" />
+        <div className="pm-hatch__spirit" />
+        <div className="pm-hatch__sparkle pm-hatch__sparkle--1" />
+        <div className="pm-hatch__sparkle pm-hatch__sparkle--2" />
+        <div className="pm-hatch__sparkle pm-hatch__sparkle--3" />
+      </div>
+
+      <p className="pm-celebrate__eyebrow" aria-live="polite">
+        {cracked ? '정령이 깨어났어요!' : '알을 깨우는 중...'}
+      </p>
+      <h1 className="pm-hatch__title">나만의 데이터 정령 탄생</h1>
+
+      {hatch.welcomeBonus > 0 ? (
+        <p className="pm-celebrate__points">
+          +{hatch.welcomeBonus}
+          <span className="pm-celebrate__unit">P</span>
+        </p>
+      ) : null}
+      <p className="pm-celebrate__body">
+        가입 보너스가 지갑에 들어왔어요. 질문에 답할수록 정령이 함께 자라요.
+      </p>
+
+      <div className="pm-celebrate__actions">
+        <button
+          type="button"
+          className="pm-btn pm-btn--primary pm-btn--xl"
+          onClick={onStart}
+          disabled={!cracked}
+        >
+          {cracked ? '첫 설문 시작하기' : '잠시만요...'}
         </button>
       </div>
     </main>
