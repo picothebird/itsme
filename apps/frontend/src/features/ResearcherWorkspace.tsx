@@ -28,6 +28,7 @@ import {
 import { AiStudio } from './AiStudio'
 import { DashboardOverview } from './DashboardOverview'
 import { InfoDot } from '../components/ui/Tooltip'
+import { useConfirm } from '../components/ui/ConfirmDialog'
 
 const DEMO_PID = 'pid_demo_researcher'
 
@@ -92,6 +93,7 @@ export function ResearcherWorkspace() {
   const [log, setLog] = useState<LogEntry[]>([])
   const [toast, setToast] = useState<Toast | null>(null)
   const toastTimer = useRef<number | null>(null)
+  const confirm = useConfirm()
 
   const pushLog = useCallback((message: string) => {
     setLog((prev) => [makeLogEntry(message), ...prev].slice(0, 12))
@@ -224,7 +226,13 @@ export function ResearcherWorkspace() {
   const closeSurvey = useCallback(
     async (survey: Survey) => {
       if (busy) return
-      if (!window.confirm(`'${survey.title}' 설문을 종료할까요? 더 이상 노출되지 않아요.`)) return
+      const ok = await confirm({
+        title: '설문을 종료할까요?',
+        message: `'${survey.title}' 설문을 종료하면 더 이상 노출되지 않아요.`,
+        confirmLabel: '종료하기',
+        danger: true,
+      })
+      if (!ok) return
       setBusy(true)
       try {
         await api.closeSurvey(survey.id)
@@ -239,12 +247,18 @@ export function ResearcherWorkspace() {
         setBusy(false)
       }
     },
-    [busy, pushLog, refresh, showToast],
+    [busy, confirm, pushLog, refresh, showToast],
   )
 
   const resetDemo = useCallback(async () => {
     if (busy) return
-    if (!window.confirm('데모 데이터(설문·응답·지갑·펫)를 모두 초기화할까요?')) return
+    const ok = await confirm({
+      title: '데모 데이터를 초기화할까요?',
+      message: '설문·응답·지갑·펫 데이터가 모두 초기 상태로 되돌아가요.',
+      confirmLabel: '초기화하기',
+      danger: true,
+    })
+    if (!ok) return
     setBusy(true)
     try {
       await api.resetDemo()
@@ -259,7 +273,7 @@ export function ResearcherWorkspace() {
     } finally {
       setBusy(false)
     }
-  }, [busy, refresh, showToast])
+  }, [busy, confirm, refresh, showToast])
 
   const liveCount = feed.length
   const activePage = NAV.find((n) => n.id === page)
@@ -778,6 +792,7 @@ function ResearchPage({ onLog, onToast }: ResearchPageProps) {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const loadedRef = useRef(false)
+  const confirm = useConfirm()
 
   const loadApplicants = useCallback(
     async (studyId: string) => {
@@ -839,8 +854,14 @@ function ResearchPage({ onLog, onToast }: ResearchPageProps) {
   const transition = useCallback(
     async (application: Application, to: ApplicationStatus) => {
       if (!selectedId) return
-      if (to === 'rejected' && !window.confirm(`${application.pid} 신청자를 미선정 처리할까요?`)) {
-        return
+      if (to === 'rejected') {
+        const ok = await confirm({
+          title: '신청자를 미선정 처리할까요?',
+          message: `${application.pid} 신청자를 미선정으로 처리해요.`,
+          confirmLabel: '미선정 처리',
+          danger: true,
+        })
+        if (!ok) return
       }
       setBusyId(application.id)
       try {
@@ -854,7 +875,7 @@ function ResearchPage({ onLog, onToast }: ResearchPageProps) {
         setBusyId(null)
       }
     },
-    [selectedId, loadApplicants, onLog, onToast],
+    [selectedId, confirm, loadApplicants, onLog, onToast],
   )
 
   return (

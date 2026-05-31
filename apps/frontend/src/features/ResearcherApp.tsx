@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ExternalLink } from 'lucide-react'
 
 import { ResearcherWorkspace } from './ResearcherWorkspace'
+import { ConfirmProvider } from '../components/ui/ConfirmDialog'
 import type { ApiHealth } from '../types'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000'
@@ -58,26 +59,28 @@ export function ResearcherApp() {
     healthState === 'ok' ? 'pill--ok' : healthState === 'error' ? 'pill--err' : 'pill--warn'
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <div className="brand">
-          <span className="brand__dot" aria-hidden />
-          <span>itsme</span>
-          <span className="brand__suffix">스튜디오</span>
-        </div>
+    <ConfirmProvider>
+      <div className="app">
+        <header className="topbar">
+          <div className="brand">
+            <span className="brand__dot" aria-hidden />
+            <span>itsme</span>
+            <span className="brand__suffix">스튜디오</span>
+          </div>
 
-        <div className="topbar__meta">
-          <a className="btn btn--ghost btn--sm" href="/" target="_blank" rel="noreferrer">
-            응답자 앱 열기
-            <ExternalLink size={14} strokeWidth={2} aria-hidden="true" />
-          </a>
-          <span className={`pill ${healthPillClass}`} title={healthLabel}>
-            {healthLabel}
-          </span>
-        </div>
-      </header>
+          <div className="topbar__meta">
+            <a className="btn btn--ghost btn--sm" href="/" target="_blank" rel="noreferrer">
+              응답자 앱 열기
+              <ExternalLink size={14} strokeWidth={2} aria-hidden="true" />
+            </a>
+            <span className={`pill ${healthPillClass}`} title={healthLabel}>
+              {healthLabel}
+            </span>
+          </div>
+        </header>
 
-      <ResearcherWorkspace />
-    </div>
+        <ResearcherWorkspace />
+      </div>
+    </ConfirmProvider>
   )
 }

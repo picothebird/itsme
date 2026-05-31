@@ -133,6 +133,15 @@ select:focus-visible,
   color: var(--color-ink);
 }
 
+.btn--danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: var(--sev-danger-fg);
+}
+
 .btn--lg {
   height: 52px;
   padding: 0 24px;
@@ -2083,12 +2092,12 @@ select:focus-visible,
 }
 .reach-card__warn {
   margin: 4px 0 0;
-  color: #b91c1c;
+  color: var(--color-danger);
   font-size: 13px;
   font-weight: 500;
 }
 .modal__error {
-  color: #b91c1c;
+  color: var(--color-danger);
   font-size: 13px;
   margin: 0;
 }
@@ -2096,6 +2105,17 @@ select:focus-visible,
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+.modal__panel--confirm {
+  max-width: 380px;
+}
+.confirm__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.modal--confirm .confirm__title svg {
+  color: var(--color-danger);
 }
 
 /* ========== Mobile Preview ========== */
