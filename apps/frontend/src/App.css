@@ -1335,12 +1335,18 @@ select:focus-visible,
 }
 .ai-studio__score {
   display: flex;
-  align-items: baseline;
-  gap: 4px;
+  flex-direction: column;
+  gap: 6px;
   padding: 8px 14px;
   border-radius: var(--radius-md);
   background: var(--color-canvas);
   border: 1px solid var(--color-hairline);
+  min-width: 120px;
+}
+.ai-studio__scoreText {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
 }
 .ai-studio__scoreNum {
   font-size: 28px;
@@ -1351,6 +1357,29 @@ select:focus-visible,
 .ai-studio__scoreUnit {
   font-size: 12px;
   color: var(--color-steel);
+}
+.ai-studio__scoreBar {
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunk);
+  overflow: hidden;
+}
+.ai-studio__scoreBar-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+}
+.ai-studio__scoreBar--ok .ai-studio__scoreBar-fill {
+  background: var(--color-success);
+}
+.ai-studio__scoreBar--warn .ai-studio__scoreBar-fill {
+  background: var(--sev-warn-line);
+}
+.ai-studio__scoreBar--high .ai-studio__scoreBar-fill {
+  background: var(--color-danger);
+}
+.ai-studio__banner {
+  margin-top: var(--space-3);
 }
 .ai-studio__chips {
   display: flex;
@@ -1369,16 +1398,16 @@ select:focus-visible,
   text-transform: uppercase;
 }
 .chip--high {
-  background: #fde8e8;
-  color: #b42318;
+  background: var(--sev-high-bg);
+  color: var(--sev-high-fg);
 }
 .chip--warn {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--sev-warn-bg);
+  color: var(--sev-warn-fg);
 }
 .chip--info {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: var(--sev-info-bg);
+  color: var(--sev-info-fg);
 }
 .ai-studio__questions {
   list-style: none;
@@ -1457,16 +1486,16 @@ select:focus-visible,
   background: var(--color-surface);
 }
 .finding--high {
-  border-left-color: #d92d20;
-  background: #fef6f6;
+  border-left-color: var(--sev-high-line);
+  background: var(--sev-high-surface);
 }
 .finding--warn {
-  border-left-color: #d97706;
-  background: #fffdf5;
+  border-left-color: var(--sev-warn-line);
+  background: var(--sev-warn-surface);
 }
 .finding--info {
-  border-left-color: #4f46e5;
-  background: #f6f7ff;
+  border-left-color: var(--sev-info-line);
+  background: var(--sev-info-surface);
 }
 .finding__head {
   display: flex;
@@ -1498,16 +1527,16 @@ select:focus-visible,
   letter-spacing: 0.05em;
 }
 .finding__sev--high {
-  background: #fde8e8;
-  color: #b42318;
+  background: var(--sev-high-bg);
+  color: var(--sev-high-fg);
 }
 .finding__sev--warn {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--sev-warn-bg);
+  color: var(--sev-warn-fg);
 }
 .finding__sev--info {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: var(--sev-info-bg);
+  color: var(--sev-info-fg);
 }
 .finding__msg {
   margin: 0;
@@ -2273,20 +2302,20 @@ select:focus-visible,
   text-align: center;
 }
 .reward-orders__status--issued {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--sev-ok-bg);
+  color: var(--sev-ok-fg);
 }
 .reward-orders__status--pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--sev-warn-bg);
+  color: var(--sev-warn-fg);
 }
 .reward-orders__status--failed {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--sev-danger-bg);
+  color: var(--sev-danger-fg);
 }
 .reward-orders__status--refunded {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: var(--sev-info-bg);
+  color: var(--sev-info-fg);
 }
 .reward-orders__voucher {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -3635,8 +3664,8 @@ select:focus-visible,
 .pm-toast {
   margin: 8px 16px 0;
   padding: 12px 14px;
-  background: #fef2f2;
-  color: #991b1b;
+  background: var(--sev-danger-bg);
+  color: var(--sev-danger-fg);
   border-radius: 12px;
   font-size: 13px;
   font-weight: 500;
@@ -5135,12 +5164,6 @@ select:focus-visible,
   font-size: 20px;
   font-weight: 700;
 }
-.pm-shop__heading {
-  margin: 4px 0 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--color-ink);
-}
 .pm-shop__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -5209,8 +5232,8 @@ select:focus-visible,
   color: var(--color-success);
 }
 .pm-shop__order-status--failed {
-  background: rgba(229, 72, 77, 0.12);
-  color: #e5484d;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
 }
 .pm-shop__order-label {
   font-size: 13px;

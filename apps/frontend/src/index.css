@@ -58,6 +58,24 @@
   --tone-warn-bg: #fff8e8;
   --tone-warn-line: #fbe3a8;
 
+  /* Severity & extended status palette — AI Studio findings/chips, audit alerts, order status */
+  --sev-high-fg: #b42318;
+  --sev-high-bg: #fde8e8;
+  --sev-high-line: #d92d20;
+  --sev-high-surface: #fef6f6;
+  --sev-warn-fg: #92400e;
+  --sev-warn-bg: #fef3c7;
+  --sev-warn-line: #d97706;
+  --sev-warn-surface: #fffdf5;
+  --sev-info-fg: #3730a3;
+  --sev-info-bg: #e0e7ff;
+  --sev-info-line: #4f46e5;
+  --sev-info-surface: #f6f7ff;
+  --sev-ok-fg: #166534;
+  --sev-ok-bg: #dcfce7;
+  --sev-danger-fg: #991b1b;
+  --sev-danger-bg: #fee2e2;
+
   /* Aliases — older sections reference these names; keep them in sync */
   --color-border: var(--color-hairline);
   --color-text: var(--color-ink);

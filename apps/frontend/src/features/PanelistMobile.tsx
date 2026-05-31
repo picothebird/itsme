@@ -825,7 +825,7 @@ function PetStage({
               </div>
               <button
                 type="button"
-                className="pm-btn pm-btn--primary pm-btn--sm"
+                className="pm-btn pm-btn--ghost pm-btn--sm"
                 disabled={busy === piece.id}
                 onClick={() => void feedOne(piece)}
               >
@@ -935,7 +935,7 @@ function ShopStage({
         </span>
       </div>
 
-      <h2 className="pm-shop__heading">기프티콘으로 교환</h2>
+      <h2 className="pm-section-title">기프티콘으로 교환</h2>
       <div className="pm-shop__grid">
         {sortedCatalog.map((item) => {
           const lack = balance != null && balance < item.cost
@@ -947,7 +947,7 @@ function ShopStage({
                 <span className="pm-shop__cost">{item.cost.toLocaleString()} P</span>
                 <button
                   type="button"
-                  className="pm-btn pm-btn--primary pm-btn--sm"
+                  className="pm-btn pm-btn--ghost pm-btn--sm"
                   disabled={busyItem === item.id || lack}
                   onClick={() => void redeem(item)}
                 >
@@ -961,7 +961,7 @@ function ShopStage({
 
       {orders.length > 0 ? (
         <div className="pm-shop__orders">
-          <h2 className="pm-shop__heading">최근 교환 내역</h2>
+          <h2 className="pm-section-title">최근 교환 내역</h2>
           <ul>
             {orders.slice(0, 5).map((order) => (
               <li key={order.id} className="pm-shop__order">

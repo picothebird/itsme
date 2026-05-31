@@ -314,7 +314,7 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
       </div>
 
       {error ? (
-        <div className="banner" role="alert" style={{ marginTop: 12 }}>
+        <div className="banner ai-studio__banner" role="alert">
           <span>{error}</span>
           <button
             type="button"
@@ -338,8 +338,21 @@ export function AiStudio({ onPublished, onLog, onToast }: Props) {
             </div>
             {summary ? (
               <div className="ai-studio__score" aria-label={`품질 점수 ${summary.score}`}>
-                <span className="ai-studio__scoreNum">{summary.score}</span>
-                <span className="ai-studio__scoreUnit">/ 100</span>
+                <div className="ai-studio__scoreText">
+                  <span className="ai-studio__scoreNum">{summary.score}</span>
+                  <span className="ai-studio__scoreUnit">/ 100</span>
+                </div>
+                <div
+                  className={`ai-studio__scoreBar ai-studio__scoreBar--${
+                    summary.score >= 80 ? 'ok' : summary.score >= 60 ? 'warn' : 'high'
+                  }`}
+                  aria-hidden="true"
+                >
+                  <div
+                    className="ai-studio__scoreBar-fill"
+                    style={{ width: `${Math.max(0, Math.min(100, summary.score))}%` }}
+                  />
+                </div>
               </div>
             ) : null}
           </div>
