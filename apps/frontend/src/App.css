@@ -6235,6 +6235,62 @@ select:focus-visible,
     opacity: 1;
   }
 }
+/* 날갯짓 (성체) */
+.pm-creature--animated .pm-creature__wing--l {
+  transform-origin: 32px 67px;
+  animation: pm-creature-wing-l 1.6s ease-in-out infinite;
+}
+.pm-creature--animated .pm-creature__wing--r {
+  transform-origin: 88px 67px;
+  animation: pm-creature-wing-r 1.6s ease-in-out infinite;
+}
+@keyframes pm-creature-wing-l {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-12deg);
+  }
+}
+@keyframes pm-creature-wing-r {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+}
+/* 이마 보석 반짝임 (성체) */
+.pm-creature--animated .pm-creature__gem {
+  transform-origin: 60px 46px;
+  animation: pm-creature-gem 2.8s ease-in-out infinite;
+}
+@keyframes pm-creature-gem {
+  0%,
+  100% {
+    opacity: 0.92;
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px rgba(63, 203, 166, 0.6));
+  }
+}
+/* 꼬리 살랑 (유체) */
+.pm-creature--animated .pm-creature__tail {
+  transform-origin: 86px 78px;
+  animation: pm-creature-tail 2.4s ease-in-out infinite;
+}
+@keyframes pm-creature-tail {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
 .pm-creature--sick .pm-creature__body {
   animation-duration: 4.5s;
 }
@@ -6243,7 +6299,11 @@ select:focus-visible,
   .pm-creature--animated .pm-creature__shadow,
   .pm-creature--animated .pm-creature__eye,
   .pm-creature--animated .pm-creature__halo,
-  .pm-creature--animated .pm-creature__spark {
+  .pm-creature--animated .pm-creature__spark,
+  .pm-creature--animated .pm-creature__wing--l,
+  .pm-creature--animated .pm-creature__wing--r,
+  .pm-creature--animated .pm-creature__gem,
+  .pm-creature--animated .pm-creature__tail {
     animation: none;
   }
 }
