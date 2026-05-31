@@ -1300,26 +1300,16 @@ function ChatStage({ pid, account }: { pid: string; account?: Account }) {
     <main className="pm-stage pm-chat" aria-label="나를 이해하는 AI">
       <div className="pm-chat__scroll" ref={scrollRef}>
         {isEmpty ? (
-          <div className="pm-chat__hero">
-            <span className="pm-chat__heroicon" aria-hidden="true">
-              <Sparkles size={26} strokeWidth={2} />
+          <div className="pm-chat__welcome">
+            <span className="pm-chat__welcomeicon" aria-hidden="true">
+              <Sparkles size={22} strokeWidth={2} />
             </span>
-            <h2 className="pm-chat__herotitle">나를 이해하는 AI</h2>
-            <p className="pm-chat__herodesc">
-              {name}님의 설문 응답과 관심사를 바탕으로 대화해요. 무엇이든 물어보세요.
+            <h2 className="pm-chat__greeting">
+              안녕하세요, <span className="pm-chat__greetingname">{name}</span>님
+            </h2>
+            <p className="pm-chat__greetingsub">
+              설문 응답과 관심사를 바탕으로 무엇이든 편하게 물어보세요.
             </p>
-            <div className="pm-chat__suggestions">
-              {CHAT_SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className="pm-chat__chip"
-                  onClick={() => void send(s)}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
           </div>
         ) : (
           <ul className="pm-chat__list">
@@ -1329,8 +1319,11 @@ function ChatStage({ pid, account }: { pid: string; account?: Account }) {
                 className={`pm-chat__msg pm-chat__msg--${m.role === 'user' ? 'user' : 'ai'}`}
               >
                 {m.role === 'assistant' ? (
-                  <span className="pm-chat__avatar" aria-hidden="true">
-                    <Sparkles size={14} strokeWidth={2.2} />
+                  <span className="pm-chat__role" aria-hidden="true">
+                    <span className="pm-chat__avatar">
+                      <Sparkles size={12} strokeWidth={2.4} />
+                    </span>
+                    AI
                   </span>
                 ) : null}
                 <div className="pm-chat__bubble">{m.content}</div>
@@ -1338,12 +1331,21 @@ function ChatStage({ pid, account }: { pid: string; account?: Account }) {
             ))}
             {isStreaming ? (
               <li className="pm-chat__msg pm-chat__msg--ai">
-                <span className="pm-chat__avatar" aria-hidden="true">
-                  <Sparkles size={14} strokeWidth={2.2} />
+                <span className="pm-chat__role" aria-hidden="true">
+                  <span className="pm-chat__avatar">
+                    <Sparkles size={12} strokeWidth={2.4} />
+                  </span>
+                  AI
                 </span>
                 <div className="pm-chat__bubble">
-                  {streamingText}
-                  <span className="pm-chat__cursor" aria-hidden="true" />
+                  {streamingText || (
+                    <span className="pm-chat__typing" aria-label="작성 중">
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                  )}
+                  {streamingText ? <span className="pm-chat__cursor" aria-hidden="true" /> : null}
                 </div>
               </li>
             ) : null}
@@ -1351,42 +1353,59 @@ function ChatStage({ pid, account }: { pid: string; account?: Account }) {
         )}
       </div>
 
-      {error ? (
-        <p className="pm-chat__error" role="alert">
-          {error}
-        </p>
-      ) : null}
+      <div className="pm-chat__dock">
+        {error ? (
+          <p className="pm-chat__error" role="alert">
+            {error}
+          </p>
+        ) : null}
 
-      <form
-        className="pm-chat__composer"
-        onSubmit={(e) => {
-          e.preventDefault()
-          void send(input)
-        }}
-      >
-        <textarea
-          className="pm-chat__input"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              void send(input)
-            }
+        {isEmpty ? (
+          <div className="pm-chat__suggestions" aria-label="추천 질문">
+            {CHAT_SUGGESTIONS.map((s) => (
+              <button key={s} type="button" className="pm-chat__chip" onClick={() => void send(s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <form
+          className="pm-chat__composer"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void send(input)
           }}
-          placeholder="메시지를 입력하세요"
-          rows={1}
-          aria-label="메시지 입력"
-        />
-        <button
-          type="submit"
-          className="pm-chat__send"
-          disabled={isStreaming || !input.trim()}
-          aria-label="보내기"
         >
-          <ArrowUp size={18} strokeWidth={2.6} aria-hidden="true" />
-        </button>
-      </form>
+          <textarea
+            className="pm-chat__input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onInput={(e) => {
+              const el = e.currentTarget
+              el.style.height = 'auto'
+              el.style.height = `${Math.min(el.scrollHeight, 132)}px`
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                void send(input)
+              }
+            }}
+            placeholder="무엇이든 물어보세요"
+            rows={1}
+            aria-label="메시지 입력"
+          />
+          <button
+            type="submit"
+            className="pm-chat__send"
+            disabled={isStreaming || !input.trim()}
+            aria-label="보내기"
+          >
+            <ArrowUp size={18} strokeWidth={2.6} aria-hidden="true" />
+          </button>
+        </form>
+      </div>
     </main>
   )
 }
