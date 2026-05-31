@@ -168,9 +168,13 @@ export function PanelistApp({ onClose }: Props) {
       ) : null}
 
       {phase === 'loading' ? (
-        <main className="pm-stage pm-stage--center">
-          <div className="pm-spinner" aria-hidden />
-          <p className="pm-muted">불러오는 중...</p>
+        <main className="pm-stage pm-stage--center pm-bootsplash" aria-busy="true">
+          <div className="pm-bootsplash__egg" aria-hidden>
+            <div className="pm-bootsplash__egg-shine" />
+          </div>
+          <p className="pm-bootsplash__label" role="status" aria-live="polite">
+            정령을 깨우는 중...
+          </p>
         </main>
       ) : null}
 
@@ -351,10 +355,19 @@ function OnboardingStage({
 
   return (
     <main className="pm-stage pm-onboard">
-      <div className="pm-onboard__progress" aria-hidden>
-        {[0, 1, 2].map((i) => (
-          <span key={i} className={`pm-dot${i <= step ? ' is-active' : ''}`} />
-        ))}
+      <div
+        className="pm-onboard__progress"
+        role="group"
+        aria-label={`온보딩 3단계 중 ${step + 1}단계`}
+      >
+        <div className="pm-onboard__dots" aria-hidden>
+          {[0, 1, 2].map((i) => (
+            <span key={i} className={`pm-dot${i <= step ? ' is-active' : ''}`} />
+          ))}
+        </div>
+        <span className="pm-onboard__count" role="status" aria-live="polite">
+          {step + 1} / 3
+        </span>
       </div>
 
       {step === 0 ? (

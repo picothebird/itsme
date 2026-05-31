@@ -3376,6 +3376,57 @@ select:focus-visible,
   }
 }
 
+/* ===== Brand boot splash (entry loading) ===== */
+.pm-bootsplash {
+  gap: 22px;
+}
+
+.pm-bootsplash__egg {
+  position: relative;
+  width: 92px;
+  height: 114px;
+  border-radius: 50% 50% 48% 48% / 60% 60% 40% 40%;
+  background: linear-gradient(160deg, #ece8ff 0%, #d9d0ff 55%, #c4b6ff 100%);
+  box-shadow:
+    0 16px 32px rgba(86, 69, 212, 0.26),
+    inset 0 -10px 22px rgba(86, 69, 212, 0.18);
+  animation: pm-boot-pulse 1.4s ease-in-out infinite;
+}
+
+.pm-bootsplash__egg-shine {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  width: 24px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  filter: blur(2px);
+}
+
+.pm-bootsplash__label {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-slate);
+}
+
+@keyframes pm-boot-pulse {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pm-bootsplash__egg {
+    animation: none;
+  }
+}
+
 /* ===== Skeleton loaders (react-vant / mobile-ui pattern) ===== */
 .pm-skel {
   display: flex;
@@ -4269,9 +4320,23 @@ select:focus-visible,
 
 .pm-onboard__progress {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 10px;
   justify-content: center;
   padding: 8px 0 4px;
+}
+
+.pm-onboard__dots {
+  display: flex;
+  gap: 6px;
+}
+
+.pm-onboard__count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-stone);
+  letter-spacing: 0.02em;
 }
 
 .pm-onboard__step {
