@@ -87,6 +87,11 @@
   /* Mobile-app aliases (panelist .pm-* components reference these) */
   --color-line: var(--color-hairline);
   --color-ink-soft: var(--color-slate);
+  /* Muted helper text (likert anchors, login legal, onboard note). Aliased to
+     --color-stone so it follows each theme's locked value instead of falling
+     back to inherited ink — which under OS dark leaked near-white (#edeff2)
+     onto the light app, making the text nearly invisible. */
+  --color-ink-muted: var(--color-stone);
   --color-primary-strong: var(--color-primary);
 
   /* Type — Pretendard for Korean+Latin consistency, with system fallbacks */
