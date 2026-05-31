@@ -13,12 +13,22 @@ import {
   Smile,
   Laugh,
   Sparkles,
+  Layers,
+  Gift,
 } from 'lucide-react'
 
-import { api, type FeedCard, type PanelistSummary, type Survey } from '../lib/api'
+import {
+  api,
+  type FeedCard,
+  type PanelistSummary,
+  type Survey,
+  type RewardItem,
+  type RewardOrder,
+} from '../lib/api'
 import { celebrate } from '../lib/celebrate'
 
 type Stage = 'deck' | 'responding' | 'complete'
+type Tab = 'deck' | 'shop'
 
 type Reward = {
   pointsAwarded: number
@@ -32,6 +42,7 @@ type Props = {
 
 export function PanelistMobile({ pid, onClose }: Props) {
   const [stage, setStage] = useState<Stage>('deck')
+  const [tab, setTab] = useState<Tab>('deck')
   const [feed, setFeed] = useState<FeedCard[]>([])
   const [me, setMe] = useState<PanelistSummary | null>(null)
   const [loading, setLoading] = useState(true)
@@ -188,7 +199,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
         </div>
       ) : null}
 
-      {stage === 'deck' ? (
+      {stage === 'deck' && tab === 'deck' ? (
         <DeckStage
           loading={loading}
           currentCard={currentCard}
@@ -199,6 +210,10 @@ export function PanelistMobile({ pid, onClose }: Props) {
           onAccept={handleAccept}
           onRefresh={loadAll}
         />
+      ) : null}
+
+      {stage === 'deck' && tab === 'shop' ? (
+        <ShopStage pid={pid} balance={me?.wallet.balance ?? null} onRedeemed={loadAll} />
       ) : null}
 
       {stage === 'responding' && responding ? (
@@ -212,6 +227,29 @@ export function PanelistMobile({ pid, onClose }: Props) {
 
       {stage === 'complete' && reward ? (
         <CompleteStage reward={reward} me={me} onContinue={continueAfterReward} />
+      ) : null}
+
+      {stage === 'deck' ? (
+        <nav className="pm-bottomnav" aria-label="메뉴">
+          <button
+            type="button"
+            className={`pm-bottomnav__item${tab === 'deck' ? ' is-active' : ''}`}
+            onClick={() => setTab('deck')}
+            aria-current={tab === 'deck' ? 'page' : undefined}
+          >
+            <Layers size={20} strokeWidth={2.2} aria-hidden="true" />
+            <span>설문</span>
+          </button>
+          <button
+            type="button"
+            className={`pm-bottomnav__item${tab === 'shop' ? ' is-active' : ''}`}
+            onClick={() => setTab('shop')}
+            aria-current={tab === 'shop' ? 'page' : undefined}
+          >
+            <Gift size={20} strokeWidth={2.2} aria-hidden="true" />
+            <span>상점</span>
+          </button>
+        </nav>
       ) : null}
 
       {confirmExit ? (
@@ -399,6 +437,163 @@ function DeckStage({
       </div>
 
       <p className="pm-hint">좌우로 스와이프해서 빠르게 탐색해요</p>
+    </main>
+  )
+}
+
+const ORDER_STATUS_LABEL: Record<string, string> = {
+  issued: '발급 완료',
+  pending: '처리 중',
+  failed: '실패',
+  refunded: '환불',
+}
+
+const generateIdempotencyKey = (): string => {
+  if (
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.randomUUID === 'function'
+  ) {
+    return `idem-${globalThis.crypto.randomUUID().replaceAll('-', '').slice(0, 24)}`
+  }
+  return `idem-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+function ShopStage({
+  pid,
+  balance,
+  onRedeemed,
+}: {
+  pid: string
+  balance: number | null
+  onRedeemed: () => void
+}) {
+  const [catalog, setCatalog] = useState<RewardItem[]>([])
+  const [orders, setOrders] = useState<RewardOrder[]>([])
+  const [busyItem, setBusyItem] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [toast, setToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const [items, recent] = await Promise.all([api.wallet.catalog(), api.wallet.orders(pid)])
+        if (cancelled) return
+        setCatalog(items)
+        setOrders(recent)
+      } catch {
+        if (!cancelled) setToast('리워드 목록을 불러오지 못했어요.')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [pid])
+
+  const sortedCatalog = useMemo(() => [...catalog].sort((a, b) => a.cost - b.cost), [catalog])
+
+  const redeem = useCallback(
+    async (item: RewardItem) => {
+      if (busyItem) return
+      if (balance != null && balance < item.cost) {
+        setToast('포인트가 부족해요.')
+        return
+      }
+      setBusyItem(item.id)
+      try {
+        const { order, idempotent } = await api.wallet.redeem({
+          pid,
+          itemId: item.id,
+          idempotencyKey: generateIdempotencyKey(),
+        })
+        setToast(idempotent ? '이미 처리된 주문이에요.' : `교환 완료 · ${order.itemLabel}`)
+        const recent = await api.wallet.orders(pid)
+        setOrders(recent)
+        onRedeemed()
+      } catch (err) {
+        setToast(err instanceof Error ? err.message : '교환에 실패했어요')
+      } finally {
+        setBusyItem(null)
+      }
+    },
+    [balance, busyItem, onRedeemed, pid],
+  )
+
+  if (loading) {
+    return (
+      <main className="pm-stage pm-stage--center">
+        <p className="pm-muted">상점을 불러오는 중...</p>
+      </main>
+    )
+  }
+
+  return (
+    <main className="pm-stage pm-shop">
+      <div className="pm-shop__balance">
+        <span className="pm-shop__balance-label">사용 가능 포인트</span>
+        <span className="pm-shop__balance-value">
+          <Gem size={16} strokeWidth={2.2} aria-hidden="true" />
+          {balance != null ? balance.toLocaleString() : '—'} P
+        </span>
+      </div>
+
+      <h2 className="pm-shop__heading">기프티콘으로 교환</h2>
+      <div className="pm-shop__grid">
+        {sortedCatalog.map((item) => {
+          const lack = balance != null && balance < item.cost
+          return (
+            <article key={item.id} className="pm-shop__card">
+              <span className="pm-shop__vendor">{item.vendor}</span>
+              <h3 className="pm-shop__label">{item.label}</h3>
+              <div className="pm-shop__footer">
+                <span className="pm-shop__cost">{item.cost.toLocaleString()} P</span>
+                <button
+                  type="button"
+                  className="pm-btn pm-btn--primary pm-btn--sm"
+                  disabled={busyItem === item.id || lack}
+                  onClick={() => void redeem(item)}
+                >
+                  {busyItem === item.id ? '교환 중…' : lack ? '포인트 부족' : '교환'}
+                </button>
+              </div>
+            </article>
+          )
+        })}
+      </div>
+
+      {orders.length > 0 ? (
+        <div className="pm-shop__orders">
+          <h2 className="pm-shop__heading">최근 교환 내역</h2>
+          <ul>
+            {orders.slice(0, 5).map((order) => (
+              <li key={order.id} className="pm-shop__order">
+                <span className={`pm-shop__order-status pm-shop__order-status--${order.status}`}>
+                  {ORDER_STATUS_LABEL[order.status] ?? order.status}
+                </span>
+                <span className="pm-shop__order-label">{order.itemLabel}</span>
+                <span className="pm-shop__order-code">{order.voucherCode ?? '—'}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {toast ? (
+        <div className="pm-toast pm-toast--shop" role="status" aria-live="polite">
+          {toast}
+          <button
+            type="button"
+            className="pm-toast__close"
+            onClick={() => setToast(null)}
+            aria-label="알림 닫기"
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
     </main>
   )
 }
