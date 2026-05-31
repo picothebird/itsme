@@ -3114,16 +3114,40 @@ select:focus-visible,
   }
 }
 
-/* Top bar */
+/* Top bar — app-shell header (brand left, balance right) */
 .pm-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px 12px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  background: var(--color-canvas);
+}
+
+.pm-topbar--progress {
   display: grid;
   grid-template-columns: 44px 1fr auto;
+}
+
+.pm-topbar__brand {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px calc(10px);
-  padding-top: calc(14px + env(safe-area-inset-top, 0px));
-  background: var(--color-canvas);
-  border-bottom: 1px solid var(--color-hairline);
+  gap: 8px;
+  min-width: 0;
+}
+
+.pm-topbar__logo {
+  display: inline-flex;
+  line-height: 0;
+}
+
+.pm-topbar__wordmark {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.5px;
+  color: var(--color-ink-strong);
 }
 
 .pm-iconbtn {
@@ -3143,6 +3167,12 @@ select:focus-visible,
     transform var(--motion-fast) ease;
 }
 
+.pm-iconbtn--tight {
+  width: 32px;
+  height: 32px;
+  margin-left: -4px;
+}
+
 .pm-iconbtn:hover {
   background: var(--color-surface-soft);
 }
@@ -3156,18 +3186,6 @@ select:focus-visible,
   align-items: center;
   justify-content: center;
   min-width: 0;
-}
-
-.pm-topbar__spacer {
-  width: 44px;
-}
-
-.pm-topbar__title {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: -0.3px;
-  color: var(--color-ink-strong);
 }
 
 .pm-balance {
@@ -3747,6 +3765,15 @@ select:focus-visible,
   color: var(--color-primary, #5645d4);
   pointer-events: none;
   animation: pm-spark 1600ms ease-in-out infinite;
+}
+
+.pm-burst__pet {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: pm-spark 1800ms ease-in-out infinite;
 }
 
 @keyframes pm-spark {
@@ -5065,18 +5092,19 @@ select:focus-visible,
   gap: 14px;
 }
 .pm-pet__hero {
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 14px;
-  padding: 18px 16px;
+  padding: 8px 16px 18px;
   border-radius: var(--radius-lg);
-  background: linear-gradient(140deg, var(--color-primary-soft), var(--color-surface-soft));
+  background: linear-gradient(165deg, var(--color-primary-soft), var(--color-surface-soft));
   border: 1px solid var(--color-hairline);
   position: relative;
+  overflow: hidden;
 }
 .pm-pet__hero.is-sick {
-  background: linear-gradient(140deg, #fdeef0, var(--color-surface-soft));
+  background: linear-gradient(165deg, #fdeef0, var(--color-surface-soft));
 }
 .pm-pet__hero.is-streaking {
   border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
@@ -5092,22 +5120,127 @@ select:focus-visible,
     box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary) 22%, transparent);
   }
 }
+/* 정령 서식지(scene) — 하늘 그라데이션 + 바닥 */
+.pm-pet__scene {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 18px 0 10px;
+  position: relative;
+}
+.pm-pet__scene::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  width: 132px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-primary) 22%, transparent),
+    transparent
+  );
+}
 .pm-pet__avatar {
   appearance: none;
   border: 0;
   cursor: pointer;
   display: grid;
   place-items: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-primary);
-  box-shadow: var(--shadow-1);
+  padding: 0;
+  background: transparent;
+  position: relative;
+  z-index: 1;
   transition: transform var(--motion-fast, 140ms) ease;
 }
 .pm-pet__avatar:active {
-  transform: scale(0.92);
+  transform: scale(0.94);
+}
+
+/* ── 정령 캐릭터 SVG 모션 ── */
+.pm-creature {
+  display: block;
+  overflow: visible;
+}
+.pm-creature--animated .pm-creature__body {
+  transform-origin: 60px 100px;
+  animation: pm-creature-bob 3s ease-in-out infinite;
+}
+@keyframes pm-creature-bob {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.015, 0.985);
+  }
+}
+.pm-creature--animated .pm-creature__shadow {
+  transform-origin: 60px 108px;
+  animation: pm-creature-shadow 3s ease-in-out infinite;
+}
+@keyframes pm-creature-shadow {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.86);
+  }
+}
+.pm-creature--animated .pm-creature__eye {
+  transform-origin: center;
+  animation: pm-creature-blink 4.5s ease-in-out infinite;
+}
+@keyframes pm-creature-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.1);
+  }
+}
+.pm-creature--animated .pm-creature__halo {
+  transform-origin: 60px 20px;
+  animation: pm-creature-halo 2.6s ease-in-out infinite;
+}
+@keyframes pm-creature-halo {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+.pm-creature--animated .pm-creature__spark {
+  transform-origin: 60px 42px;
+  animation: pm-creature-spark 2.2s ease-in-out infinite;
+}
+@keyframes pm-creature-spark {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.pm-creature--sick .pm-creature__body {
+  animation-duration: 4.5s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pm-creature--animated .pm-creature__body,
+  .pm-creature--animated .pm-creature__shadow,
+  .pm-creature--animated .pm-creature__eye,
+  .pm-creature--animated .pm-creature__halo,
+  .pm-creature--animated .pm-creature__spark {
+    animation: none;
+  }
 }
 .pm-pet__bubble {
   margin: 0;
@@ -5134,18 +5267,27 @@ select:focus-visible,
 .pm-pet__meta {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
 }
 .pm-pet__stage {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--color-surface);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-primary);
+  box-shadow: var(--shadow-1);
 }
 .pm-pet__level {
   margin: 0;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 800;
-  color: var(--color-ink);
+  letter-spacing: -0.5px;
+  color: var(--color-ink-strong);
 }
 .pm-pet__exp {
   font-size: 12.5px;
@@ -5160,7 +5302,7 @@ select:focus-visible,
   color: #d23f57;
 }
 .pm-pet__bar {
-  grid-column: 1 / -1;
+  width: 100%;
   position: relative;
   height: 20px;
   border-radius: 999px;

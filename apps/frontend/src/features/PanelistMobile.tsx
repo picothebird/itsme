@@ -32,6 +32,8 @@ import {
 } from '../lib/api'
 import { celebrate } from '../lib/celebrate'
 import { useDialogA11y } from '../lib/useDialogA11y'
+import { PetCreature } from './PetCreature'
+import { creatureStageFromLevel } from '../lib/petStage'
 
 type Stage = 'deck' | 'responding' | 'complete'
 type Tab = 'deck' | 'tasks' | 'pet' | 'shop'
@@ -265,29 +267,61 @@ export function PanelistMobile({ pid, onClose }: Props) {
       aria-modal={onClose ? 'true' : undefined}
       aria-label="패널 모바일 체험"
     >
-      <header className="pm-topbar">
-        {stage === 'responding' || onClose ? (
-          <button
-            type="button"
-            className="pm-iconbtn"
-            onClick={stage === 'responding' ? () => setConfirmExit(true) : onClose}
-            aria-label={stage === 'responding' ? '응답 닫기' : '체험 종료'}
-          >
-            <X size={22} strokeWidth={2.2} aria-hidden="true" />
-          </button>
+      <header className={`pm-topbar${stage === 'responding' ? ' pm-topbar--progress' : ''}`}>
+        {stage === 'responding' ? (
+          <>
+            <button
+              type="button"
+              className="pm-iconbtn"
+              onClick={() => setConfirmExit(true)}
+              aria-label="응답 닫기"
+            >
+              <X size={22} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+            <div className="pm-topbar__center">
+              {responding ? (
+                <ProgressDots
+                  total={responding.survey.questions.length}
+                  current={responding.questionIndex}
+                />
+              ) : null}
+            </div>
+          </>
         ) : (
-          <div className="pm-topbar__spacer" aria-hidden />
+          <div className="pm-topbar__brand">
+            {onClose ? (
+              <button
+                type="button"
+                className="pm-iconbtn pm-iconbtn--tight"
+                onClick={onClose}
+                aria-label="체험 종료"
+              >
+                <X size={20} strokeWidth={2.2} aria-hidden="true" />
+              </button>
+            ) : null}
+            <span className="pm-topbar__logo" aria-hidden="true">
+              <svg viewBox="0 0 28 28" width="26" height="26">
+                <defs>
+                  <linearGradient id="pm-logo-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#9C8CFF" />
+                    <stop offset="1" stopColor="#6D5BE0" />
+                  </linearGradient>
+                </defs>
+                <rect x="1" y="1" width="26" height="26" rx="9" fill="url(#pm-logo-grad)" />
+                <circle cx="11" cy="13" r="2.4" fill="#fff" />
+                <circle cx="18" cy="13" r="2.4" fill="#fff" />
+                <path
+                  d="M10.5 18.5q3.5 3 7 0"
+                  stroke="#fff"
+                  strokeWidth="1.8"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+            <span className="pm-topbar__wordmark">itsme</span>
+          </div>
         )}
-        <div className="pm-topbar__center">
-          {stage === 'responding' && responding ? (
-            <ProgressDots
-              total={responding.survey.questions.length}
-              current={responding.questionIndex}
-            />
-          ) : (
-            <span className="pm-topbar__title">잇츠미</span>
-          )}
-        </div>
         <div className="pm-balance" aria-label="현재 포인트">
           <Gem className="pm-balance__icon" size={15} strokeWidth={2.2} aria-hidden="true" />
           <span className="pm-balance__value" aria-live="polite" aria-atomic="true">
@@ -891,14 +925,20 @@ function PetStage({
       <section
         className={`pm-pet__hero${pet?.sick ? ' is-sick' : ''}${streak >= 3 ? ' is-streaking' : ''}`}
       >
-        <button
-          type="button"
-          className="pm-pet__avatar"
-          onClick={touchPet}
-          aria-label="정령 쓰다듬기"
-        >
-          <Sprout size={44} strokeWidth={1.8} aria-hidden="true" />
-        </button>
+        <div className="pm-pet__scene">
+          <button
+            type="button"
+            className="pm-pet__avatar"
+            onClick={touchPet}
+            aria-label="정령 쓰다듬기"
+          >
+            <PetCreature
+              stage={creatureStageFromLevel(pet?.level ?? 1)}
+              mood={pet?.sick ? 'sick' : 'happy'}
+              size={132}
+            />
+          </button>
+        </div>
         <div className="pm-pet__meta">
           <span className="pm-pet__stage">{pet?.evolutionStage ?? '알 단계'}</span>
           <h2 className="pm-pet__level">Lv.{pet?.level ?? 1}</h2>
@@ -1336,7 +1376,12 @@ function CompleteStage({
         <div className="pm-burst" aria-hidden>
           <div className="pm-burst__ring" />
           <div className="pm-burst__ring pm-burst__ring--2" />
-          <Sparkles className="pm-burst__spark" size={30} aria-hidden="true" />
+          <PetCreature
+            className="pm-burst__pet"
+            stage={creatureStageFromLevel(reward.pet.level)}
+            size={64}
+            animated={false}
+          />
         </div>
         <p className="pm-celebrate__eyebrow">응답을 완료했어요</p>
         <p className="pm-celebrate__points">
