@@ -754,6 +754,18 @@ const APP_NEXT: Record<ApplicationStatus, ApplicationStatus[]> = {
   paid: [],
 }
 
+// Linear happy-path used to render the progress stepper (rejected is off-path).
+const APP_STATUS_FLOW: ApplicationStatus[] = [
+  'applied',
+  'screening',
+  'review',
+  'selected',
+  'scheduled',
+  'in_session',
+  'completed',
+  'paid',
+]
+
 type ResearchPageProps = {
   onLog: (m: string) => void
   onToast: (m: string, kind?: Toast['kind']) => void
@@ -764,6 +776,7 @@ function ResearchPage({ onLog, onToast }: ResearchPageProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [applicants, setApplicants] = useState<Application[]>([])
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const loadedRef = useRef(false)
 
   const loadApplicants = useCallback(
@@ -800,10 +813,16 @@ function ResearchPage({ onLog, onToast }: ResearchPageProps) {
   const selectStudy = useCallback(
     (studyId: string) => {
       setSelectedId(studyId)
+      setExpandedId(null)
       void loadApplicants(studyId)
     },
     [loadApplicants],
   )
+
+  const closeStudy = useCallback(() => {
+    setSelectedId(null)
+    setExpandedId(null)
+  }, [])
 
   const selectedStudy = useMemo(
     () => studies.find((s) => s.id === selectedId) ?? null,
@@ -820,6 +839,9 @@ function ResearchPage({ onLog, onToast }: ResearchPageProps) {
   const transition = useCallback(
     async (application: Application, to: ApplicationStatus) => {
       if (!selectedId) return
+      if (to === 'rejected' && !window.confirm(`${application.pid} 신청자를 미선정 처리할까요?`)) {
+        return
+      }
       setBusyId(application.id)
       try {
         await api.research.transition(application.id, { to })
@@ -873,9 +895,14 @@ function ResearchPage({ onLog, onToast }: ResearchPageProps) {
         <section className="card" aria-label="신청자 관리">
           <div className="card__head">
             <h3>{selectedStudy.title} · 신청자</h3>
-            <span className="card__count">
-              {counts.total}명 신청 · {counts.selected}명 선정
-            </span>
+            <div className="rs-app__headtools">
+              <span className="card__count">
+                {counts.total}명 신청 · {counts.selected}명 선정
+              </span>
+              <button type="button" className="btn btn--sm btn--ghost" onClick={closeStudy}>
+                닫기
+              </button>
+            </div>
           </div>
 
           {applicants.length === 0 ? (
@@ -885,6 +912,9 @@ function ResearchPage({ onLog, onToast }: ResearchPageProps) {
               {applicants.map((app) => {
                 const tone = APP_STATUS_TONE[app.status]
                 const nexts = APP_NEXT[app.status]
+                const stepIndex = APP_STATUS_FLOW.indexOf(app.status)
+                const isRejected = app.status === 'rejected'
+                const isExpanded = expandedId === app.id
                 return (
                   <article key={app.id} className="rs-app">
                     <div className="rs-app__main">
@@ -893,8 +923,34 @@ function ResearchPage({ onLog, onToast }: ResearchPageProps) {
                         {APP_STATUS_LABEL[app.status]}
                       </span>
                     </div>
+                    {isRejected ? (
+                      <p className="rs-app__rejected">미선정 처리된 신청자예요.</p>
+                    ) : (
+                      <ol className="rs-stepper" aria-label="진행 단계">
+                        {APP_STATUS_FLOW.map((step, idx) => (
+                          <li
+                            key={step}
+                            className={`rs-stepper__step${
+                              idx < stepIndex ? ' is-done' : idx === stepIndex ? ' is-current' : ''
+                            }`}
+                            title={APP_STATUS_LABEL[step]}
+                          >
+                            <span className="rs-stepper__dot" aria-hidden="true" />
+                          </li>
+                        ))}
+                      </ol>
+                    )}
                     <div className="rs-app__meta">
-                      <span>응답 {app.screenerAnswers.length}개</span>
+                      <button
+                        type="button"
+                        className="rs-app__answers-toggle"
+                        onClick={() => setExpandedId(isExpanded ? null : app.id)}
+                        aria-expanded={isExpanded}
+                        disabled={app.screenerAnswers.length === 0}
+                      >
+                        응답 {app.screenerAnswers.length}개
+                        {app.screenerAnswers.length > 0 ? (isExpanded ? ' 접기' : ' 보기') : ''}
+                      </button>
                       <span>·</span>
                       <span>이력 {app.history.length}단계</span>
                       {app.scheduledAt ? (
@@ -904,6 +960,16 @@ function ResearchPage({ onLog, onToast }: ResearchPageProps) {
                         </>
                       ) : null}
                     </div>
+                    {isExpanded && app.screenerAnswers.length > 0 ? (
+                      <dl className="rs-app__answers">
+                        {app.screenerAnswers.map((qa, idx) => (
+                          <div key={`${qa.questionId}-${idx}`} className="rs-app__answer">
+                            <dt>{qa.questionId}</dt>
+                            <dd>{qa.answer}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    ) : null}
                     {nexts.length > 0 ? (
                       <div className="rs-app__actions">
                         {nexts.map((to) => (

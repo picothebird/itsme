@@ -284,7 +284,10 @@ export function DashboardOverview({ surveys, onLog, view = 'full' }: Props) {
               <div className="sem-card">
                 <div className="card__head">
                   <h3>유사·중복 점검</h3>
-                  <span className="card__count">
+                  <span
+                    className="card__count"
+                    title="유사도 18% 이상이면 비슷한 설문, 문항 유사도 82% 이상이면 중복 의심으로 표시해요."
+                  >
                     유사 {similar.length} · 중복 {duplicates.length}
                   </span>
                 </div>
@@ -297,8 +300,16 @@ export function DashboardOverview({ surveys, onLog, view = 'full' }: Props) {
                       <ul className="sem-list">
                         {similar.map((n) => (
                           <li key={n.surveyId} className="sem-item">
-                            <span className="sem-item__title">{n.title}</span>
-                            <span className="sem-item__score">{Math.round(n.score * 100)}%</span>
+                            <div className="sem-item__head">
+                              <span className="sem-item__title">{n.title}</span>
+                              <span className="sem-item__score">{Math.round(n.score * 100)}%</span>
+                            </div>
+                            <div className="sem-item__bar" aria-hidden="true">
+                              <div
+                                className="sem-item__bar-fill"
+                                style={{ width: `${Math.round(n.score * 100)}%` }}
+                              />
+                            </div>
                           </li>
                         ))}
                       </ul>
@@ -312,13 +323,20 @@ export function DashboardOverview({ surveys, onLog, view = 'full' }: Props) {
                       <ul className="sem-list">
                         {duplicates.map((d, i) => (
                           <li key={`${d.a.index}-${d.b.index}-${i}`} className="sem-dup">
-                            <span className="sem-dup__score">{Math.round(d.score * 100)}%</span>
-                            <span className="sem-dup__pair">
-                              Q{d.a.index + 1} ↔ Q{d.b.index + 1}
-                            </span>
-                            <span className="sem-dup__text">
-                              {d.a.text} / {d.b.text}
-                            </span>
+                            <div className="sem-dup__head">
+                              <span className="sem-dup__pair">
+                                Q{d.a.index + 1} ↔ Q{d.b.index + 1}
+                              </span>
+                              <span className="sem-dup__score">{Math.round(d.score * 100)}%</span>
+                            </div>
+                            <p className="sem-dup__line">
+                              <span className="sem-dup__qno">Q{d.a.index + 1}</span>
+                              {d.a.text}
+                            </p>
+                            <p className="sem-dup__line">
+                              <span className="sem-dup__qno">Q{d.b.index + 1}</span>
+                              {d.b.text}
+                            </p>
                           </li>
                         ))}
                       </ul>
