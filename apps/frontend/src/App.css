@@ -3131,6 +3131,16 @@ select:focus-visible,
   --pm-glass-shadow: 0 8px 30px rgba(31, 28, 56, 0.1);
   --pm-glass-hi: inset 0 1px 0 rgba(255, 255, 255, 0.65);
   --pm-glass-tint: rgba(86, 69, 212, 0.1);
+
+  /* ───── Standard material (content layer — crisp, opaque, no blur) ─────
+     HIG: 콘텐츠 레이어는 글래스가 아니라 선명한 머티리얼. 캔버스에서 또렷이
+     떠 보이도록 흰 표면 + 얇은 경계 + 부드러운 레이어드 그림자. */
+  --pm-card-bg: #ffffff;
+  --pm-card-border: rgba(17, 17, 40, 0.07);
+  --pm-card-shadow: 0 1px 2px rgba(31, 28, 56, 0.05), 0 12px 26px -18px rgba(31, 28, 56, 0.22);
+  --pm-card-shadow-hover:
+    0 2px 4px rgba(31, 28, 56, 0.07), 0 18px 34px -16px rgba(31, 28, 56, 0.28);
+  --pm-card-hi: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 /* ───── Dark theme (user opt-in via settings) ─────
@@ -3203,6 +3213,13 @@ select:focus-visible,
   --pm-glass-shadow: 0 10px 36px rgba(0, 0, 0, 0.45);
   --pm-glass-hi: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --pm-glass-tint: rgba(143, 128, 255, 0.2);
+
+  /* ───── Standard material (dark content layer) ───── */
+  --pm-card-bg: #20232b;
+  --pm-card-border: rgba(255, 255, 255, 0.08);
+  --pm-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 30px -20px rgba(0, 0, 0, 0.6);
+  --pm-card-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 20px 38px -18px rgba(0, 0, 0, 0.7);
+  --pm-card-hi: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /* 데스크톱 프레임: 다크 모드에서는 주변 배경을 더 깊게. */
@@ -3668,11 +3685,9 @@ select:focus-visible,
 
 .pm-chat__chip {
   flex: none;
-  border: 1px solid var(--pm-glass-border);
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  border: 1px solid var(--pm-card-border);
+  background: var(--pm-card-bg);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
   color: var(--color-ink);
   border-radius: 999px;
   padding: 9px 15px;
@@ -4387,12 +4402,10 @@ select:focus-visible,
   align-items: center;
   gap: 14px;
   padding: 18px 18px;
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  border: 1px solid var(--pm-glass-border);
+  background: var(--pm-card-bg);
+  border: 1px solid var(--pm-card-border);
   border-radius: 18px;
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
   font-size: 16px;
   font-weight: 500;
   color: var(--color-ink);
@@ -4422,7 +4435,7 @@ select:focus-visible,
   color: var(--color-primary);
   box-shadow:
     0 8px 26px var(--color-primary-soft),
-    var(--pm-glass-hi);
+    var(--pm-card-hi);
 }
 
 .pm-choice__bullet {
@@ -4473,12 +4486,10 @@ select:focus-visible,
   width: 100%;
   min-height: 140px;
   padding: 16px;
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  border: 1px solid var(--pm-glass-border);
+  background: var(--pm-card-bg);
+  border: 1px solid var(--pm-card-border);
   border-radius: 18px;
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
   font-size: 16px;
   line-height: 1.6;
   color: var(--color-ink);
@@ -5149,11 +5160,9 @@ select:focus-visible,
 }
 .pm-likert__dot {
   appearance: none;
-  border: 1px solid var(--pm-glass-border);
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  border: 1px solid var(--pm-card-border);
+  background: var(--pm-card-bg);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
   border-radius: 16px;
   aspect-ratio: 1 / 1;
   min-width: 52px;
@@ -5192,12 +5201,12 @@ select:focus-visible,
   color: #2f9e44;
 }
 .pm-likert__dot.is-selected {
-  border-color: currentColor;
-  background: color-mix(in srgb, currentColor 18%, var(--pm-glass-bg));
-  transform: scale(1.06);
+  border: 2px solid currentColor;
+  background: color-mix(in srgb, currentColor 20%, var(--pm-card-bg));
+  transform: scale(1.08);
   box-shadow:
-    0 8px 22px color-mix(in srgb, currentColor 30%, transparent),
-    var(--pm-glass-hi);
+    0 10px 24px color-mix(in srgb, currentColor 38%, transparent),
+    var(--pm-card-hi);
 }
 .pm-likert__anchors {
   display: grid;
@@ -5301,11 +5310,9 @@ select:focus-visible,
   padding: 14px;
   margin-bottom: 14px;
   border-radius: 16px;
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  border: 1px solid var(--pm-glass-border);
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  background: var(--pm-card-bg);
+  border: 1px solid var(--pm-card-border);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
 }
 .pm-settings__avatar {
   flex: none;
@@ -6061,12 +6068,10 @@ select:focus-visible,
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border: 1px solid var(--pm-glass-border);
+  border: 1px solid var(--pm-card-border);
   border-radius: var(--radius-lg);
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  background: var(--pm-card-bg);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
 }
 .pm-task-card__icon {
   flex: none;
@@ -6109,12 +6114,10 @@ select:focus-visible,
   flex-direction: column;
   gap: 4px;
   padding: 12px 14px;
-  border: 1px solid var(--pm-glass-border);
+  border: 1px solid var(--pm-card-border);
   border-radius: var(--radius-md);
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  background: var(--pm-card-bg);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
 }
 .pm-app-card__head {
   display: flex;
@@ -6168,12 +6171,10 @@ select:focus-visible,
   flex-direction: column;
   gap: 6px;
   padding: 14px;
-  border: 1px solid var(--pm-glass-border);
+  border: 1px solid var(--pm-card-border);
   border-radius: var(--radius-lg);
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  background: var(--pm-card-bg);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
 }
 .pm-study-card__type {
   align-self: flex-start;
@@ -6427,15 +6428,13 @@ select:focus-visible,
 .pm-pet__bubble {
   margin: 0;
   padding: 10px 14px;
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  border: 1px solid var(--pm-glass-border);
+  background: var(--pm-card-bg);
+  border: 1px solid var(--pm-card-border);
   border-radius: 12px;
   font-size: 13px;
   font-weight: 600;
   color: var(--color-ink);
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
   animation: pm-pet-bubble-in var(--motion-fast, 160ms) ease;
 }
 @keyframes pm-pet-bubble-in {
@@ -6460,14 +6459,12 @@ select:focus-visible,
   align-items: center;
   padding: 3px 10px;
   border-radius: 999px;
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  border: 1px solid var(--pm-glass-border);
+  background: var(--pm-card-bg);
+  border: 1px solid var(--pm-card-border);
   font-size: 12px;
   font-weight: 700;
   color: var(--color-primary);
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
 }
 .pm-pet__level {
   margin: 0;
@@ -6560,12 +6557,10 @@ select:focus-visible,
   justify-content: space-between;
   gap: 10px;
   padding: 12px 14px;
-  border: 1px solid var(--pm-glass-border);
+  border: 1px solid var(--pm-card-border);
   border-radius: var(--radius-md);
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  background: var(--pm-card-bg);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
 }
 .pm-pet__piece-info {
   display: flex;
@@ -6617,20 +6612,16 @@ select:focus-visible,
   flex-direction: column;
   gap: 6px;
   padding: 14px;
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  border: 1px solid var(--pm-glass-border);
+  background: var(--pm-card-bg);
+  border: 1px solid var(--pm-card-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--pm-glass-shadow), var(--pm-glass-hi);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
   transition:
     box-shadow var(--motion-fast) ease,
     transform var(--motion-fast) ease;
 }
 .pm-shop__card:hover {
-  box-shadow:
-    0 12px 28px -12px rgba(15, 17, 21, 0.32),
-    var(--pm-glass-hi);
+  box-shadow: var(--pm-card-shadow-hover), var(--pm-card-hi);
   transform: translateY(-1px);
 }
 .pm-shop__vendor {
@@ -6686,11 +6677,10 @@ select:focus-visible,
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: var(--pm-glass-bg);
-  backdrop-filter: var(--pm-glass-blur);
-  -webkit-backdrop-filter: var(--pm-glass-blur);
-  border: 1px solid var(--pm-glass-border);
+  background: var(--pm-card-bg);
+  border: 1px solid var(--pm-card-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--pm-card-shadow), var(--pm-card-hi);
 }
 .pm-shop__order-status {
   font-size: 11px;
