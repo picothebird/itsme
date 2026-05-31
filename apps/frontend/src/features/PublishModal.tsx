@@ -3,6 +3,7 @@ import { X as XIcon } from 'lucide-react'
 
 import { api, type ReachEstimate, type Targeting } from '../lib/api'
 import { InfoDot } from '../components/ui/Tooltip'
+import { useDialogA11y } from '../lib/useDialogA11y'
 
 type Props = {
   open: boolean
@@ -46,6 +47,8 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
   const [estimating, setEstimating] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const panelRef = useDialogA11y<HTMLDivElement>(open, onClose)
 
   useEffect(() => {
     if (!open) return
@@ -109,7 +112,7 @@ export function PublishModal({ open, surveyTitle, questionCount, onClose, onConf
   return (
     <div className="modal" role="dialog" aria-modal="true" aria-labelledby="publish-modal-title">
       <div className="modal__backdrop" onClick={onClose} />
-      <div className="modal__panel">
+      <div className="modal__panel" ref={panelRef} tabIndex={-1}>
         <div className="sheet-handle" aria-hidden="true" />
         <header className="modal__head">
           <h3 id="publish-modal-title">발행 설정 · {surveyTitle}</h3>

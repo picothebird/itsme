@@ -33,6 +33,7 @@ import {
   type ApplicationStatus,
 } from '../lib/api'
 import { celebrate } from '../lib/celebrate'
+import { useDialogA11y } from '../lib/useDialogA11y'
 
 type Stage = 'deck' | 'responding' | 'complete'
 type Tab = 'deck' | 'tasks' | 'pet' | 'shop'
@@ -246,6 +247,13 @@ export function PanelistMobile({ pid, onClose }: Props) {
     return () => window.clearInterval(id)
   }, [blockedUntil])
 
+  // §바텀시트 다이얼로그 접근성(Escape·포커스 트랩·포커스 복원)
+  const exitSheetRef = useDialogA11y<HTMLDivElement>(confirmExit, () => setConfirmExit(false))
+  const blockSheetRef = useDialogA11y<HTMLDivElement>(
+    blockedUntil !== null && cooldownLeft > 0,
+    () => setBlockedUntil(null),
+  )
+
   return (
     <div
       className={`pm-root${onClose ? '' : ' pm-root--standalone'}`}
@@ -396,7 +404,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
       {confirmExit ? (
         <div className="pm-sheet" role="dialog" aria-modal="true" aria-label="응답 중단 확인">
           <div className="pm-sheet__scrim" onClick={() => setConfirmExit(false)} aria-hidden />
-          <div className="pm-sheet__panel">
+          <div className="pm-sheet__panel" ref={exitSheetRef} tabIndex={-1}>
             <h3 className="pm-sheet__title">응답을 중단할까요?</h3>
             <p className="pm-sheet__body">
               지금 나가면 작성 중이던 답변은 저장되지 않아요. 마저 응답하면 포인트를 받을 수 있어요.
@@ -424,7 +432,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
       {blockedUntil !== null && cooldownLeft > 0 ? (
         <div className="pm-sheet" role="dialog" aria-modal="true" aria-label="응답 차단 안내">
           <div className="pm-sheet__scrim" aria-hidden />
-          <div className="pm-sheet__panel">
+          <div className="pm-sheet__panel" ref={blockSheetRef} tabIndex={-1}>
             <h3 className="pm-sheet__title">잠깐 쉬어 갈까요?</h3>
             <p className="pm-sheet__body">
               빠른 연속 응답이 감지돼 잠시 응답이 제한됐어요. 정령도 함께 쉬고 있어요. 잠시 후 다시

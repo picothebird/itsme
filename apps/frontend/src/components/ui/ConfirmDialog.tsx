@@ -9,6 +9,8 @@ import {
 } from 'react'
 import { AlertTriangle, X as XIcon } from 'lucide-react'
 
+import { useDialogA11y } from '../../lib/useDialogA11y'
+
 type ConfirmOptions = {
   title: string
   message?: string
@@ -45,6 +47,8 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => confirm, [confirm])
 
+  const panelRef = useDialogA11y<HTMLDivElement>(!!options, () => settle(false))
+
   return (
     <ConfirmContext.Provider value={value}>
       {children}
@@ -56,7 +60,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           aria-labelledby="confirm-title"
         >
           <div className="modal__backdrop" onClick={() => settle(false)} />
-          <div className="modal__panel modal__panel--confirm">
+          <div className="modal__panel modal__panel--confirm" ref={panelRef} tabIndex={-1}>
             <header className="modal__head">
               <h3 id="confirm-title" className="confirm__title">
                 {options.danger ? (
