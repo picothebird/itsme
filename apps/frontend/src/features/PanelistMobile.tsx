@@ -233,6 +233,13 @@ export function PanelistMobile({ pid, onClose }: Props) {
     setStage('deck')
   }, [])
 
+  // §에러 토스트 자동 해제(6초) — 일시적 오류가 상단을 영구히 가리지 않도록(경고 토스트는 흐름상 유지)
+  useEffect(() => {
+    if (!error) return
+    const id = window.setTimeout(() => setError(null), 6000)
+    return () => window.clearTimeout(id)
+  }, [error])
+
   // §어뷰징 차단 쿨다운 카운트다운 (1초 틱, 종료 시 자동 해제)
   const [cooldownLeft, setCooldownLeft] = useState(0)
   useEffect(() => {
