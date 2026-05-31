@@ -44,6 +44,20 @@
   --color-warning-soft: rgba(221, 91, 0, 0.12);
   --color-danger-soft: rgba(224, 49, 49, 0.1);
 
+  /* Status tone — shared by panelist + researcher application/status badges.
+     wait = neutral/pending · go = in-progress/positive · stop = rejected · done = complete */
+  --tone-wait-fg: var(--color-steel);
+  --tone-wait-bg: var(--color-surface-sunk);
+  --tone-go-fg: var(--color-primary);
+  --tone-go-bg: var(--color-primary-soft);
+  --tone-stop-fg: #d23f57;
+  --tone-stop-bg: #fdeef0;
+  --tone-done-fg: var(--color-success);
+  --tone-done-bg: var(--color-success-soft);
+  --tone-warn-fg: #b8860b;
+  --tone-warn-bg: #fff8e8;
+  --tone-warn-line: #fbe3a8;
+
   /* Aliases — older sections reference these names; keep them in sync */
   --color-border: var(--color-hairline);
   --color-text: var(--color-ink);

@@ -524,6 +524,18 @@ const APP_STATUS_TONE: Record<ApplicationStatus, 'wait' | 'go' | 'stop' | 'done'
   paid: 'done',
 }
 
+const APP_STATUS_HINT: Record<ApplicationStatus, string> = {
+  applied: '신청이 접수됐어요. 검토 결과를 기다려 주세요.',
+  screening: '스크리닝을 진행하고 있어요. 추가 질문이 올 수 있어요.',
+  review: '연구팀이 신청서를 검토하고 있어요.',
+  selected: '선정됐어요! 일정 조율 안내를 기다려 주세요.',
+  rejected: '이번에는 선정되지 않았어요. 다음 리서치에 다시 신청할 수 있어요.',
+  scheduled: '일정이 확정됐어요. 세션 준비를 해주세요.',
+  in_session: '세션이 진행 중이에요.',
+  completed: '참여가 끝났어요. 보상 지급을 준비하고 있어요.',
+  paid: '보상이 지급됐어요. 감사합니다!',
+}
+
 const generateIdempotencyKey = (): string => {
   if (
     typeof globalThis.crypto !== 'undefined' &&
@@ -611,7 +623,7 @@ function TasksStage({
 
   return (
     <main className="pm-stage pm-tasks">
-      <h2 className="pm-shop__heading">오늘의 참여</h2>
+      <h2 className="pm-section-title">오늘의 빠른 설문</h2>
       <article className="pm-task-card">
         <div className="pm-task-card__icon" aria-hidden>
           <Layers size={22} strokeWidth={2.2} />
@@ -622,17 +634,17 @@ function TasksStage({
         </div>
         <button
           type="button"
-          className="pm-btn pm-btn--primary pm-btn--sm"
+          className="pm-btn pm-btn--ghost pm-btn--sm"
           onClick={onGoDeck}
           disabled={available === 0}
         >
-          {available === 0 ? '완료' : '참여'}
+          {available === 0 ? '완료' : '바로가기'}
         </button>
       </article>
 
       {applications.length > 0 ? (
         <>
-          <h2 className="pm-shop__heading">내 신청 현황</h2>
+          <h2 className="pm-section-title">내 신청 현황</h2>
           <ul className="pm-app-list">
             {applications.map((app) => (
               <li key={app.id} className="pm-app-card">
@@ -649,17 +661,18 @@ function TasksStage({
                     ? ` · 일정 ${new Date(app.scheduledAt).toLocaleDateString('ko-KR')}`
                     : ''}
                 </p>
+                <p className="pm-app-card__hint">{APP_STATUS_HINT[app.status]}</p>
               </li>
             ))}
           </ul>
         </>
       ) : null}
 
-      <h2 className="pm-shop__heading">신청 가능한 리서치</h2>
+      <h2 className="pm-section-title">신청 가능한 리서치</h2>
       {loading ? (
         <p className="pm-muted">리서치를 불러오는 중...</p>
       ) : openStudies.length === 0 ? (
-        <div className="pm-pet__empty">
+        <div className="pm-emptybox">
           <ClipboardList size={28} strokeWidth={1.8} aria-hidden="true" />
           <p>지금 신청할 수 있는 리서치가 없어요. 새로운 리서치가 곧 열려요.</p>
         </div>
@@ -794,11 +807,11 @@ function PetStage({
         <span>대기 {pending.length}개</span>
       </div>
 
-      <h2 className="pm-shop__heading">데이터 조각 먹이기</h2>
+      <h2 className="pm-section-title">데이터 조각 먹이기</h2>
       {loading ? (
         <p className="pm-muted">데이터 조각을 불러오는 중...</p>
       ) : pending.length === 0 ? (
-        <div className="pm-pet__empty">
+        <div className="pm-emptybox">
           <Sparkles size={28} strokeWidth={1.8} aria-hidden="true" />
           <p>설문에 응답하면 데이터 조각이 쌓여요. 모아서 정령에게 먹여주세요.</p>
         </div>

@@ -4832,9 +4832,6 @@ select:focus-visible,
   border-radius: var(--radius-lg);
   background: var(--color-surface);
 }
-.pm-task-card--soon {
-  background: var(--color-surface-soft);
-}
 .pm-task-card__icon {
   flex: none;
   display: grid;
@@ -4860,15 +4857,6 @@ select:focus-visible,
   font-size: 12.5px;
   line-height: 1.5;
   color: var(--color-steel);
-}
-.pm-task-card__badge {
-  flex: none;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-steel);
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--color-surface-sunk);
 }
 
 /* Application + study cards (참여 탭) */
@@ -4905,6 +4893,14 @@ select:focus-visible,
   font-size: 12px;
   color: var(--color-steel);
 }
+.pm-app-card__hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+  padding-top: 8px;
+  border-top: 1px solid var(--color-hairline);
+}
 .pm-app-status {
   flex: none;
   font-size: 11px;
@@ -4913,20 +4909,20 @@ select:focus-visible,
   border-radius: 999px;
 }
 .pm-app-status--wait {
-  color: var(--color-steel);
-  background: var(--color-surface-sunk);
+  color: var(--tone-wait-fg);
+  background: var(--tone-wait-bg);
 }
 .pm-app-status--go {
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
+  color: var(--tone-go-fg);
+  background: var(--tone-go-bg);
 }
 .pm-app-status--stop {
-  color: #d23f57;
-  background: #fdeef0;
+  color: var(--tone-stop-fg);
+  background: var(--tone-stop-bg);
 }
 .pm-app-status--done {
-  color: var(--color-success);
-  background: rgba(26, 174, 57, 0.1);
+  color: var(--tone-done-fg);
+  background: var(--tone-done-bg);
 }
 .pm-study-card {
   display: flex;
@@ -5058,7 +5054,14 @@ select:focus-visible,
   font-size: 12.5px;
   color: var(--color-steel);
 }
-.pm-pet__empty {
+/* Shared section heading + empty state for all panelist tabs */
+.pm-section-title {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.pm-emptybox {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -5069,7 +5072,7 @@ select:focus-visible,
   border-radius: var(--radius-lg);
   color: var(--color-steel);
 }
-.pm-pet__empty p {
+.pm-emptybox p {
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
@@ -5306,20 +5309,20 @@ select:focus-visible,
   border-radius: 999px;
 }
 .rs-app__status--wait {
-  color: var(--color-steel);
-  background: var(--color-surface-sunk);
+  color: var(--tone-wait-fg);
+  background: var(--tone-wait-bg);
 }
 .rs-app__status--go {
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
+  color: var(--tone-go-fg);
+  background: var(--tone-go-bg);
 }
 .rs-app__status--stop {
-  color: #d23f57;
-  background: #fdeef0;
+  color: var(--tone-stop-fg);
+  background: var(--tone-stop-bg);
 }
 .rs-app__status--done {
-  color: var(--color-success);
-  background: rgba(26, 174, 57, 0.1);
+  color: var(--tone-done-fg);
+  background: var(--tone-done-bg);
 }
 .rs-app__meta {
   display: flex;
@@ -5402,14 +5405,14 @@ select:focus-visible,
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  border: 1px solid #fbe3a8;
+  border: 1px solid var(--tone-warn-line);
   border-radius: var(--radius-md);
-  background: #fff8e8;
+  background: var(--tone-warn-bg);
 }
 .sem-dup__score {
   font-size: 12px;
   font-weight: 700;
-  color: #b8860b;
+  color: var(--tone-warn-fg);
 }
 .sem-dup__pair {
   font-size: 12px;
