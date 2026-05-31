@@ -3072,6 +3072,17 @@ select:focus-visible,
   --color-primary-strong: #5645d4;
   --color-accent-blue: #3182f6;
 
+  /* Two-track reward (성장 EXP × 재화 P) — light */
+  --pm-track-grow: #5645d4;
+  --pm-track-grow-surface: #f4f2ff;
+  --pm-track-grow-line: #e3defb;
+  --pm-track-spend: #2f6fe0;
+  --pm-track-spend-surface: #eef5ff;
+  --pm-track-spend-line: #d6e6ff;
+  --pm-streak-fg: #b45309;
+  --pm-streak-bg: #fff3df;
+  --pm-streak-icon: #f97316;
+
   --color-canvas: #ffffff;
   --color-surface: #ffffff;
   --color-surface-soft: #f7f8fa;
@@ -3174,6 +3185,17 @@ select:focus-visible,
   --color-primary-soft: rgba(143, 128, 255, 0.18);
   --color-primary-strong: #a99dff;
   --color-accent-blue: #6aa6ff;
+
+  /* Two-track reward (성장 EXP × 재화 P) — dark */
+  --pm-track-grow: #a99dff;
+  --pm-track-grow-surface: rgba(143, 128, 255, 0.14);
+  --pm-track-grow-line: rgba(143, 128, 255, 0.3);
+  --pm-track-spend: #6aa6ff;
+  --pm-track-spend-surface: rgba(106, 166, 255, 0.13);
+  --pm-track-spend-line: rgba(106, 166, 255, 0.28);
+  --pm-streak-fg: #f4c66b;
+  --pm-streak-bg: rgba(249, 115, 22, 0.16);
+  --pm-streak-icon: #fb923c;
 
   --color-canvas: #14161b;
   --color-surface: #1c1f26;
@@ -4767,6 +4789,136 @@ select:focus-visible,
   font-variant-numeric: tabular-nums;
   word-break: keep-all;
   text-align: center;
+}
+
+/* ===== Two-track reward card (성장 EXP × 재화 P) ===== */
+.pm-reward-tracks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  margin: 16px 0 18px;
+}
+
+.pm-track {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 16px 14px;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  background: var(--pm-track-surface);
+  text-align: left;
+}
+
+.pm-track--grow {
+  --pm-track-accent: var(--pm-track-grow);
+  --pm-track-surface: var(--pm-track-grow-surface);
+  border-color: var(--pm-track-grow-line);
+}
+
+.pm-track--spend {
+  --pm-track-accent: var(--pm-track-spend);
+  --pm-track-surface: var(--pm-track-spend-surface);
+  border-color: var(--pm-track-spend-line);
+}
+
+.pm-track__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pm-track__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  color: #fff;
+  background: var(--pm-track-accent);
+  flex: none;
+}
+
+.pm-track__label {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--color-ink-strong);
+}
+
+.pm-track__delta {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  line-height: 1;
+  color: var(--pm-track-accent);
+  font-variant-numeric: tabular-nums;
+  animation: pm-pop 560ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.pm-track__bar {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--pm-track-accent) 16%, transparent);
+}
+
+.pm-track__bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pm-track-accent);
+}
+
+.pm-track__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.pm-track__foot--single {
+  justify-content: flex-start;
+}
+
+.pm-track__levelup {
+  color: var(--pm-track-accent);
+  font-weight: 800;
+}
+
+.pm-streak-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 20px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--pm-streak-fg);
+  background: var(--pm-streak-bg);
+}
+
+.pm-streak-chip svg {
+  color: var(--pm-streak-icon);
+}
+
+.pm-streak-chip strong {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .pm-celebrate__actions {

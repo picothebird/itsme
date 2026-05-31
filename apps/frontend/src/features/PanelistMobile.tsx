@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   X,
   Check,
   Gem,
+  Flame,
   ChevronRight,
   Angry,
   Frown,
@@ -51,7 +52,15 @@ type Tab = 'deck' | 'tasks' | 'pet' | 'chat' | 'shop'
 
 type Reward = {
   pointsAwarded: number
-  pet: { exp: number; level: number; evolutionStage: string | null }
+  pet: {
+    exp: number
+    level: number
+    evolutionStage: string | null
+    expGained: number
+    prevLevel: number
+    leveledUp: boolean
+    streak: number
+  }
 }
 
 type Props = {
@@ -1827,6 +1836,18 @@ function CompleteStage({
   onContinue: () => void
 }) {
   const newBalance = useMemo(() => me?.wallet.balance ?? 0, [me])
+  const reduceMotion = useReducedMotion()
+  const expProgress = useMemo(
+    () => petProgress(reward.pet.exp, reward.pet.level),
+    [reward.pet.exp, reward.pet.level],
+  )
+  const fromRatio = useMemo(
+    () =>
+      reward.pet.leveledUp
+        ? 0
+        : petProgress(reward.pet.exp - reward.pet.expGained, reward.pet.prevLevel).ratio,
+    [reward.pet.exp, reward.pet.expGained, reward.pet.leveledUp, reward.pet.prevLevel],
+  )
   const firedRef = useRef(false)
   useEffect(() => {
     if (firedRef.current) return
@@ -1852,22 +1873,59 @@ function CompleteStage({
           />
         </div>
         <p className="pm-celebrate__eyebrow">응답을 완료했어요</p>
-        <p className="pm-celebrate__points">
-          +{reward.pointsAwarded}
-          <span className="pm-celebrate__unit">P</span>
-        </p>
-        <dl className="pm-celebrate__summary">
-          <div className="pm-celebrate__summary-item">
-            <dt>정령</dt>
-            <dd>
-              Lv.{reward.pet.level} · {reward.pet.evolutionStage ?? '알'}
-            </dd>
-          </div>
-          <div className="pm-celebrate__summary-item">
-            <dt>누적 포인트</dt>
-            <dd>{newBalance.toLocaleString()} P</dd>
-          </div>
-        </dl>
+        <div className="pm-reward-tracks" aria-live="polite">
+          <section className="pm-track pm-track--grow">
+            <header className="pm-track__head">
+              <span className="pm-track__icon" aria-hidden="true">
+                <Sparkles size={18} strokeWidth={2.2} />
+              </span>
+              <span className="pm-track__label">정령 성장</span>
+              <span className="pm-track__delta">+{reward.pet.expGained} EXP</span>
+            </header>
+            <div className="pm-track__bar" aria-hidden="true">
+              <motion.div
+                className="pm-track__bar-fill"
+                initial={{ width: `${fromRatio * 100}%` }}
+                animate={{ width: `${expProgress.ratio * 100}%` }}
+                transition={
+                  reduceMotion
+                    ? { duration: 0 }
+                    : { type: 'spring', stiffness: 120, damping: 20, delay: 0.3 }
+                }
+              />
+            </div>
+            <footer className="pm-track__foot">
+              {reward.pet.leveledUp ? (
+                <span className="pm-track__levelup">
+                  레벨 업! Lv.{reward.pet.prevLevel} → Lv.{reward.pet.level}
+                </span>
+              ) : (
+                <span>Lv.{reward.pet.level}</span>
+              )}
+              <span>
+                {expProgress.max ? '최대 레벨' : `다음 레벨까지 ${expProgress.toNext} EXP`}
+              </span>
+            </footer>
+          </section>
+          <section className="pm-track pm-track--spend">
+            <header className="pm-track__head">
+              <span className="pm-track__icon" aria-hidden="true">
+                <Gem size={18} strokeWidth={2.2} />
+              </span>
+              <span className="pm-track__label">포인트 적립</span>
+              <span className="pm-track__delta">+{reward.pointsAwarded.toLocaleString()} P</span>
+            </header>
+            <footer className="pm-track__foot pm-track__foot--single">
+              <span>교환 가능 · 누적 {newBalance.toLocaleString()} P</span>
+            </footer>
+          </section>
+        </div>
+        {reward.pet.streak >= 2 && (
+          <p className="pm-streak-chip">
+            <Flame size={16} strokeWidth={2.2} aria-hidden="true" />
+            <strong>{reward.pet.streak}일</strong> 연속 참여 중
+          </p>
+        )}
         <div className="pm-celebrate__actions">
           <button type="button" className="pm-btn pm-btn--primary pm-btn--xl" onClick={onContinue}>
             다음 설문 보기

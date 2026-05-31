@@ -282,7 +282,15 @@ export const api = {
   completeResponse: (responseId: string) =>
     request<{
       pointsAwarded: number
-      pet: { exp: number; level: number; evolutionStage: string | null }
+      pet: {
+        exp: number
+        level: number
+        evolutionStage: string | null
+        expGained: number
+        prevLevel: number
+        leveledUp: boolean
+        streak: number
+      }
     }>(`/responses/${responseId}/complete`, {
       method: 'POST',
       body: JSON.stringify({}),

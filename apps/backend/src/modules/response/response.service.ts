@@ -188,6 +188,14 @@ export type CompletionOutcome = {
     exp: number
     level: number
     evolutionStage: string | null
+    /** EXP gained by this completion (growth track delta). */
+    expGained: number
+    /** Pet level before this completion. */
+    prevLevel: number
+    /** Whether this completion raised the pet's level. */
+    leveledUp: boolean
+    /** Consecutive-day participation streak after this completion. */
+    streak: number
   }
   dataPiece: DataPiece | null
 }
@@ -232,6 +240,8 @@ export const completeResponse = (responseId: string): CompletionOutcome => {
   walletRepo.credit(response.pid, pointsAwarded, 'earn', response.id)
 
   const pet = petRepo.get(response.pid)
+  const prevLevel = pet.level
+  const prevExp = pet.exp
   const nextPet = applySurveyCompletion(
     {
       exp: pet.exp,
@@ -277,6 +287,10 @@ export const completeResponse = (responseId: string): CompletionOutcome => {
       exp: nextPet.exp,
       level: nextPet.level,
       evolutionStage: nextPet.evolutionStage,
+      expGained: nextPet.exp - prevExp,
+      prevLevel,
+      leveledUp: nextPet.level > prevLevel,
+      streak: streakNext.streak,
     },
     dataPiece,
   }
@@ -291,6 +305,10 @@ const alreadyCompletedOutcome = (response: SurveyResponse): CompletionOutcome =>
       exp: pet.exp,
       level: pet.level,
       evolutionStage: pet.evolutionStage,
+      expGained: 0,
+      prevLevel: pet.level,
+      leveledUp: false,
+      streak: pet.streak,
     },
     dataPiece: null,
   }
