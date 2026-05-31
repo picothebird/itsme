@@ -89,7 +89,10 @@
     'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
     'Noto Sans KR', 'Segoe UI', system-ui, sans-serif;
   --font-display: var(--font-sans);
-  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, ui-monospace, monospace;
+  /* Latin/numerals use JetBrains Mono; Korean glyphs fall back to Pretendard
+     (JetBrains Mono has no Hangul) instead of an ugly system monospace. */
+  --font-mono:
+    'JetBrains Mono', 'SF Mono', Menlo, 'Pretendard Variable', Pretendard, ui-monospace, monospace;
 
   /* Type scale — 8-step modular */
   --text-xs: 12px;

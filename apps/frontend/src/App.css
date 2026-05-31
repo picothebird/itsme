@@ -2338,7 +2338,7 @@ select:focus-visible,
   color: var(--sev-info-fg);
 }
 .reward-orders__voucher {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   color: var(--muted, #555);
 }
