@@ -3450,6 +3450,10 @@ select:focus-visible,
   padding: 0;
   overflow: hidden;
   gap: 0;
+  /* Guard: nowrap suggestion chips must not expand the flex column past the
+     viewport (would clip the welcome greeting + composer horizontally). */
+  max-width: 100%;
+  min-width: 0;
 }
 
 .pm-chat__scroll {
