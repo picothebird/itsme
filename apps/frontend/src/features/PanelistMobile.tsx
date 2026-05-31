@@ -4,9 +4,7 @@ import {
   X,
   Check,
   Gem,
-  Clock,
-  ListChecks,
-  Coins,
+  ChevronRight,
   Angry,
   Frown,
   Meh,
@@ -133,41 +131,40 @@ export function PanelistMobile({ pid, onClose }: Props) {
   }, [responding, pid])
 
   const currentCard = feed[topCardIndex]
-  const nextCard = feed[topCardIndex + 1]
 
-  const handlePass = useCallback(() => {
-    setTopCardIndex((i) => i + 1)
-  }, [])
-
-  const handleAccept = useCallback(async () => {
-    if (!currentCard) return
-    if (blockedUntil !== null && blockedUntil > Date.now()) {
-      setWarning('아직 응답이 제한된 상태예요. 잠시 후 다시 참여해 주세요.')
-      return
-    }
-    setError(null)
-    try {
-      const surveys = await api.listSurveys()
-      const survey = surveys.find((s) => s.id === currentCard.id)
-      if (!survey) {
-        setError('설문 정보를 불러오지 못했어요')
+  const handleAccept = useCallback(
+    async (card?: FeedCard) => {
+      const target = card ?? currentCard
+      if (!target) return
+      if (blockedUntil !== null && blockedUntil > Date.now()) {
+        setWarning('아직 응답이 제한된 상태예요. 잠시 후 다시 참여해 주세요.')
         return
       }
-      const { id: responseId } = await api.startResponse({
-        pid,
-        surveyId: survey.id,
-      })
-      setResponding({
-        survey,
-        responseId,
-        questionIndex: 0,
-        startedAt: Date.now(),
-      })
-      setStage('responding')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '설문을 시작할 수 없어요')
-    }
-  }, [currentCard, pid, blockedUntil])
+      setError(null)
+      try {
+        const surveys = await api.listSurveys()
+        const survey = surveys.find((s) => s.id === target.id)
+        if (!survey) {
+          setError('설문 정보를 불러오지 못했어요')
+          return
+        }
+        const { id: responseId } = await api.startResponse({
+          pid,
+          surveyId: survey.id,
+        })
+        setResponding({
+          survey,
+          responseId,
+          questionIndex: 0,
+          startedAt: Date.now(),
+        })
+        setStage('responding')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '설문을 시작할 수 없어요')
+      }
+    },
+    [currentCard, pid, blockedUntil],
+  )
 
   const submitAnswer = useCallback(
     async (selectedChoiceIds: string[]) => {
@@ -330,11 +327,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
       {stage === 'deck' && tab === 'deck' ? (
         <DeckStage
           loading={loading}
-          currentCard={currentCard}
-          nextCard={nextCard}
-          remaining={Math.max(0, feed.length - topCardIndex)}
-          me={me}
-          onPass={handlePass}
+          cards={feed.slice(topCardIndex)}
           onAccept={handleAccept}
           onRefresh={loadAll}
         />
@@ -482,75 +475,30 @@ function ProgressDots({ total, current }: { total: number; current: number }) {
 
 function DeckStage({
   loading,
-  currentCard,
-  nextCard,
-  remaining,
-  me,
-  onPass,
+  cards,
   onAccept,
   onRefresh,
 }: {
   loading: boolean
-  currentCard: FeedCard | undefined
-  nextCard: FeedCard | undefined
-  remaining: number
-  me: PanelistSummary | null
-  onPass: () => void
-  onAccept: () => void
+  cards: FeedCard[]
+  onAccept: (card: FeedCard) => void
   onRefresh: () => void
 }) {
-  const cardRef = useRef<HTMLDivElement | null>(null)
-  const [drag, setDrag] = useState<{ dx: number; dy: number; active: boolean }>({
-    dx: 0,
-    dy: 0,
-    active: false,
-  })
-  const startRef = useRef<{ x: number; y: number } | null>(null)
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (!currentCard) return
-    startRef.current = { x: e.clientX, y: e.clientY }
-    setDrag({ dx: 0, dy: 0, active: true })
-    cardRef.current?.setPointerCapture(e.pointerId)
-  }
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!startRef.current || !drag.active) return
-    setDrag({
-      dx: e.clientX - startRef.current.x,
-      dy: e.clientY - startRef.current.y,
-      active: true,
-    })
-  }
-  const onPointerUp = () => {
-    if (!drag.active) return
-    const threshold = 120
-    if (drag.dx > threshold) {
-      onAccept()
-    } else if (drag.dx < -threshold) {
-      onPass()
-    }
-    setDrag({ dx: 0, dy: 0, active: false })
-    startRef.current = null
-  }
-
-  const rotate = drag.dx / 18
-  const opacityAccept = Math.min(1, Math.max(0, drag.dx / 120))
-  const opacityPass = Math.min(1, Math.max(0, -drag.dx / 120))
-
   if (loading) {
     return (
       <main className="pm-stage pm-stage--center">
+        <div className="pm-spinner" aria-hidden />
         <p className="pm-muted">설문을 불러오는 중...</p>
       </main>
     )
   }
 
-  if (!currentCard) {
+  if (cards.length === 0) {
     return (
       <main className="pm-stage pm-stage--center">
         <div className="pm-empty">
           <div className="pm-empty__glyph" aria-hidden />
-          <h2 className="pm-empty__title">오늘의 설문을 모두 둘러봤어요</h2>
+          <h2 className="pm-empty__title">오늘의 설문을 모두 마쳤어요</h2>
           <p className="pm-empty__body">잠시 후 새로운 설문이 도착해요.</p>
           <button type="button" className="pm-btn pm-btn--primary" onClick={onRefresh}>
             새로고침
@@ -560,67 +508,71 @@ function DeckStage({
     )
   }
 
+  const [hero, ...rest] = cards
+  const heroMin = Math.max(1, Math.round(hero.estimatedTimeSec / 60))
+
   return (
-    <main className="pm-stage">
-      <div className="pm-deck-meta">
-        <span className="pm-deck-meta__count">남은 설문 {remaining}</span>
-        {me?.pet ? (
-          <span className="pm-deck-meta__pet">
-            정령 Lv.{me.pet.level} · {me.pet.evolutionStage ?? '알'}
-          </span>
-        ) : null}
-      </div>
+    <main className="pm-stage pm-feed">
+      <header className="pm-feed__head">
+        <h1 className="pm-feed__title">
+          오늘 <em>{cards.length}개</em>의 설문이
+          <br />
+          기다리고 있어요
+        </h1>
+        <p className="pm-feed__sub">답하면 바로 포인트가 쌓여요</p>
+      </header>
 
-      <div className="pm-deck">
-        {nextCard ? (
-          <article className="pm-card pm-card--back" aria-hidden>
-            <CardBody card={nextCard} />
-          </article>
-        ) : null}
-        <article
-          ref={cardRef}
-          className={`pm-card pm-card--top${drag.active ? ' is-dragging' : ''}`}
-          style={{
-            transform: `translate(${drag.dx}px, ${drag.dy * 0.4}px) rotate(${rotate}deg)`,
-          }}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-        >
-          <span className="pm-stamp pm-stamp--accept" style={{ opacity: opacityAccept }}>
-            참여
+      <button type="button" className="pm-hero" onClick={() => onAccept(hero)}>
+        <span className="pm-hero__badge">추천</span>
+        <span className="pm-hero__meta">
+          {hero.category} · 약 {heroMin}분 · {hero.questionCount}문항
+        </span>
+        <span className="pm-hero__title">{hero.title}</span>
+        <span className="pm-hero__cta">
+          <span className="pm-hero__reward">
+            <Gem size={16} strokeWidth={2.2} aria-hidden="true" />
+            {hero.pointsPerUser.toLocaleString()}P
           </span>
-          <span className="pm-stamp pm-stamp--pass" style={{ opacity: opacityPass }}>
-            패스
+          <span className="pm-hero__go">
+            참여하기
+            <ChevronRight size={18} strokeWidth={2.4} aria-hidden="true" />
           </span>
-          <CardBody card={currentCard} />
-        </article>
-      </div>
+        </span>
+      </button>
 
-      <div className="pm-deck-actions">
-        <button
-          type="button"
-          className="pm-roundbtn pm-roundbtn--pass"
-          onClick={onPass}
-          aria-label="패스"
-        >
-          <X size={24} strokeWidth={2.4} aria-hidden="true" />
-        </button>
-        <button type="button" className="pm-btn pm-btn--primary pm-btn--xl" onClick={onAccept}>
-          참여하고 {currentCard.pointsPerUser} P 받기
-        </button>
-        <button
-          type="button"
-          className="pm-roundbtn pm-roundbtn--accept"
-          onClick={onAccept}
-          aria-label="참여"
-        >
-          <Check size={24} strokeWidth={2.8} aria-hidden="true" />
-        </button>
-      </div>
-
-      <p className="pm-hint">좌우로 스와이프해서 빠르게 탐색해요</p>
+      {rest.length > 0 ? (
+        <section className="pm-feed-list" aria-label="설문 목록">
+          {rest.map((card) => {
+            const min = Math.max(1, Math.round(card.estimatedTimeSec / 60))
+            return (
+              <button
+                key={card.id}
+                type="button"
+                className="pm-feed-row"
+                onClick={() => onAccept(card)}
+              >
+                <span className="pm-feed-row__body">
+                  <span className="pm-feed-row__cat">{card.category}</span>
+                  <span className="pm-feed-row__title">{card.title}</span>
+                  <span className="pm-feed-row__meta">
+                    {min}분 · {card.questionCount}문항
+                  </span>
+                </span>
+                <span className="pm-feed-row__reward">
+                  <Gem size={14} strokeWidth={2.2} aria-hidden="true" />
+                  {card.pointsPerUser.toLocaleString()}P
+                </span>
+                <ChevronRight
+                  className="pm-feed-row__chev"
+                  size={18}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              </button>
+            )
+          })}
+        </section>
+      ) : null}
     </main>
   )
 }
@@ -1168,39 +1120,6 @@ function ShopStage({
         </div>
       ) : null}
     </main>
-  )
-}
-
-function CardBody({ card }: { card: FeedCard }) {
-  const minutes = Math.max(1, Math.round(card.estimatedTimeSec / 60))
-  return (
-    <>
-      <header className="pm-card__head">
-        <span className="pm-card__category">{card.category}</span>
-        <span className="pm-card__time">
-          <Clock size={13} strokeWidth={2} aria-hidden="true" />
-          {minutes}분
-        </span>
-      </header>
-      <h2 className="pm-card__title">{card.title}</h2>
-      <div className="pm-card__stats">
-        <div className="pm-card__stat">
-          <ListChecks className="pm-card__stat-icon" size={18} strokeWidth={2} aria-hidden="true" />
-          <span className="pm-card__stat-value">{card.questionCount}</span>
-          <span className="pm-card__stat-label">문항</span>
-        </div>
-        <div className="pm-card__stat">
-          <Coins className="pm-card__stat-icon" size={18} strokeWidth={2} aria-hidden="true" />
-          <span className="pm-card__stat-value">{card.pointsPerUser}</span>
-          <span className="pm-card__stat-label">포인트</span>
-        </div>
-        <div className="pm-card__stat">
-          <Clock className="pm-card__stat-icon" size={18} strokeWidth={2} aria-hidden="true" />
-          <span className="pm-card__stat-value">{minutes}</span>
-          <span className="pm-card__stat-label">분</span>
-        </div>
-      </div>
-    </>
   )
 }
 
