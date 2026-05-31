@@ -3,6 +3,8 @@ import { X, Check, Sparkles } from 'lucide-react'
 
 import { api, getAuthToken, setAuthToken, type Account } from '../lib/api'
 import { PanelistMobile } from './PanelistMobile'
+import { PetCreature } from './PetCreature'
+import { creatureStageFromLevel } from '../lib/petStage'
 import { InfoDot } from '../components/ui/Tooltip'
 import { celebrate } from '../lib/celebrate'
 
@@ -116,17 +118,39 @@ export function PanelistApp({ onClose }: Props) {
       aria-label="패널 로그인"
     >
       <header className="pm-topbar">
-        {onClose ? (
-          <button type="button" className="pm-iconbtn" onClick={onClose} aria-label="닫기">
-            <X size={22} strokeWidth={2.2} aria-hidden="true" />
-          </button>
-        ) : (
-          <div className="pm-topbar__spacer" aria-hidden />
-        )}
-        <div className="pm-topbar__center">
-          <span className="pm-topbar__title">잇츠미</span>
+        <div className="pm-topbar__brand">
+          {onClose ? (
+            <button
+              type="button"
+              className="pm-iconbtn pm-iconbtn--tight"
+              onClick={onClose}
+              aria-label="닫기"
+            >
+              <X size={20} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+          ) : null}
+          <span className="pm-topbar__logo" aria-hidden="true">
+            <svg viewBox="0 0 28 28" width="26" height="26">
+              <defs>
+                <linearGradient id="pm-app-logo-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#9C8CFF" />
+                  <stop offset="1" stopColor="#6D5BE0" />
+                </linearGradient>
+              </defs>
+              <rect x="1" y="1" width="26" height="26" rx="9" fill="url(#pm-app-logo-grad)" />
+              <circle cx="11" cy="13" r="2.4" fill="#fff" />
+              <circle cx="18" cy="13" r="2.4" fill="#fff" />
+              <path
+                d="M10.5 18.5q3.5 3 7 0"
+                stroke="#fff"
+                strokeWidth="1.8"
+                fill="none"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+          <span className="pm-topbar__wordmark">itsme</span>
         </div>
-        <div className="pm-topbar__spacer" aria-hidden />
       </header>
 
       {error ? (
@@ -204,6 +228,90 @@ function LoginStage({
   )
 }
 
+function YearWheel({
+  years,
+  value,
+  onChange,
+}: {
+  years: number[]
+  value: number | null
+  onChange: (year: number) => void
+}) {
+  const listRef = useRef<HTMLUListElement>(null)
+  const itemRefs = useRef<Map<number, HTMLLIElement>>(new Map())
+  const onChangeRef = useRef(onChange)
+
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
+
+  // Center the selected (or a sensible default) on first render.
+  useEffect(() => {
+    const target = value ?? years[Math.floor(years.length / 2)]
+    if (value === null) onChangeRef.current(target)
+    const el = itemRefs.current.get(target)
+    el?.scrollIntoView({ block: 'center' })
+    // mount-only: intentionally run once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Select whichever year scrolls into the center band.
+  useEffect(() => {
+    const root = listRef.current
+    if (!root) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          const year = Number((entry.target as HTMLElement).dataset.year)
+          if (!Number.isNaN(year)) onChangeRef.current(year)
+        }
+      },
+      { root, rootMargin: '-46% 0px -46% 0px', threshold: 0 },
+    )
+    itemRefs.current.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div className="pm-wheel" role="group" aria-label="태어난 해 선택">
+      <div className="pm-wheel__band" aria-hidden />
+      <ul className="pm-wheel__list" ref={listRef}>
+        {years.map((y) => {
+          const selected = value === y
+          return (
+            <li
+              key={y}
+              ref={(el) => {
+                if (el) itemRefs.current.set(y, el)
+                else itemRefs.current.delete(y)
+              }}
+              data-year={y}
+              className={`pm-wheel__item${selected ? ' is-selected' : ''}`}
+            >
+              <button
+                type="button"
+                className="pm-wheel__btn"
+                aria-pressed={selected}
+                onClick={(e) => {
+                  onChange(y)
+                  e.currentTarget.parentElement?.scrollIntoView({
+                    block: 'center',
+                    behavior: 'smooth',
+                  })
+                }}
+              >
+                {y}
+                <span className="pm-wheel__unit">년</span>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
 function OnboardingStage({
   busy,
   onSubmit,
@@ -253,18 +361,7 @@ function OnboardingStage({
         <section className="pm-onboard__step">
           <h2 className="pm-q__text">태어난 해를 알려주세요</h2>
           <p className="pm-q__hint">맞춤 설문을 추천하는 데 사용돼요.</p>
-          <div className="pm-yeargrid">
-            {years.map((y) => (
-              <button
-                key={y}
-                type="button"
-                className={`pm-chip${birthYear === y ? ' is-selected' : ''}`}
-                onClick={() => setBirthYear(y)}
-              >
-                {y}
-              </button>
-            ))}
-          </div>
+          <YearWheel years={years} value={birthYear} onChange={setBirthYear} />
         </section>
       ) : null}
 
@@ -360,7 +457,11 @@ function HatchStage({ hatch, onStart }: { hatch: HatchResult; onStart: () => voi
       <div className={`pm-hatch__egg${cracked ? ' is-cracked' : ''}`} aria-hidden>
         <div className="pm-hatch__egg-top" />
         <div className="pm-hatch__egg-bottom" />
-        <div className="pm-hatch__spirit" />
+        <PetCreature
+          stage={creatureStageFromLevel(hatch.pet.level)}
+          size={88}
+          className="pm-hatch__spirit"
+        />
         <div className="pm-hatch__sparkle pm-hatch__sparkle--1" />
         <div className="pm-hatch__sparkle pm-hatch__sparkle--2" />
         <div className="pm-hatch__sparkle pm-hatch__sparkle--3" />

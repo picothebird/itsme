@@ -84,6 +84,11 @@
   --panel-soft: var(--color-surface-soft);
   --muted: var(--color-steel);
 
+  /* Mobile-app aliases (panelist .pm-* components reference these) */
+  --color-line: var(--color-hairline);
+  --color-ink-soft: var(--color-slate);
+  --color-primary-strong: var(--color-primary);
+
   /* Type — Pretendard for Korean+Latin consistency, with system fallbacks */
   --font-sans:
     'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
