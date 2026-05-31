@@ -286,7 +286,9 @@ export function PanelistMobile({ pid, onClose }: Props) {
         </div>
         <div className="pm-balance" aria-label="현재 포인트">
           <Gem className="pm-balance__icon" size={15} strokeWidth={2.2} aria-hidden="true" />
-          <span className="pm-balance__value">{me?.wallet.balance ?? 0}</span>
+          <span className="pm-balance__value" aria-live="polite" aria-atomic="true">
+            {me?.wallet.balance ?? 0}
+          </span>
         </div>
       </header>
 

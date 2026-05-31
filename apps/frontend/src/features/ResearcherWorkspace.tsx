@@ -111,6 +111,13 @@ export function ResearcherWorkspace() {
     }
   }, [])
 
+  // §에러 배너 자동 해제(8초) — 영구 잔류로 화면을 가리지 않도록
+  useEffect(() => {
+    if (!error) return
+    const id = window.setTimeout(() => setError(null), 8000)
+    return () => window.clearTimeout(id)
+  }, [error])
+
   const refresh = useCallback(async () => {
     setError(null)
     try {
