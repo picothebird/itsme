@@ -3229,6 +3229,18 @@ select:focus-visible,
   width: 32px;
   height: 32px;
   margin-left: -4px;
+  position: relative;
+}
+
+/* Keep the visual circle compact (32px) but guarantee a 44×44 tap target. */
+.pm-iconbtn--tight::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 .pm-iconbtn:hover {

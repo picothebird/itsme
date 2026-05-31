@@ -972,7 +972,7 @@ function PetStage({
             />
           </button>
         </div>
-        <div className="pm-pet__meta">
+        <div className="pm-pet__meta" aria-live="polite" aria-atomic="true">
           <span className="pm-pet__stage">{pet?.evolutionStage ?? '알 단계'}</span>
           <h2 className="pm-pet__level">Lv.{pet?.level ?? 1}</h2>
           {pet?.sick ? (
@@ -1152,30 +1152,37 @@ function ShopStage({
       </div>
 
       <h2 className="pm-section-title">기프티콘으로 교환</h2>
-      <div className="pm-shop__grid">
-        {sortedCatalog.map((item) => {
-          const lack = balance != null && balance < item.cost
-          return (
-            <article key={item.id} className="pm-shop__card">
-              <span className={`pm-shop__vendor pm-shop__vendor--${item.vendor}`}>
-                {VENDOR_LABEL[item.vendor] ?? item.vendor}
-              </span>
-              <h3 className="pm-shop__label">{item.label}</h3>
-              <div className="pm-shop__footer">
-                <span className="pm-shop__cost">{item.cost.toLocaleString()} P</span>
-                <button
-                  type="button"
-                  className="pm-btn pm-btn--ghost pm-btn--sm"
-                  disabled={busyItem === item.id || lack}
-                  onClick={() => void redeem(item)}
-                >
-                  {busyItem === item.id ? '교환 중…' : lack ? '포인트 부족' : '교환'}
-                </button>
-              </div>
-            </article>
-          )
-        })}
-      </div>
+      {sortedCatalog.length === 0 ? (
+        <div className="pm-emptybox">
+          <Gift size={28} strokeWidth={1.8} aria-hidden="true" />
+          <p>교환 가능한 기프티콘을 준비하고 있어요. 곧 새로운 상품이 열려요.</p>
+        </div>
+      ) : (
+        <div className="pm-shop__grid">
+          {sortedCatalog.map((item) => {
+            const lack = balance != null && balance < item.cost
+            return (
+              <article key={item.id} className="pm-shop__card">
+                <span className={`pm-shop__vendor pm-shop__vendor--${item.vendor}`}>
+                  {VENDOR_LABEL[item.vendor] ?? item.vendor}
+                </span>
+                <h3 className="pm-shop__label">{item.label}</h3>
+                <div className="pm-shop__footer">
+                  <span className="pm-shop__cost">{item.cost.toLocaleString()} P</span>
+                  <button
+                    type="button"
+                    className="pm-btn pm-btn--ghost pm-btn--sm"
+                    disabled={busyItem === item.id || lack}
+                    onClick={() => void redeem(item)}
+                  >
+                    {busyItem === item.id ? '교환 중…' : lack ? '포인트 부족' : '교환'}
+                  </button>
+                </div>
+              </article>
+            )
+          })}
+        </div>
+      )}
 
       {orders.length > 0 ? (
         <div className="pm-shop__orders">
@@ -1312,7 +1319,7 @@ function ResponseQuestion({
                   key={c.id}
                   type="button"
                   className={`pm-choice${isSelected ? ' is-selected' : ''}`}
-                  aria-pressed={isMulti ? isSelected : undefined}
+                  aria-pressed={isSelected}
                   onClick={() => (isSingle ? handleSingleTap(c.id) : toggleMulti(c.id))}
                   disabled={submitting}
                 >
