@@ -32,6 +32,7 @@ import {
 } from '../lib/api'
 import { celebrate } from '../lib/celebrate'
 import { useDialogA11y } from '../lib/useDialogA11y'
+import { useAutoDismissToast } from '../lib/useAutoDismissToast'
 import { PetCreature } from './PetCreature'
 import { creatureStageFromLevel } from '../lib/petStage'
 
@@ -735,6 +736,7 @@ function TasksStage({
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  useAutoDismissToast(toast, () => setToast(null))
 
   const load = useCallback(async () => {
     try {
@@ -892,6 +894,7 @@ function PetStage({
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  useAutoDismissToast(toast, () => setToast(null))
 
   const load = useCallback(async () => {
     try {
@@ -1065,6 +1068,7 @@ function ShopStage({
   const [busyItem, setBusyItem] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
+  useAutoDismissToast(toast, () => setToast(null))
 
   useEffect(() => {
     let cancelled = false
@@ -1294,6 +1298,8 @@ function ResponseQuestion({
             <textarea
               className="pm-textarea"
               placeholder="자유롭게 적어 주세요"
+              aria-label="자유 응답"
+              maxLength={500}
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={5}
@@ -1306,6 +1312,7 @@ function ResponseQuestion({
                   key={c.id}
                   type="button"
                   className={`pm-choice${isSelected ? ' is-selected' : ''}`}
+                  aria-pressed={isMulti ? isSelected : undefined}
                   onClick={() => (isSingle ? handleSingleTap(c.id) : toggleMulti(c.id))}
                   disabled={submitting}
                 >
@@ -1328,7 +1335,11 @@ function ResponseQuestion({
             onClick={() => onAnswer(isText ? [] : selected)}
             disabled={!canConfirm || submitting}
           >
-            {submitting ? '전송 중...' : '다음'}
+            {submitting
+              ? '전송 중...'
+              : isMulti && selected.length > 0
+                ? `다음 · ${selected.length}개 선택`
+                : '다음'}
           </button>
         </div>
       )}
