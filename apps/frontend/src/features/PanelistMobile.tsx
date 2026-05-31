@@ -183,7 +183,7 @@ export function PanelistMobile({ pid, onClose }: Props) {
             <X size={22} strokeWidth={2.2} aria-hidden="true" />
           </button>
         ) : (
-          <div style={{ width: 44 }} />
+          <div className="pm-topbar__spacer" aria-hidden />
         )}
         <div className="pm-topbar__center">
           {stage === 'responding' && responding ? (
