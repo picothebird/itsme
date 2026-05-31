@@ -3116,6 +3116,26 @@ select:focus-visible,
   --tone-warn-bg: #fff8e8;
   --tone-warn-line: #fbe3a8;
 
+  /* Severity palette (light) — pinned to the explicit panelist theme so it does
+     not leak the OS-driven :root values from index.css (would desync chips when
+     OS dark + app light). Keep values in sync with index.css :root. */
+  --sev-high-fg: #b42318;
+  --sev-high-bg: #fde8e8;
+  --sev-high-line: #d92d20;
+  --sev-high-surface: #fef6f6;
+  --sev-warn-fg: #92400e;
+  --sev-warn-bg: #fef3c7;
+  --sev-warn-line: #d97706;
+  --sev-warn-surface: #fffdf5;
+  --sev-info-fg: #3730a3;
+  --sev-info-bg: #e0e7ff;
+  --sev-info-line: #4f46e5;
+  --sev-info-surface: #f6f7ff;
+  --sev-ok-fg: #166534;
+  --sev-ok-bg: #dcfce7;
+  --sev-danger-fg: #991b1b;
+  --sev-danger-bg: #fee2e2;
+
   /* ───── Glassmorphism (light — 화사한 글래스) ─────
      유리가 비칠 배경 글로우 + 반투명 표면/테두리/그림자 토큰.
      설계: docs/글래스모피즘_토큰_및_모바일적용_설계.md */
@@ -3198,6 +3218,25 @@ select:focus-visible,
   --tone-warn-fg: #f0c14b;
   --tone-warn-bg: rgba(240, 193, 75, 0.12);
   --tone-warn-line: rgba(240, 193, 75, 0.32);
+
+  /* Severity palette (dark) — pinned to the explicit panelist theme. Keep
+     values in sync with index.css @media(prefers-color-scheme: dark) :root. */
+  --sev-high-fg: #ff9d96;
+  --sev-high-bg: #3a1f1d;
+  --sev-high-line: #ff6b6b;
+  --sev-high-surface: #271817;
+  --sev-warn-fg: #f4c66b;
+  --sev-warn-bg: #352a14;
+  --sev-warn-line: #d97706;
+  --sev-warn-surface: #221c10;
+  --sev-info-fg: #aeb6ff;
+  --sev-info-bg: #232447;
+  --sev-info-line: #6366f1;
+  --sev-info-surface: #181a2e;
+  --sev-ok-fg: #7ee2a6;
+  --sev-ok-bg: #1c3a28;
+  --sev-danger-fg: #ff9d96;
+  --sev-danger-bg: #3a1f1d;
 
   /* ───── Glassmorphism (dark — 세련된 애플 다크) ─────
      어두운 반투명 + 밝은 rim. 흰 유리가 아니라 어두운 유리 + 미세 하이라이트. */
